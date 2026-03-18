@@ -10,6 +10,7 @@ class GeomSegment:
     """Draw line segments from (x, y) to (xend, yend)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "xend", "yend"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

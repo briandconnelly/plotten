@@ -10,6 +10,7 @@ class GeomHLine:
     """Draw a horizontal reference line."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(self, yintercept: float, **kwargs: Any) -> None:
         self._yintercept = yintercept
@@ -34,6 +35,7 @@ class GeomVLine:
     """Draw a vertical reference line."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(self, xintercept: float, **kwargs: Any) -> None:
         self._xintercept = xintercept
@@ -58,6 +60,7 @@ class GeomAbLine:
     """Draw a line with given slope and intercept."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(self, slope: float, intercept: float, **kwargs: Any) -> None:
         self._slope = slope

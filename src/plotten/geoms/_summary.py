@@ -10,6 +10,7 @@ class GeomSummary:
     """Draw summary points with error bars (y with ymin/ymax whiskers)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._summary import StatSummary

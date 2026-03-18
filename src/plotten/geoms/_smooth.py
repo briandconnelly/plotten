@@ -12,6 +12,7 @@ class GeomSmooth:
     """Draw a smooth fit line with optional CI ribbon."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
+    supports_group_splitting: bool = True
 
     def __init__(self, method: str = "loess", se: bool = True, **kwargs: Any) -> None:
         self._method = method

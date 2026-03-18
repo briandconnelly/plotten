@@ -6,8 +6,8 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
-class GeomLine:
-    """Draw lines using ax.plot."""
+class GeomPath:
+    """Draw lines connecting points in data order (not sorted by x)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
@@ -21,6 +21,8 @@ class GeomLine:
         kwargs: dict[str, Any] = {}
         if "color" in data and isinstance(data["color"], str):
             kwargs["color"] = data["color"]
+        elif "color" in params:
+            kwargs["color"] = params["color"]
         if "alpha" in data and not isinstance(data["alpha"], list):
             kwargs["alpha"] = data["alpha"]
         elif "alpha" in params:

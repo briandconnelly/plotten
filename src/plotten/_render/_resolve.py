@@ -99,15 +99,21 @@ def _resolve_layers(
         if rename_exprs:
             frame = frame.rename(rename_exprs)
 
-        # 3b. Validate required aesthetics
-        from plotten._validation import validate_required_aes
-
-        validate_required_aes(layer.geom, merged_aes, frame.columns)
-
         # 4. Run stat
         stat = layer.stat
         if stat is None:
             stat = layer.geom.default_stat()
+
+        # 3b. Validate required aesthetics
+        # When a non-identity stat is used, validate against the stat's requirements
+        # since the stat will produce the geom's other required aesthetics.
+        from plotten._validation import validate_required_aes
+        from plotten.stats._identity import StatIdentity
+
+        if isinstance(stat, StatIdentity):
+            validate_required_aes(layer.geom, merged_aes, frame.columns)
+        else:
+            validate_required_aes(stat, merged_aes, frame.columns)
         native_data = nw.to_native(frame)
         computed = stat.compute(native_data)
         frame = nw.from_native(computed)
@@ -169,6 +175,21 @@ def _resolve_layers(
         if layer.position is not None:
             data_dict = layer.position.adjust(data_dict, layer.params)
 
+        # 9. Group splitting for line-like geoms
+        if getattr(layer.geom, "supports_group_splitting", False):
+            group_key = _detect_group_key(data_dict)
+            if group_key is not None:
+                for sub_data in _split_by_group(data_dict, group_key):
+                    resolved_layers.append(
+                        ResolvedLayer(
+                            geom=layer.geom,
+                            data=sub_data,
+                            params=layer.params,
+                            position=layer.position,
+                        )
+                    )
+                continue  # skip the default append
+
         resolved_layers.append(
             ResolvedLayer(
                 geom=layer.geom,
@@ -179,6 +200,43 @@ def _resolve_layers(
         )
 
     return resolved_layers, scales
+
+
+def _detect_group_key(data_dict: dict[str, Any]) -> str | None:
+    """Return the first aesthetic key suitable for group splitting."""
+    for key in ("group", "color", "fill", "linetype"):
+        vals = data_dict.get(key)
+        if isinstance(vals, list) and len(set(vals)) > 1:
+            return key
+    return None
+
+
+def _split_by_group(data_dict: dict[str, Any], group_key: str) -> list[dict[str, Any]]:
+    """Split data_dict into sub-dicts by unique values of group_key."""
+    group_vals = data_dict[group_key]
+    unique_groups = list(dict.fromkeys(group_vals))  # preserve order
+    result: list[dict[str, Any]] = []
+
+    for group_val in unique_groups:
+        indices = [i for i, v in enumerate(group_vals) if v == group_val]
+        sub: dict[str, Any] = {}
+        for k, v in data_dict.items():
+            if isinstance(v, list):
+                subset = [v[i] for i in indices]
+                # Convert group aesthetics to scalar if all values are the same
+                if k in ("color", "fill", "linetype", "group"):
+                    unique = set(subset)
+                    if len(unique) == 1:
+                        sub[k] = subset[0]
+                    else:
+                        sub[k] = subset
+                else:
+                    sub[k] = subset
+            else:
+                sub[k] = v
+        result.append(sub)
+
+    return result
 
 
 def resolve(plot: Any) -> ResolvedPlot:

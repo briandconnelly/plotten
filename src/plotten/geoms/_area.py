@@ -10,6 +10,7 @@ class GeomArea:
     """Draw filled area under a curve."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
+    supports_group_splitting: bool = True
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

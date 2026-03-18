@@ -8,11 +8,17 @@ from plotten.geoms._area import GeomArea
 from plotten.geoms._bar import GeomBar
 from plotten.geoms._boxplot import GeomBoxplot
 from plotten.geoms._col import GeomCol
+from plotten.geoms._crossbar import GeomCrossbar
 from plotten.geoms._density import GeomDensity
 from plotten.geoms._errorbar import GeomErrorbar
+from plotten.geoms._hex import GeomHex
 from plotten.geoms._histogram import GeomHistogram
 from plotten.geoms._line import GeomLine
+from plotten.geoms._linerange import GeomLinerange
+from plotten.geoms._path import GeomPath
 from plotten.geoms._point import GeomPoint
+from plotten.geoms._pointrange import GeomPointrange
+from plotten.geoms._polygon import GeomPolygon
 from plotten.geoms._rect import GeomRect
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
 from plotten.geoms._ribbon import GeomRibbon
@@ -233,6 +239,108 @@ def geom_jitter(
     return Layer(geom=GeomPoint(), mapping=mapping, params=params, position=position)
 
 
+def geom_path(**params: Any) -> Layer:
+    """Create a path layer (connects points in data order)."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomPath(), mapping=mapping, params=params, position=position)
+
+
+def geom_polygon(**params: Any) -> Layer:
+    """Create a polygon layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomPolygon(), mapping=mapping, params=params, position=position)
+
+
+def geom_crossbar(**params: Any) -> Layer:
+    """Create a crossbar layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomCrossbar(), mapping=mapping, params=params, position=position)
+
+
+def geom_pointrange(**params: Any) -> Layer:
+    """Create a pointrange layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomPointrange(), mapping=mapping, params=params, position=position)
+
+
+def geom_linerange(**params: Any) -> Layer:
+    """Create a linerange layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomLinerange(), mapping=mapping, params=params, position=position)
+
+
+def geom_hex(**params: Any) -> Layer:
+    """Create a hexagonal binning layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomHex(), mapping=mapping, params=params, position=position)
+
+
+def geom_bin2d(bins: int | tuple[int, int] = 30, **params: Any) -> Layer:
+    """Create a 2D bin (rectangular heatmap) layer."""
+    from plotten.stats._bin2d import StatBin2d
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomTile(),
+        stat=StatBin2d(bins=bins),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def stat_ecdf(**params: Any) -> Layer:
+    """Create an ECDF (empirical CDF) layer."""
+    from plotten.stats._ecdf import StatECDF
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomStep(),
+        stat=StatECDF(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def geom_qq(**params: Any) -> Layer:
+    """Create a QQ plot layer."""
+    from plotten.stats._qq import StatQQ
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomPoint(),
+        stat=StatQQ(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def geom_qq_line(**params: Any) -> Layer:
+    """Create a QQ reference line layer."""
+    from plotten.stats._qq import StatQQLine
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomLine(),
+        stat=StatQQLine(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 def stat_summary(
     fun_y: str = "mean",
     fun_ymin: str = "mean_se_lower",
@@ -259,13 +367,19 @@ __all__ = [
     "GeomBar",
     "GeomBoxplot",
     "GeomCol",
+    "GeomCrossbar",
     "GeomDensity",
     "GeomErrorbar",
     "GeomHLine",
+    "GeomHex",
     "GeomHistogram",
     "GeomLabel",
     "GeomLine",
+    "GeomLinerange",
+    "GeomPath",
     "GeomPoint",
+    "GeomPointrange",
+    "GeomPolygon",
     "GeomRect",
     "GeomRibbon",
     "GeomRug",
@@ -280,16 +394,25 @@ __all__ = [
     "geom_abline",
     "geom_area",
     "geom_bar",
+    "geom_bin2d",
     "geom_boxplot",
     "geom_col",
+    "geom_crossbar",
     "geom_density",
     "geom_errorbar",
+    "geom_hex",
     "geom_histogram",
     "geom_hline",
     "geom_jitter",
     "geom_label",
     "geom_line",
+    "geom_linerange",
+    "geom_path",
     "geom_point",
+    "geom_pointrange",
+    "geom_polygon",
+    "geom_qq",
+    "geom_qq_line",
     "geom_rect",
     "geom_ribbon",
     "geom_rug",
@@ -300,5 +423,6 @@ __all__ = [
     "geom_tile",
     "geom_violin",
     "geom_vline",
+    "stat_ecdf",
     "stat_summary",
 ]

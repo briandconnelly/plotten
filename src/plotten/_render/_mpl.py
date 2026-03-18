@@ -131,28 +131,50 @@ def _render_panel(
     else:
         ax.set_facecolor("none")
 
-    # Grid — per-axis control
+    # Grid — element overrides take precedence
+    from plotten.themes._elements import ElementBlank, ElementLine
+
     grid_major_x = getattr(theme, "grid_major_x", True)
     grid_major_y = getattr(theme, "grid_major_y", True)
     grid_minor_x = getattr(theme, "grid_minor_x", False)
     grid_minor_y = getattr(theme, "grid_minor_y", False)
 
+    # Element overrides for grid
+    if isinstance(theme.panel_grid_major, ElementBlank):
+        grid_major_x = False
+        grid_major_y = False
+    if isinstance(theme.panel_grid_minor, ElementBlank):
+        grid_minor_x = False
+        grid_minor_y = False
+
+    major_grid_color = theme.grid_color
+    major_grid_width = theme.grid_line_width
+    if isinstance(theme.panel_grid_major, ElementLine):
+        if theme.panel_grid_major.color is not None:
+            major_grid_color = theme.panel_grid_major.color
+        if theme.panel_grid_major.size is not None:
+            major_grid_width = theme.panel_grid_major.size
+
+    minor_grid_color = theme.grid_color
+    minor_grid_width = theme.grid_line_width * 0.5
+    if isinstance(theme.panel_grid_minor, ElementLine):
+        if theme.panel_grid_minor.color is not None:
+            minor_grid_color = theme.panel_grid_minor.color
+        if theme.panel_grid_minor.size is not None:
+            minor_grid_width = theme.panel_grid_minor.size
+
     # Clear any default grid, then apply per-axis
     ax.grid(False)
     if grid_major_x:
-        ax.xaxis.grid(True, which="major", color=theme.grid_color, linewidth=theme.grid_line_width)
+        ax.xaxis.grid(True, which="major", color=major_grid_color, linewidth=major_grid_width)
     if grid_major_y:
-        ax.yaxis.grid(True, which="major", color=theme.grid_color, linewidth=theme.grid_line_width)
+        ax.yaxis.grid(True, which="major", color=major_grid_color, linewidth=major_grid_width)
     if grid_minor_x or grid_minor_y:
         ax.minorticks_on()
         if grid_minor_x:
-            ax.xaxis.grid(
-                True, which="minor", color=theme.grid_color, linewidth=theme.grid_line_width * 0.5
-            )
+            ax.xaxis.grid(True, which="minor", color=minor_grid_color, linewidth=minor_grid_width)
         if grid_minor_y:
-            ax.yaxis.grid(
-                True, which="minor", color=theme.grid_color, linewidth=theme.grid_line_width * 0.5
-            )
+            ax.yaxis.grid(True, which="minor", color=minor_grid_color, linewidth=minor_grid_width)
     ax.set_axisbelow(True)
 
     # Spine styling
@@ -213,22 +235,29 @@ def _apply_scales(ax: Axes, scales: dict) -> None:
     """Apply scale limits, breaks, and labels to axes."""
     from plotten.scales._log import ScaleLog
     from plotten.scales._position import ScaleContinuous
+    from plotten.scales._reverse import ScaleReverse
+    from plotten.scales._sqrt import ScaleSqrt
 
     if "x" in scales:
         x_scale = scales["x"]
         match x_scale:
             case ScaleLog():
                 ax.set_xscale("log", base=x_scale._base)
+            case ScaleSqrt():
+                import numpy as _np
+
+                ax.set_xscale("function", functions=(_np.sqrt, _np.square))
+                _apply_continuous_scale(ax, x_scale, axis="x")
             case _ if _is_date_scale(x_scale):
                 _apply_date_scale(ax, x_scale, axis="x")
+            case ScaleReverse():
+                _apply_continuous_scale(ax, x_scale, axis="x")
             case ScaleDiscrete():
                 ax.set_xlim(x_scale.get_limits())
                 ax.set_xticks(x_scale.get_breaks())
                 ax.set_xticklabels(x_scale.get_labels())
-            case ScaleContinuous() if x_scale._breaks is not None:
-                ax.set_xlim(x_scale.get_limits())
-                ax.set_xticks(x_scale.get_breaks())
-                ax.set_xticklabels(x_scale.get_labels())
+            case ScaleContinuous() if x_scale._breaks is not None or callable(x_scale._labels):
+                _apply_continuous_scale(ax, x_scale, axis="x")
             case _:
                 ax.set_xlim(x_scale.get_limits())
         ax.set_xlabel("x")
@@ -238,19 +267,37 @@ def _apply_scales(ax: Axes, scales: dict) -> None:
         match y_scale:
             case ScaleLog():
                 ax.set_yscale("log", base=y_scale._base)
+            case ScaleSqrt():
+                import numpy as _np
+
+                ax.set_yscale("function", functions=(_np.sqrt, _np.square))
+                _apply_continuous_scale(ax, y_scale, axis="y")
             case _ if _is_date_scale(y_scale):
                 _apply_date_scale(ax, y_scale, axis="y")
+            case ScaleReverse():
+                _apply_continuous_scale(ax, y_scale, axis="y")
             case ScaleDiscrete():
                 ax.set_ylim(y_scale.get_limits())
                 ax.set_yticks(y_scale.get_breaks())
                 ax.set_yticklabels(y_scale.get_labels())
-            case ScaleContinuous() if y_scale._breaks is not None:
-                ax.set_ylim(y_scale.get_limits())
-                ax.set_yticks(y_scale.get_breaks())
-                ax.set_yticklabels(y_scale.get_labels())
+            case ScaleContinuous() if y_scale._breaks is not None or callable(y_scale._labels):
+                _apply_continuous_scale(ax, y_scale, axis="y")
             case _:
                 ax.set_ylim(y_scale.get_limits())
         ax.set_ylabel("y")
+
+
+def _apply_continuous_scale(ax: Axes, scale: Any, axis: str) -> None:
+    """Apply limits, breaks, and labels for a continuous scale."""
+    limits = scale.get_limits()
+    if axis == "x":
+        ax.set_xlim(limits)
+        ax.set_xticks(scale.get_breaks())
+        ax.set_xticklabels(scale.get_labels())
+    else:
+        ax.set_ylim(limits)
+        ax.set_yticks(scale.get_breaks())
+        ax.set_yticklabels(scale.get_labels())
 
 
 def _is_date_scale(scale: Any) -> bool:
@@ -348,22 +395,41 @@ def _apply_axis_labs(ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
 
 def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
     """Apply title, subtitle, and caption. Call after tight_layout."""
+    from plotten.themes._elements import ElementBlank, ElementText
+
     labs = resolved.labs
     if labs is None:
         return
 
     title_color = getattr(theme, "title_color", "#000000")
+    title_size = theme.title_size
+    title_family = theme.font_family
     subtitle_size = getattr(theme, "subtitle_size", None) or theme.label_size
     subtitle_color = getattr(theme, "subtitle_color", "#555555")
 
-    has_title = labs.title is not None
-    has_subtitle = labs.subtitle is not None
+    # Apply element overrides
+    if isinstance(theme.plot_title, ElementText):
+        if theme.plot_title.size is not None:
+            title_size = theme.plot_title.size
+        if theme.plot_title.color is not None:
+            title_color = theme.plot_title.color
+        if theme.plot_title.family is not None:
+            title_family = theme.plot_title.family
+
+    if isinstance(theme.plot_subtitle, ElementText):
+        if theme.plot_subtitle.size is not None:
+            subtitle_size = theme.plot_subtitle.size
+        if theme.plot_subtitle.color is not None:
+            subtitle_color = theme.plot_subtitle.color
+
+    has_title = labs.title is not None and not isinstance(theme.plot_title, ElementBlank)
+    has_subtitle = labs.subtitle is not None and not isinstance(theme.plot_subtitle, ElementBlank)
 
     if has_title and has_subtitle:
         fig.suptitle(
             labs.title,
-            fontsize=theme.title_size,
-            fontfamily=theme.font_family,
+            fontsize=title_size,
+            fontfamily=title_family,
             color=title_color,
             y=0.98,
         )
@@ -382,8 +448,8 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
     elif has_title:
         fig.suptitle(
             labs.title,
-            fontsize=theme.title_size,
-            fontfamily=theme.font_family,
+            fontsize=title_size,
+            fontfamily=title_family,
             color=title_color,
         )
         fig.subplots_adjust(top=0.93)
@@ -396,7 +462,7 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
         )
         fig.subplots_adjust(top=0.93)
 
-    if labs.caption is not None:
+    if labs.caption is not None and not isinstance(theme.plot_caption, ElementBlank):
         cur_bottom = fig.subplotpars.bottom
         fig.subplots_adjust(bottom=cur_bottom + 0.03)
         fig.text(

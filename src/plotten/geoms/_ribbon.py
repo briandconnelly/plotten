@@ -10,6 +10,7 @@ class GeomRibbon:
     """Draw a filled band between ymin and ymax."""
 
     required_aes: frozenset[str] = frozenset({"x", "ymin", "ymax"})
+    supports_group_splitting: bool = True
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

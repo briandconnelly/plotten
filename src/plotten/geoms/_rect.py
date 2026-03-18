@@ -12,6 +12,7 @@ class GeomRect:
     """Draw rectangles defined by xmin, xmax, ymin, ymax."""
 
     required_aes: frozenset[str] = frozenset({"xmin", "xmax", "ymin", "ymax"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

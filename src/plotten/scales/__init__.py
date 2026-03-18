@@ -39,6 +39,13 @@ from plotten.scales._gradient import (
     scale_fill_gradient,
     scale_fill_gradient2,
 )
+from plotten.scales._labels import (
+    label_comma,
+    label_dollar,
+    label_number,
+    label_percent,
+    label_scientific,
+)
 from plotten.scales._linetype import (
     ScaleLinetypeDiscrete,
     scale_linetype_discrete,
@@ -53,6 +60,7 @@ from plotten.scales._position import (
     scale_y_continuous,
     scale_y_discrete,
 )
+from plotten.scales._reverse import ScaleReverse, scale_x_reverse, scale_y_reverse
 from plotten.scales._shape import (
     ScaleShapeDiscrete,
     scale_shape_discrete,
@@ -65,6 +73,7 @@ from plotten.scales._size import (
     scale_size_discrete,
     scale_size_manual,
 )
+from plotten.scales._sqrt import ScaleSqrt, scale_x_sqrt, scale_y_sqrt
 
 __all__ = [
     "LegendEntry",
@@ -82,10 +91,17 @@ __all__ = [
     "ScaleGradient2",
     "ScaleLinetypeDiscrete",
     "ScaleLog",
+    "ScaleReverse",
     "ScaleShapeDiscrete",
     "ScaleSizeContinuous",
     "ScaleSizeDiscrete",
+    "ScaleSqrt",
     "auto_scale",
+    "label_comma",
+    "label_dollar",
+    "label_number",
+    "label_percent",
+    "label_scientific",
     "scale_alpha_continuous",
     "scale_alpha_discrete",
     "scale_alpha_manual",
@@ -115,9 +131,13 @@ __all__ = [
     "scale_x_datetime",
     "scale_x_discrete",
     "scale_x_log10",
+    "scale_x_reverse",
+    "scale_x_sqrt",
     "scale_y_continuous",
     "scale_y_date",
     "scale_y_datetime",
     "scale_y_discrete",
     "scale_y_log10",
+    "scale_y_reverse",
+    "scale_y_sqrt",
 ]

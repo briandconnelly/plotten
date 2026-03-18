@@ -411,7 +411,7 @@ wheels = [
 
 [[package]]
 name = "plotten"
-version = "0.7.0"
+version = "0.8.0"
 source = { editable = "." }
 dependencies = [
     { name = "matplotlib" },
@@ -428,6 +428,7 @@ dev = [
     { name = "pandas" },
     { name = "polars" },
     { name = "pytest" },
+    { name = "scipy" },
 ]
 
 [package.metadata]
@@ -443,6 +444,7 @@ dev = [
     { name = "pandas", specifier = ">=2.0" },
     { name = "polars", specifier = ">=1.0" },
     { name = "pytest", specifier = ">=8.0" },
+    { name = "scipy", specifier = ">=1.10" },
 ]
 
 [[package]]

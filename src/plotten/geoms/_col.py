@@ -10,6 +10,7 @@ class GeomCol:
     """Draw bars with pre-computed heights (uses StatIdentity)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

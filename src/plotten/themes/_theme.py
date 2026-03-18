@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
-from typing import Self
+from typing import TYPE_CHECKING, Self
+
+if TYPE_CHECKING:
+    from plotten.themes._elements import ElementBlank, ElementLine, ElementRect, ElementText
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -64,6 +67,19 @@ class Theme:
     # Axis line visibility
     axis_line_x: bool = True
     axis_line_y: bool = True
+
+    # Element overrides (take precedence over flat fields)
+    axis_title: ElementText | ElementBlank | None = None
+    axis_text: ElementText | ElementBlank | None = None
+    plot_title: ElementText | ElementBlank | None = None
+    plot_subtitle: ElementText | ElementBlank | None = None
+    plot_caption: ElementText | ElementBlank | None = None
+    panel_grid_major: ElementLine | ElementBlank | None = None
+    panel_grid_minor: ElementLine | ElementBlank | None = None
+    panel_border: ElementRect | ElementBlank | None = None
+    strip_text: ElementText | ElementBlank | None = None
+    legend_title_element: ElementText | ElementBlank | None = None
+    legend_text_element: ElementText | ElementBlank | None = None
 
     def __add__(self, other: Theme) -> Self:
         """Layer *other* on top of *self*.

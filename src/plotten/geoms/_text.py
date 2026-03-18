@@ -10,6 +10,7 @@ class GeomText:
     """Draw text at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity
@@ -30,6 +31,7 @@ class GeomLabel:
     """Draw text with a background box at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

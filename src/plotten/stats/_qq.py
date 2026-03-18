@@ -1,0 +1,78 @@
+from __future__ import annotations
+
+from typing import Any
+
+import narwhals as nw
+import numpy as np
+
+
+class StatQQ:
+    """Compute theoretical vs sample quantiles for a QQ plot."""
+
+    required_aes: frozenset[str] = frozenset({"x"})
+
+    def compute(self, df: Any) -> Any:
+        from scipy.stats import norm
+
+        frame = nw.from_native(df)
+        x_vals = frame.get_column("x").to_list()
+        sample = np.sort(np.array(x_vals, dtype=float))
+        n = len(sample)
+
+        # Theoretical quantiles using plotting positions
+        probs = (np.arange(1, n + 1) - 0.5) / n
+        theoretical = norm.ppf(probs)
+
+        result = {
+            "x": theoretical.tolist(),
+            "y": sample.tolist(),
+        }
+
+        if "polars" in str(type(df)):
+            import polars as pl
+
+            return pl.DataFrame(result)
+        else:
+            import pandas as pd
+
+            return pd.DataFrame(result)
+
+
+class StatQQLine:
+    """Compute the reference line for a QQ plot (through Q1 and Q3)."""
+
+    required_aes: frozenset[str] = frozenset({"x"})
+
+    def compute(self, df: Any) -> Any:
+        from scipy.stats import norm
+
+        frame = nw.from_native(df)
+        x_vals = frame.get_column("x").to_list()
+        sample = np.array(x_vals, dtype=float)
+
+        q25, q75 = np.percentile(sample, [25, 75])
+        theoretical_q25 = norm.ppf(0.25)
+        theoretical_q75 = norm.ppf(0.75)
+
+        slope = (q75 - q25) / (theoretical_q75 - theoretical_q25)
+        intercept = q25 - slope * theoretical_q25
+
+        # Generate line endpoints spanning the data range
+        n = len(sample)
+        probs = (np.arange(1, n + 1) - 0.5) / n
+        x_range = [float(norm.ppf(probs[0])), float(norm.ppf(probs[-1]))]
+        y_range = [slope * x_range[0] + intercept, slope * x_range[1] + intercept]
+
+        result = {
+            "x": x_range,
+            "y": y_range,
+        }
+
+        if "polars" in str(type(df)):
+            import polars as pl
+
+            return pl.DataFrame(result)
+        else:
+            import pandas as pd
+
+            return pd.DataFrame(result)

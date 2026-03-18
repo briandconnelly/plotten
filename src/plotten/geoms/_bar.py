@@ -10,6 +10,7 @@ class GeomBar:
     """Draw bars using ax.bar."""
 
     required_aes: frozenset[str] = frozenset({"x"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._count import StatCount

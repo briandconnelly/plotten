@@ -10,6 +10,7 @@ class GeomRug:
     """Draw rug marks (marginal tick marks) along axes."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

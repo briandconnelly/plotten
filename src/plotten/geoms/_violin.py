@@ -10,6 +10,7 @@ class GeomViolin:
     """Draw violin plots (mirrored KDE per group)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
+    supports_group_splitting: bool = False
 
     def default_stat(self) -> Any:
         from plotten.stats._violin import StatViolin

@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 import narwhals as nw
 import numpy as np
@@ -17,11 +20,12 @@ class ScaleContinuous(ScaleBase):
         padding: float = 0.05,
         breaks: list[float] | None = None,
         limits: tuple[float, float] | None = None,
-        labels: list[str] | None = None,
+        labels: list[str] | Callable[[float], str] | None = None,
     ) -> None:
         from plotten._validation import validate_breaks_labels
 
-        validate_breaks_labels(breaks, labels)
+        if not callable(labels):
+            validate_breaks_labels(breaks, labels)
         super().__init__(aesthetic)
         self._padding = padding
         self._breaks = breaks
@@ -58,6 +62,8 @@ class ScaleContinuous(ScaleBase):
         return np.linspace(lo, hi, 6).tolist()
 
     def get_labels(self) -> list[str]:
+        if callable(self._labels):
+            return [self._labels(b) for b in self.get_breaks()]
         if self._labels is not None:
             return list(self._labels)
         return [str(b) for b in self.get_breaks()]
