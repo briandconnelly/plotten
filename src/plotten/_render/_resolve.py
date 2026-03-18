@@ -18,6 +18,7 @@ class ResolvedLayer:
     geom: Any
     data: dict[str, Any]
     params: dict
+    position: Any | None = None
 
 
 @dataclass
@@ -78,6 +79,11 @@ def _resolve_layers(
         if rename_exprs:
             frame = frame.rename(rename_exprs)
 
+        # 3b. Validate required aesthetics
+        from plotten._validation import validate_required_aes
+
+        validate_required_aes(layer.geom, merged_aes, frame.columns)
+
         # 4. Run stat
         stat = layer.stat
         if stat is None:
@@ -105,15 +111,36 @@ def _resolve_layers(
             except (TypeError, Exception):
                 continue
 
-        # 7. Map color/fill through scales
-        for aes_name in ("color", "fill"):
+        # 7. Map aesthetics through scales
+        for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
             if aes_name in data_dict and aes_name in scales:
                 scale = scales[aes_name]
                 native_series = frame.get_column(aes_name).to_native()
                 data_dict[aes_name] = scale.map_data(native_series)
 
+        # 7b. Map x/y through discrete scales for position adjustment
+        if "x" in data_dict and "x" in scales:
+            from plotten.scales._position import ScaleDiscrete as _SD
+
+            if isinstance(scales["x"], _SD):
+                data_dict["x"] = scales["x"].map_data(frame.get_column("x").to_native())
+        if "y" in data_dict and "y" in scales:
+            from plotten.scales._position import ScaleDiscrete as _SD2
+
+            if isinstance(scales["y"], _SD2):
+                data_dict["y"] = scales["y"].map_data(frame.get_column("y").to_native())
+
+        # 8. Apply position adjustment (after scale mapping)
+        if layer.position is not None:
+            data_dict = layer.position.adjust(data_dict, layer.params)
+
         resolved_layers.append(
-            ResolvedLayer(geom=layer.geom, data=data_dict, params=layer.params)
+            ResolvedLayer(
+                geom=layer.geom,
+                data=data_dict,
+                params=layer.params,
+                position=layer.position,
+            )
         )
 
     return resolved_layers, scales

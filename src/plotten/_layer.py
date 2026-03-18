@@ -12,4 +12,5 @@ class Layer:
     stat: Any | None = None
     mapping: Aes = field(default_factory=Aes)
     params: dict = field(default_factory=dict)
+    position: Any | None = None
     data: Any | None = None

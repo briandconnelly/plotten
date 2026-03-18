@@ -24,7 +24,7 @@ def draw_legend(
 
     # Collect legend groups from scales that have legend entries
     legend_groups: list[tuple[str, str, ScaleBase]] = []
-    for aes_name in ("color", "fill"):
+    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
         if aes_name in scales:
             scale = scales[aes_name]
             entries = scale.legend_entries()
@@ -123,16 +123,62 @@ def _draw_discrete_legend(
 
     for i, entry in enumerate(entries):
         y = y_start - (i + 0.5) * step
-        # Colored rectangle
-        rect = Rectangle(
-            (0.05, y - step * 0.3),
-            0.15,
-            step * 0.6,
-            facecolor=entry.color or "#cccccc",
-            edgecolor="none",
-            transform=legend_ax.transAxes,
-        )
-        legend_ax.add_patch(rect)
+        if entry.shape is not None:
+            # Shape marker legend
+            legend_ax.scatter(
+                [0.12],
+                [y],
+                marker=entry.shape,
+                s=30,
+                c=entry.color or "black",
+                transform=legend_ax.transAxes,
+                clip_on=False,
+            )
+        elif entry.linetype is not None:
+            # Linetype legend
+            legend_ax.plot(
+                [0.03, 0.2],
+                [y, y],
+                linestyle=entry.linetype,
+                color=entry.color or "black",
+                linewidth=1.5,
+                transform=legend_ax.transAxes,
+                clip_on=False,
+            )
+        elif entry.size is not None and entry.color is None:
+            # Size-only legend (dot scaled by size)
+            legend_ax.scatter(
+                [0.12],
+                [y],
+                s=entry.size * 5,
+                c="black",
+                alpha=entry.alpha if entry.alpha is not None else 1.0,
+                transform=legend_ax.transAxes,
+                clip_on=False,
+            )
+        elif entry.alpha is not None and entry.color is None:
+            # Alpha-only legend
+            rect = Rectangle(
+                (0.05, y - step * 0.3),
+                0.15,
+                step * 0.6,
+                facecolor="black",
+                alpha=entry.alpha,
+                edgecolor="none",
+                transform=legend_ax.transAxes,
+            )
+            legend_ax.add_patch(rect)
+        else:
+            # Colored rectangle (default)
+            rect = Rectangle(
+                (0.05, y - step * 0.3),
+                0.15,
+                step * 0.6,
+                facecolor=entry.color or "#cccccc",
+                edgecolor="none",
+                transform=legend_ax.transAxes,
+            )
+            legend_ax.add_patch(rect)
         # Label
         legend_ax.text(
             0.25,

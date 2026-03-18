@@ -34,115 +34,162 @@ def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
 
 def geom_point(**params: Any) -> Layer:
     """Create a point layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomPoint(), mapping=mapping, params=params)
+    return Layer(geom=GeomPoint(), mapping=mapping, params=params, position=position)
 
 
 def geom_line(**params: Any) -> Layer:
     """Create a line layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomLine(), mapping=mapping, params=params)
+    return Layer(geom=GeomLine(), mapping=mapping, params=params, position=position)
 
 
 def geom_bar(**params: Any) -> Layer:
     """Create a bar layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomBar(), mapping=mapping, params=params)
+    return Layer(geom=GeomBar(), mapping=mapping, params=params, position=position)
 
 
 def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     """Create a histogram layer."""
     from plotten.stats._bin import StatBin
 
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
     return Layer(
-        geom=GeomHistogram(), stat=StatBin(bins=bins), mapping=mapping, params=params
+        geom=GeomHistogram(),
+        stat=StatBin(bins=bins),
+        mapping=mapping,
+        params=params,
+        position=position,
     )
 
 
 def geom_boxplot(**params: Any) -> Layer:
     """Create a boxplot layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomBoxplot(), mapping=mapping, params=params)
+    return Layer(geom=GeomBoxplot(), mapping=mapping, params=params, position=position)
 
 
 def geom_smooth(method: str = "loess", se: bool = True, **params: Any) -> Layer:
     """Create a smooth line layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
     geom = GeomSmooth(method=method, se=se)
-    return Layer(geom=geom, stat=geom.default_stat(), mapping=mapping, params=params)
+    return Layer(
+        geom=geom,
+        stat=geom.default_stat(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
 
 
 def geom_text(**params: Any) -> Layer:
     """Create a text layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomText(), mapping=mapping, params=params)
+    return Layer(geom=GeomText(), mapping=mapping, params=params, position=position)
 
 
 def geom_label(**params: Any) -> Layer:
     """Create a label (text with background box) layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomLabel(), mapping=mapping, params=params)
+    return Layer(geom=GeomLabel(), mapping=mapping, params=params, position=position)
 
 
 def geom_hline(yintercept: float, **params: Any) -> Layer:
     """Create a horizontal reference line layer."""
-    return Layer(geom=GeomHLine(yintercept, **params), mapping=Aes(), params=params)
+    position = params.pop("position", None)
+    return Layer(
+        geom=GeomHLine(yintercept, **params),
+        mapping=Aes(),
+        params=params,
+        position=position,
+    )
 
 
 def geom_vline(xintercept: float, **params: Any) -> Layer:
     """Create a vertical reference line layer."""
-    return Layer(geom=GeomVLine(xintercept, **params), mapping=Aes(), params=params)
+    position = params.pop("position", None)
+    return Layer(
+        geom=GeomVLine(xintercept, **params),
+        mapping=Aes(),
+        params=params,
+        position=position,
+    )
 
 
 def geom_abline(slope: float, intercept: float, **params: Any) -> Layer:
     """Create an arbitrary reference line layer."""
+    position = params.pop("position", None)
     return Layer(
-        geom=GeomAbLine(slope, intercept, **params), mapping=Aes(), params=params
+        geom=GeomAbLine(slope, intercept, **params),
+        mapping=Aes(),
+        params=params,
+        position=position,
     )
 
 
 def geom_area(**params: Any) -> Layer:
     """Create a filled area layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomArea(), mapping=mapping, params=params)
+    return Layer(geom=GeomArea(), mapping=mapping, params=params, position=position)
 
 
 def geom_ribbon(**params: Any) -> Layer:
     """Create a ribbon (filled band) layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomRibbon(), mapping=mapping, params=params)
+    return Layer(geom=GeomRibbon(), mapping=mapping, params=params, position=position)
 
 
 def geom_tile(**params: Any) -> Layer:
     """Create a tile (heatmap) layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomTile(), mapping=mapping, params=params)
+    return Layer(geom=GeomTile(), mapping=mapping, params=params, position=position)
 
 
 def geom_errorbar(**params: Any) -> Layer:
     """Create an errorbar layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomErrorbar(), mapping=mapping, params=params)
+    return Layer(geom=GeomErrorbar(), mapping=mapping, params=params, position=position)
 
 
 def geom_col(**params: Any) -> Layer:
     """Create a column (pre-counted bar) layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomCol(), mapping=mapping, params=params)
+    return Layer(geom=GeomCol(), mapping=mapping, params=params, position=position)
 
 
 def geom_density(fill: bool = True, alpha: float = 0.3, **params: Any) -> Layer:
     """Create a density curve layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
     geom = GeomDensity(fill=fill, alpha=alpha)
-    return Layer(geom=geom, stat=geom.default_stat(), mapping=mapping, params=params)
+    return Layer(
+        geom=geom,
+        stat=geom.default_stat(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
 
 
 def geom_violin(**params: Any) -> Layer:
     """Create a violin plot layer."""
+    position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomViolin(), mapping=mapping, params=params)
+    return Layer(geom=GeomViolin(), mapping=mapping, params=params, position=position)
 
 
 __all__ = [

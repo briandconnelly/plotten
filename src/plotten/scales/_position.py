@@ -19,6 +19,9 @@ class ScaleContinuous(ScaleBase):
         limits: tuple[float, float] | None = None,
         labels: list[str] | None = None,
     ) -> None:
+        from plotten._validation import validate_breaks_labels
+
+        validate_breaks_labels(breaks, labels)
         super().__init__(aesthetic)
         self._padding = padding
         self._breaks = breaks

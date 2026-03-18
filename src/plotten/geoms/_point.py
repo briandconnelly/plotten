@@ -11,15 +11,48 @@ class GeomPoint(GeomBase):
     required_aes: frozenset[str] = frozenset({"x", "y"})
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
-        kwargs: dict[str, Any] = {}
-        if "color" in data:
-            kwargs["c"] = data["color"]
-        if "size" in data:
-            kwargs["s"] = data["size"]
-        elif "size" in params:
-            kwargs["s"] = params["size"]
-        if "alpha" in data:
-            kwargs["alpha"] = data["alpha"]
-        elif "alpha" in params:
-            kwargs["alpha"] = params["alpha"]
-        ax.scatter(data["x"], data["y"], **kwargs)
+        xs = data["x"]
+        ys = data["y"]
+
+        # Per-point shapes require grouping by shape
+        if "shape" in data and isinstance(data["shape"], list):
+            shapes = data["shape"]
+            unique_shapes = sorted(set(shapes))
+            for shape in unique_shapes:
+                indices = [i for i, s in enumerate(shapes) if s == shape]
+                kwargs: dict[str, Any] = {"marker": shape}
+                gx = [xs[i] for i in indices]
+                gy = [ys[i] for i in indices]
+                if "color" in data:
+                    if isinstance(data["color"], list):
+                        kwargs["c"] = [data["color"][i] for i in indices]
+                    else:
+                        kwargs["c"] = data["color"]
+                if "size" in data:
+                    if isinstance(data["size"], list):
+                        kwargs["s"] = [data["size"][i] for i in indices]
+                    else:
+                        kwargs["s"] = data["size"]
+                elif "size" in params:
+                    kwargs["s"] = params["size"]
+                if "alpha" in data:
+                    if isinstance(data["alpha"], list):
+                        kwargs["alpha"] = [data["alpha"][i] for i in indices]
+                    else:
+                        kwargs["alpha"] = data["alpha"]
+                elif "alpha" in params:
+                    kwargs["alpha"] = params["alpha"]
+                ax.scatter(gx, gy, **kwargs)
+        else:
+            kwargs = {}
+            if "color" in data:
+                kwargs["c"] = data["color"]
+            if "size" in data:
+                kwargs["s"] = data["size"]
+            elif "size" in params:
+                kwargs["s"] = params["size"]
+            if "alpha" in data:
+                kwargs["alpha"] = data["alpha"]
+            elif "alpha" in params:
+                kwargs["alpha"] = params["alpha"]
+            ax.scatter(xs, ys, **kwargs)

@@ -1,3 +1,10 @@
+from plotten.scales._alpha import (
+    ScaleAlphaContinuous,
+    ScaleAlphaDiscrete,
+    scale_alpha_continuous,
+    scale_alpha_discrete,
+    scale_alpha_manual,
+)
 from plotten.scales._base import LegendEntry, ScaleBase, auto_scale
 from plotten.scales._color import (
     ScaleColorContinuous,
@@ -6,6 +13,18 @@ from plotten.scales._color import (
     scale_color_discrete,
     scale_color_manual,
     scale_fill_manual,
+)
+from plotten.scales._date import (
+    ScaleDateContinuous,
+    scale_x_date,
+    scale_x_datetime,
+    scale_y_date,
+    scale_y_datetime,
+)
+from plotten.scales._linetype import (
+    ScaleLinetypeDiscrete,
+    scale_linetype_discrete,
+    scale_linetype_manual,
 )
 from plotten.scales._log import ScaleLog, scale_x_log10, scale_y_log10
 from plotten.scales._position import (
@@ -16,24 +35,57 @@ from plotten.scales._position import (
     scale_y_continuous,
     scale_y_discrete,
 )
+from plotten.scales._shape import (
+    ScaleShapeDiscrete,
+    scale_shape_discrete,
+    scale_shape_manual,
+)
+from plotten.scales._size import (
+    ScaleSizeContinuous,
+    ScaleSizeDiscrete,
+    scale_size_continuous,
+    scale_size_discrete,
+    scale_size_manual,
+)
 
 __all__ = [
     "LegendEntry",
+    "ScaleAlphaContinuous",
+    "ScaleAlphaDiscrete",
     "ScaleBase",
-    "ScaleContinuous",
     "ScaleColorContinuous",
     "ScaleColorDiscrete",
+    "ScaleContinuous",
+    "ScaleDateContinuous",
     "ScaleDiscrete",
+    "ScaleLinetypeDiscrete",
     "ScaleLog",
+    "ScaleShapeDiscrete",
+    "ScaleSizeContinuous",
+    "ScaleSizeDiscrete",
     "auto_scale",
+    "scale_alpha_continuous",
+    "scale_alpha_discrete",
+    "scale_alpha_manual",
     "scale_color_continuous",
     "scale_color_discrete",
     "scale_color_manual",
     "scale_fill_manual",
+    "scale_linetype_discrete",
+    "scale_linetype_manual",
+    "scale_shape_discrete",
+    "scale_shape_manual",
+    "scale_size_continuous",
+    "scale_size_discrete",
+    "scale_size_manual",
     "scale_x_continuous",
+    "scale_x_date",
+    "scale_x_datetime",
     "scale_x_discrete",
     "scale_x_log10",
     "scale_y_continuous",
+    "scale_y_date",
+    "scale_y_datetime",
     "scale_y_discrete",
     "scale_y_log10",
 ]

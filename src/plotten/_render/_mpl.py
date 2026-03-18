@@ -124,6 +124,8 @@ def _apply_scales(ax: Any, scales: dict) -> None:
         x_scale = scales["x"]
         if isinstance(x_scale, ScaleLog):
             ax.set_xscale("log", base=x_scale._base)
+        elif _is_date_scale(x_scale):
+            _apply_date_scale(ax, x_scale, axis="x")
         else:
             ax.set_xlim(x_scale.get_limits())
             if isinstance(x_scale, ScaleDiscrete):
@@ -138,6 +140,8 @@ def _apply_scales(ax: Any, scales: dict) -> None:
         y_scale = scales["y"]
         if isinstance(y_scale, ScaleLog):
             ax.set_yscale("log", base=y_scale._base)
+        elif _is_date_scale(y_scale):
+            _apply_date_scale(ax, y_scale, axis="y")
         else:
             ax.set_ylim(y_scale.get_limits())
             if isinstance(y_scale, ScaleDiscrete):
@@ -147,6 +151,32 @@ def _apply_scales(ax: Any, scales: dict) -> None:
                 ax.set_yticks(y_scale.get_breaks())
                 ax.set_yticklabels(y_scale.get_labels())
         ax.set_ylabel("y")
+
+
+def _is_date_scale(scale: Any) -> bool:
+    try:
+        from plotten.scales._date import ScaleDateContinuous
+
+        return isinstance(scale, ScaleDateContinuous)
+    except ImportError:
+        return False
+
+
+def _apply_date_scale(ax: Any, scale: Any, axis: str) -> None:
+    import matplotlib.dates as mdates
+
+    locator = mdates.AutoDateLocator()
+    formatter = mdates.AutoDateFormatter(locator)
+
+    if axis == "x":
+        ax.xaxis.set_major_locator(locator)
+        ax.xaxis.set_major_formatter(formatter)
+        ax.set_xlim(scale.get_limits())
+        ax.figure.autofmt_xdate()
+    else:
+        ax.yaxis.set_major_locator(locator)
+        ax.yaxis.set_major_formatter(formatter)
+        ax.set_ylim(scale.get_limits())
 
 
 def _flip_resolved(resolved: ResolvedPlot) -> ResolvedPlot:

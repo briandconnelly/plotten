@@ -46,6 +46,11 @@ class Plot:
             return self._replace(labs=self.labs + other)
         if isinstance(other, (CoordCartesian, CoordFlip)):
             return self._replace(coord=other)
+        # Support new coord types
+        from plotten.coords._equal import CoordEqual, CoordFixed
+
+        if isinstance(other, (CoordEqual, CoordFixed)):
+            return self._replace(coord=other)
         if isinstance(other, (FacetWrap, FacetGrid)):
             return self._replace(facet=other)
         return NotImplemented
@@ -57,11 +62,25 @@ class Plot:
         fig = render(self)
         fig.show()
 
-    def save(self, path: str, dpi: int = 150) -> None:
+    def save(
+        self,
+        path: str,
+        dpi: int = 150,
+        width: float | None = None,
+        height: float | None = None,
+        units: str = "in",
+    ) -> None:
         """Render and save the plot to a file."""
         from plotten._render._mpl import render
 
         fig = render(self)
+        if width is not None or height is not None:
+            unit_factors = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4, "px": 1 / dpi}
+            factor = unit_factors.get(units, 1.0)
+            cur_w, cur_h = fig.get_size_inches()
+            new_w = width * factor if width is not None else cur_w
+            new_h = height * factor if height is not None else cur_h
+            fig.set_size_inches(new_w, new_h)
         fig.savefig(path, dpi=dpi, bbox_inches="tight")
         import matplotlib.pyplot as plt
 
