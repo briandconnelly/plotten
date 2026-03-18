@@ -205,13 +205,42 @@ def render_grid(grid: PlotGrid) -> Any:
 
     _render_node(grid, fig, gs, leaf_axes)
 
-    # Apply annotation
+    fig.tight_layout()
+
+    # Apply annotation after tight_layout so we can adjust top properly
     ann = grid.annotation
     if ann is not None:
-        if ann.title is not None:
+        has_title = ann.title is not None
+        has_subtitle = ann.subtitle is not None
+
+        # Check if any leaf plots have their own titles
+        has_panel_titles = any(
+            getattr(p, "labs", None) is not None and getattr(p.labs, "title", None) is not None
+            for p in leaves
+        )
+        # Need more room when panel titles exist below the grid annotation
+        extra = 0.06 if has_panel_titles else 0.0
+
+        if has_title and has_subtitle:
             fig.suptitle(ann.title, fontsize=14, fontweight="bold", y=0.98)
-        if ann.subtitle is not None:
-            fig.text(0.5, 0.93, ann.subtitle, ha="center", fontsize=11, color="#555555")
+            fig.text(
+                0.5,
+                0.915,
+                ann.subtitle,
+                ha="center",
+                va="top",
+                fontsize=11,
+                color="#555555",
+                transform=fig.transFigure,
+            )
+            fig.subplots_adjust(top=0.88 - extra)
+        elif has_title:
+            fig.suptitle(ann.title, fontsize=14, fontweight="bold")
+            fig.subplots_adjust(top=0.93 - extra)
+        elif has_subtitle:
+            fig.suptitle(ann.subtitle, fontsize=11, color="#555555")
+            fig.subplots_adjust(top=0.93 - extra)
+
         if ann.caption is not None:
             fig.text(0.99, 0.01, ann.caption, ha="right", va="bottom", fontsize=9)
         if ann.tag_levels is not None:
@@ -228,7 +257,6 @@ def render_grid(grid: PlotGrid) -> Any:
                     ha="left",
                 )
 
-    fig.tight_layout()
     return fig
 
 

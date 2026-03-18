@@ -62,8 +62,9 @@ def render(plot: Any) -> Figure:
         _render_panel(panel, ax, resolved, theme)
         _apply_scales(ax, resolved.scales)
         _apply_coord_limits(ax, resolved.coord, is_flipped)
-        _apply_labs(fig, ax, resolved, theme)
+        _apply_axis_labs(ax, resolved, theme)
         fig.tight_layout(pad=theme.margin * 10)
+        _apply_title(fig, resolved, theme)
         draw_legend(fig, [ax], resolved.scales, resolved.labs, theme, resolved.guides)
     else:
         # Faceted
@@ -107,8 +108,9 @@ def render(plot: Any) -> Figure:
             r, c = divmod(idx, ncol)
             axes[r][c].set_visible(False)
 
-        _apply_labs(fig, axes[0][0], resolved, theme)
+        _apply_axis_labs(axes[0][0], resolved, theme)
         fig.tight_layout(pad=theme.margin * 10)
+        _apply_title(fig, resolved, theme)
 
         visible_axes = [axes[r][c] for idx in range(n_panels) for r, c in [divmod(idx, ncol)]]
         draw_legend(fig, visible_axes, resolved.scales, resolved.labs, theme, resolved.guides)
@@ -329,28 +331,35 @@ def _apply_coord_limits(ax: Axes, coord: Any, is_flipped: bool) -> None:
         coord.transform(None, ax)
 
 
-def _apply_labs(fig: Figure, ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
-    """Apply title, subtitle, and axis labels from labs."""
+def _apply_axis_labs(ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
+    """Apply axis labels from labs. Call before tight_layout."""
     labs = resolved.labs
     if labs is None:
         return
 
-    # Per-axis title sizes
     axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
     axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
 
-    # Axis labels (fallback to column name "x"/"y" already set by _apply_scales)
     if labs.x is not None:
         ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
     if labs.y is not None:
         ax.set_ylabel(labs.y, fontsize=axis_title_y_size)
 
-    # Title and subtitle colors
+
+def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
+    """Apply title, subtitle, and caption. Call after tight_layout."""
+    labs = resolved.labs
+    if labs is None:
+        return
+
     title_color = getattr(theme, "title_color", "#000000")
     subtitle_size = getattr(theme, "subtitle_size", None) or theme.label_size
     subtitle_color = getattr(theme, "subtitle_color", "#555555")
 
-    if labs.title is not None and labs.subtitle is not None:
+    has_title = labs.title is not None
+    has_subtitle = labs.subtitle is not None
+
+    if has_title and has_subtitle:
         fig.suptitle(
             labs.title,
             fontsize=theme.title_size,
@@ -360,27 +369,32 @@ def _apply_labs(fig: Figure, ax: Axes, resolved: ResolvedPlot, theme: Theme) -> 
         )
         fig.text(
             0.5,
-            0.91,
+            0.915,
             labs.subtitle,
             ha="center",
+            va="top",
             fontsize=subtitle_size,
             fontfamily=theme.font_family,
             color=subtitle_color,
+            transform=fig.transFigure,
         )
-    elif labs.title is not None:
+        fig.subplots_adjust(top=0.88)
+    elif has_title:
         fig.suptitle(
             labs.title,
             fontsize=theme.title_size,
             fontfamily=theme.font_family,
             color=title_color,
         )
-    elif labs.subtitle is not None:
+        fig.subplots_adjust(top=0.93)
+    elif has_subtitle:
         fig.suptitle(
             labs.subtitle,
             fontsize=subtitle_size,
             fontfamily=theme.font_family,
             color=subtitle_color,
         )
+        fig.subplots_adjust(top=0.93)
 
     if labs.caption is not None:
         fig.text(
