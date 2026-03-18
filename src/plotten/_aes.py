@@ -15,6 +15,9 @@ class Aes:
     linetype: str | None = None
     shape: str | None = None
     label: str | None = None
+    ymin: str | None = None
+    ymax: str | None = None
+    group: str | None = None
 
     def __or__(self, other: Aes) -> Aes:
         """Merge aesthetics. other's non-None fields win."""

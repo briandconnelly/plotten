@@ -11,9 +11,19 @@ from plotten.scales._base import ScaleBase
 class ScaleContinuous(ScaleBase):
     """Linear scale for numeric position aesthetics."""
 
-    def __init__(self, aesthetic: str = "x", padding: float = 0.05) -> None:
+    def __init__(
+        self,
+        aesthetic: str = "x",
+        padding: float = 0.05,
+        breaks: list[float] | None = None,
+        limits: tuple[float, float] | None = None,
+        labels: list[str] | None = None,
+    ) -> None:
         super().__init__(aesthetic)
         self._padding = padding
+        self._breaks = breaks
+        self._limits = limits
+        self._labels = labels
         self._domain_min: float | None = None
         self._domain_max: float | None = None
 
@@ -30,6 +40,8 @@ class ScaleContinuous(ScaleBase):
         return values  # identity — matplotlib handles position mapping
 
     def get_limits(self) -> tuple[float, float]:
+        if self._limits is not None:
+            return self._limits
         lo = self._domain_min if self._domain_min is not None else 0.0
         hi = self._domain_max if self._domain_max is not None else 1.0
         span = hi - lo
@@ -37,16 +49,28 @@ class ScaleContinuous(ScaleBase):
         return (lo - pad, hi + pad)
 
     def get_breaks(self) -> list:
+        if self._breaks is not None:
+            return list(self._breaks)
         lo, hi = self.get_limits()
         return np.linspace(lo, hi, 6).tolist()
+
+    def get_labels(self) -> list[str]:
+        if self._labels is not None:
+            return list(self._labels)
+        return [str(b) for b in self.get_breaks()]
 
 
 class ScaleDiscrete(ScaleBase):
     """Scale for categorical position aesthetics."""
 
-    def __init__(self, aesthetic: str = "x") -> None:
+    def __init__(
+        self,
+        aesthetic: str = "x",
+        labels: dict[str, str] | list[str] | None = None,
+    ) -> None:
         super().__init__(aesthetic)
         self._levels: list = []
+        self._manual_labels = labels
 
     def train(self, values: Any) -> None:
         s = nw.from_native(values, series_only=True)
@@ -68,4 +92,30 @@ class ScaleDiscrete(ScaleBase):
         return list(range(len(self._levels)))
 
     def get_labels(self) -> list[str]:
+        if self._manual_labels is not None:
+            if isinstance(self._manual_labels, dict):
+                return [
+                    self._manual_labels.get(str(lev), str(lev)) for lev in self._levels
+                ]
+            return list(self._manual_labels)
         return [str(lev) for lev in self._levels]
+
+
+def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:
+    """Create a continuous x scale."""
+    return ScaleContinuous(aesthetic="x", **kwargs)
+
+
+def scale_y_continuous(**kwargs: Any) -> ScaleContinuous:
+    """Create a continuous y scale."""
+    return ScaleContinuous(aesthetic="y", **kwargs)
+
+
+def scale_x_discrete(**kwargs: Any) -> ScaleDiscrete:
+    """Create a discrete x scale."""
+    return ScaleDiscrete(aesthetic="x", **kwargs)
+
+
+def scale_y_discrete(**kwargs: Any) -> ScaleDiscrete:
+    """Create a discrete y scale."""
+    return ScaleDiscrete(aesthetic="y", **kwargs)

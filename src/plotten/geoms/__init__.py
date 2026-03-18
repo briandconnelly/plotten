@@ -4,15 +4,22 @@ from typing import Any
 
 from plotten._aes import Aes
 from plotten._layer import Layer
+from plotten.geoms._area import GeomArea
 from plotten.geoms._bar import GeomBar
 from plotten.geoms._base import GeomBase
 from plotten.geoms._boxplot import GeomBoxplot
+from plotten.geoms._col import GeomCol
+from plotten.geoms._density import GeomDensity
+from plotten.geoms._errorbar import GeomErrorbar
 from plotten.geoms._histogram import GeomHistogram
 from plotten.geoms._line import GeomLine
 from plotten.geoms._point import GeomPoint
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
+from plotten.geoms._ribbon import GeomRibbon
 from plotten.geoms._smooth import GeomSmooth
 from plotten.geoms._text import GeomLabel, GeomText
+from plotten.geoms._tile import GeomTile
+from plotten.geoms._violin import GeomViolin
 
 
 def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
@@ -95,28 +102,85 @@ def geom_abline(slope: float, intercept: float, **params: Any) -> Layer:
     )
 
 
+def geom_area(**params: Any) -> Layer:
+    """Create a filled area layer."""
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomArea(), mapping=mapping, params=params)
+
+
+def geom_ribbon(**params: Any) -> Layer:
+    """Create a ribbon (filled band) layer."""
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomRibbon(), mapping=mapping, params=params)
+
+
+def geom_tile(**params: Any) -> Layer:
+    """Create a tile (heatmap) layer."""
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomTile(), mapping=mapping, params=params)
+
+
+def geom_errorbar(**params: Any) -> Layer:
+    """Create an errorbar layer."""
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomErrorbar(), mapping=mapping, params=params)
+
+
+def geom_col(**params: Any) -> Layer:
+    """Create a column (pre-counted bar) layer."""
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomCol(), mapping=mapping, params=params)
+
+
+def geom_density(fill: bool = True, alpha: float = 0.3, **params: Any) -> Layer:
+    """Create a density curve layer."""
+    mapping, params = _extract_aes(params)
+    geom = GeomDensity(fill=fill, alpha=alpha)
+    return Layer(geom=geom, stat=geom.default_stat(), mapping=mapping, params=params)
+
+
+def geom_violin(**params: Any) -> Layer:
+    """Create a violin plot layer."""
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomViolin(), mapping=mapping, params=params)
+
+
 __all__ = [
     "GeomAbLine",
+    "GeomArea",
     "GeomBase",
     "GeomBar",
     "GeomBoxplot",
+    "GeomCol",
+    "GeomDensity",
+    "GeomErrorbar",
     "GeomHLine",
     "GeomHistogram",
     "GeomLabel",
     "GeomLine",
     "GeomPoint",
+    "GeomRibbon",
     "GeomSmooth",
     "GeomText",
+    "GeomTile",
     "GeomVLine",
+    "GeomViolin",
     "geom_abline",
+    "geom_area",
     "geom_bar",
     "geom_boxplot",
+    "geom_col",
+    "geom_density",
+    "geom_errorbar",
     "geom_hline",
     "geom_histogram",
     "geom_label",
     "geom_line",
     "geom_point",
+    "geom_ribbon",
     "geom_smooth",
     "geom_text",
+    "geom_tile",
+    "geom_violin",
     "geom_vline",
 ]

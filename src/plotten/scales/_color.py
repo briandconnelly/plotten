@@ -12,10 +12,18 @@ from plotten.scales._base import LegendEntry, ScaleBase
 class ScaleColorContinuous(ScaleBase):
     """Map numeric values to a matplotlib colormap."""
 
-    def __init__(self, aesthetic: str = "color", cmap_name: str = "viridis") -> None:
+    def __init__(
+        self,
+        aesthetic: str = "color",
+        cmap_name: str = "viridis",
+        breaks: list[float] | None = None,
+        limits: tuple[float, float] | None = None,
+    ) -> None:
         super().__init__(aesthetic)
         self._cmap_name = cmap_name
         self._cmap = matplotlib.colormaps[cmap_name]
+        self._breaks = breaks
+        self._limits = limits
         self._domain_min: float | None = None
         self._domain_max: float | None = None
 
@@ -30,18 +38,21 @@ class ScaleColorContinuous(ScaleBase):
 
     def map_data(self, values: Any) -> Any:
         s = nw.from_native(values, series_only=True)
-        lo = self._domain_min if self._domain_min is not None else 0.0
-        hi = self._domain_max if self._domain_max is not None else 1.0
+        lo, hi = self.get_limits()
         span = hi - lo if hi != lo else 1.0
         normalized = [(v - lo) / span for v in s.to_list()]
         return [mcolors.to_hex(self._cmap(n)) for n in normalized]
 
     def get_limits(self) -> tuple[float, float]:
+        if self._limits is not None:
+            return self._limits
         lo = self._domain_min if self._domain_min is not None else 0.0
         hi = self._domain_max if self._domain_max is not None else 1.0
         return (lo, hi)
 
     def get_breaks(self) -> list:
+        if self._breaks is not None:
+            return list(self._breaks)
         import numpy as np
 
         lo, hi = self.get_limits()
@@ -62,11 +73,17 @@ class ScaleColorContinuous(ScaleBase):
 class ScaleColorDiscrete(ScaleBase):
     """Map categorical values to distinct colors."""
 
-    def __init__(self, aesthetic: str = "color", palette: str = "tab10") -> None:
+    def __init__(
+        self,
+        aesthetic: str = "color",
+        palette: str = "tab10",
+        values: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(aesthetic)
         self._palette_name = palette
         self._cmap = matplotlib.colormaps[palette]
         self._levels: list = []
+        self._manual_values = values
 
     def train(self, values: Any) -> None:
         s = nw.from_native(values, series_only=True)
@@ -77,6 +94,8 @@ class ScaleColorDiscrete(ScaleBase):
 
     def map_data(self, values: Any) -> Any:
         s = nw.from_native(values, series_only=True)
+        if self._manual_values:
+            return [self._manual_values.get(str(v), "#000000") for v in s.to_list()]
         n = max(len(self._levels), 1)
         color_map = {
             lev: mcolors.to_hex(self._cmap(i / max(n - 1, 1)))
@@ -94,8 +113,13 @@ class ScaleColorDiscrete(ScaleBase):
         return [str(lev) for lev in self._levels]
 
     def legend_entries(self) -> list[LegendEntry]:
-        n = max(len(self._levels), 1)
         entries = []
+        if self._manual_values:
+            for lev in self._levels:
+                hex_color = self._manual_values.get(str(lev), "#000000")
+                entries.append(LegendEntry(label=str(lev), color=hex_color))
+            return entries
+        n = max(len(self._levels), 1)
         for i, lev in enumerate(self._levels):
             hex_color = mcolors.to_hex(self._cmap(i / max(n - 1, 1)))
             entries.append(LegendEntry(label=str(lev), color=hex_color))
@@ -108,3 +132,13 @@ def scale_color_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
 
 def scale_color_discrete(palette: str = "tab10") -> ScaleColorDiscrete:
     return ScaleColorDiscrete(palette=palette)
+
+
+def scale_color_manual(values: dict[str, str]) -> ScaleColorDiscrete:
+    """Create a discrete color scale with manually specified colors."""
+    return ScaleColorDiscrete(values=values)
+
+
+def scale_fill_manual(values: dict[str, str]) -> ScaleColorDiscrete:
+    """Create a discrete fill scale with manually specified colors."""
+    return ScaleColorDiscrete(aesthetic="fill", values=values)

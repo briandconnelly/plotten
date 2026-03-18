@@ -92,12 +92,18 @@ def _resolve_layers(
             series = frame.get_column(col)
             data_dict[col] = series.to_list()
 
-        # 6. Infer and train scales
+        # 6. Infer and train scales (skip list-type columns like outliers_y, y_grid)
         for aes_name, values_list in data_dict.items():
-            if aes_name not in scales:
-                native_series = frame.get_column(aes_name).to_native()
-                scales[aes_name] = auto_scale(aes_name, native_series)
-            scales[aes_name].train(frame.get_column(aes_name).to_native())
+            series = frame.get_column(aes_name)
+            if str(series.dtype).startswith(("List", "list", "Object", "object")):
+                continue
+            try:
+                if aes_name not in scales:
+                    native_series = series.to_native()
+                    scales[aes_name] = auto_scale(aes_name, native_series)
+                scales[aes_name].train(series.to_native())
+            except (TypeError, Exception):
+                continue
 
         # 7. Map color/fill through scales
         for aes_name in ("color", "fill"):

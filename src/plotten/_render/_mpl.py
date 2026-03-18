@@ -118,6 +118,7 @@ def _render_panel(
 def _apply_scales(ax: Any, scales: dict) -> None:
     """Apply scale limits, breaks, and labels to axes."""
     from plotten.scales._log import ScaleLog
+    from plotten.scales._position import ScaleContinuous
 
     if "x" in scales:
         x_scale = scales["x"]
@@ -126,6 +127,9 @@ def _apply_scales(ax: Any, scales: dict) -> None:
         else:
             ax.set_xlim(x_scale.get_limits())
             if isinstance(x_scale, ScaleDiscrete):
+                ax.set_xticks(x_scale.get_breaks())
+                ax.set_xticklabels(x_scale.get_labels())
+            elif isinstance(x_scale, ScaleContinuous) and x_scale._breaks is not None:
                 ax.set_xticks(x_scale.get_breaks())
                 ax.set_xticklabels(x_scale.get_labels())
         ax.set_xlabel("x")
@@ -137,6 +141,9 @@ def _apply_scales(ax: Any, scales: dict) -> None:
         else:
             ax.set_ylim(y_scale.get_limits())
             if isinstance(y_scale, ScaleDiscrete):
+                ax.set_yticks(y_scale.get_breaks())
+                ax.set_yticklabels(y_scale.get_labels())
+            elif isinstance(y_scale, ScaleContinuous) and y_scale._breaks is not None:
                 ax.set_yticks(y_scale.get_breaks())
                 ax.set_yticklabels(y_scale.get_labels())
         ax.set_ylabel("y")
