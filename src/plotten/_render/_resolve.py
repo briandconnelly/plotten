@@ -72,11 +72,28 @@ def _resolve_layers(
 
         frame = nw.from_native(raw_data)
 
-        # 3. Rename columns based on aesthetic mapping
-        rename_exprs = {}
+        # 2a. Separate AfterStat/AfterScale mappings from normal string mappings
+        from plotten._computed import AfterScale, AfterStat
+
+        normal_mappings: dict[str, str] = {}
+        after_stat_mappings: dict[str, str] = {}
+        after_scale_mappings: dict[str, str] = {}
+
         for aes_field in merged_aes.__dataclass_fields__:
-            col_name = getattr(merged_aes, aes_field)
-            if col_name is not None and col_name in frame.columns and col_name != aes_field:
+            val = getattr(merged_aes, aes_field)
+            if val is None:
+                continue
+            if isinstance(val, AfterStat):
+                after_stat_mappings[aes_field] = val.var
+            elif isinstance(val, AfterScale):
+                after_scale_mappings[aes_field] = val.var
+            else:
+                normal_mappings[aes_field] = val
+
+        # 3. Rename columns based on aesthetic mapping (only normal string mappings)
+        rename_exprs = {}
+        for aes_field, col_name in normal_mappings.items():
+            if col_name in frame.columns and col_name != aes_field:
                 rename_exprs[col_name] = aes_field
 
         if rename_exprs:
@@ -94,6 +111,15 @@ def _resolve_layers(
         native_data = nw.to_native(frame)
         computed = stat.compute(native_data)
         frame = nw.from_native(computed)
+
+        # 4a. Apply after_stat mappings: rename stat output column → aes field
+        if after_stat_mappings:
+            for aes_field, var_name in after_stat_mappings.items():
+                if var_name in frame.columns and var_name != aes_field:
+                    # Drop existing column if it would conflict
+                    if aes_field in frame.columns:
+                        frame = frame.drop(aes_field)
+                    frame = frame.rename({var_name: aes_field})
 
         # 5. Build data dict for the geom
         data_dict: dict[str, Any] = {}
@@ -132,6 +158,12 @@ def _resolve_layers(
 
             if isinstance(scales["y"], _SD2):
                 data_dict["y"] = scales["y"].map_data(frame.get_column("y").to_native())
+
+        # 7a. Apply after_scale mappings
+        if after_scale_mappings:
+            for aes_field, var_name in after_scale_mappings.items():
+                if var_name in data_dict:
+                    data_dict[aes_field] = data_dict[var_name]
 
         # 8. Apply position adjustment (after scale mapping)
         if layer.position is not None:

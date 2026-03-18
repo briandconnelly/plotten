@@ -15,12 +15,15 @@ def test_stat_identity():
 def test_stat_count():
     df = pl.DataFrame({"x": ["a", "b", "a", "c", "b", "a"]})
     result = nw.from_native(StatCount().compute(df))
-    assert set(result.columns) == {"x", "y"}
+    assert {"x", "y", "count", "prop"}.issubset(set(result.columns))
     # a=3, b=2, c=1
     rows = {r["x"]: r["y"] for r in result.iter_rows(named=True)}
     assert rows["a"] == 3
     assert rows["b"] == 2
     assert rows["c"] == 1
+    # Verify count matches y and prop sums to 1
+    prop_rows = {r["x"]: r["prop"] for r in result.iter_rows(named=True)}
+    assert sum(prop_rows.values()) == pytest.approx(1.0)
 
 
 def test_stat_bin():

@@ -14,6 +14,34 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 
+def render_single(plot: Any, resolved: ResolvedPlot, fig: Any, ax: Any) -> None:
+    """Render a single-panel resolved plot onto an existing fig/ax pair."""
+    from plotten.coords._flip import CoordFlip
+
+    theme: Theme = resolved.theme or Theme()
+    is_flipped = isinstance(resolved.coord, CoordFlip)
+
+    if is_flipped:
+        resolved = _flip_resolved(resolved)
+
+    panel = resolved.panels[0]
+    _render_panel(panel, ax, resolved, theme)
+    _apply_scales(ax, resolved.scales)
+    _apply_coord_limits(ax, resolved.coord, is_flipped)
+
+    # Apply labs directly to axes
+    labs = resolved.labs
+    if labs is not None:
+        axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
+        axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+        if labs.x is not None:
+            ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
+        if labs.y is not None:
+            ax.set_ylabel(labs.y, fontsize=axis_title_y_size)
+        if labs.title is not None:
+            ax.set_title(labs.title, fontsize=theme.title_size)
+
+
 def render(plot: Any) -> Figure:
     """Render a Plot spec to a matplotlib Figure."""
     from plotten.coords._flip import CoordFlip

@@ -13,4 +13,13 @@ class StatCount:
     def compute(self, df: Any) -> Any:
         frame = nw.from_native(df)
         result = frame.group_by("x").agg(nw.len().alias("y")).sort("x")
+
+        # Add count and prop columns
+        count_col = result.get_column("y")
+        total = count_col.sum()
+        result = result.with_columns(
+            count_col.alias("count"),
+            (count_col / total).alias("prop"),
+        )
+
         return nw.to_native(result)

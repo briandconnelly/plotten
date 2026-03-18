@@ -24,7 +24,21 @@ class StatBin:
         centers = ((edges[:-1] + edges[1:]) / 2).tolist()
 
         native = nw.to_native(frame)
-        result_dict = {"x": centers, "y": counts.tolist()}
+        counts_list = counts.tolist()
+        total = sum(counts_list)
+        widths = (edges[1:] - edges[:-1]).tolist()
+        density = [
+            c / (total * w) if total > 0 and w > 0 else 0.0
+            for c, w in zip(counts_list, widths, strict=True)
+        ]
+
+        result_dict = {
+            "x": centers,
+            "y": counts_list,
+            "count": counts_list,
+            "density": density,
+            "width": widths,
+        }
 
         # Build result in same backend as input
         if "polars" in str(type(native)):

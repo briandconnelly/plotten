@@ -13,9 +13,13 @@ from plotten.geoms._errorbar import GeomErrorbar
 from plotten.geoms._histogram import GeomHistogram
 from plotten.geoms._line import GeomLine
 from plotten.geoms._point import GeomPoint
+from plotten.geoms._rect import GeomRect
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
 from plotten.geoms._ribbon import GeomRibbon
+from plotten.geoms._rug import GeomRug
+from plotten.geoms._segment import GeomSegment
 from plotten.geoms._smooth import GeomSmooth
+from plotten.geoms._step import GeomStep
 from plotten.geoms._summary import GeomSummary
 from plotten.geoms._text import GeomLabel, GeomText
 from plotten.geoms._tile import GeomTile
@@ -190,6 +194,45 @@ def geom_violin(**params: Any) -> Layer:
     return Layer(geom=GeomViolin(), mapping=mapping, params=params, position=position)
 
 
+def geom_segment(**params: Any) -> Layer:
+    """Create a segment layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomSegment(), mapping=mapping, params=params, position=position)
+
+
+def geom_rect(**params: Any) -> Layer:
+    """Create a rectangle layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomRect(), mapping=mapping, params=params, position=position)
+
+
+def geom_step(**params: Any) -> Layer:
+    """Create a step line layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomStep(), mapping=mapping, params=params, position=position)
+
+
+def geom_rug(**params: Any) -> Layer:
+    """Create a rug layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomRug(), mapping=mapping, params=params, position=position)
+
+
+def geom_jitter(
+    width: float = 0.4, height: float = 0.0, seed: int | None = None, **params: Any
+) -> Layer:
+    """Create a jittered point layer."""
+    from plotten.positions._jitter import PositionJitter
+
+    position = PositionJitter(width=width, height=height, seed=seed)
+    mapping, params = _extract_aes(params)
+    return Layer(geom=GeomPoint(), mapping=mapping, params=params, position=position)
+
+
 def stat_summary(
     fun_y: str = "mean",
     fun_ymin: str = "mean_se_lower",
@@ -223,8 +266,12 @@ __all__ = [
     "GeomLabel",
     "GeomLine",
     "GeomPoint",
+    "GeomRect",
     "GeomRibbon",
+    "GeomRug",
+    "GeomSegment",
     "GeomSmooth",
+    "GeomStep",
     "GeomSummary",
     "GeomText",
     "GeomTile",
@@ -239,11 +286,16 @@ __all__ = [
     "geom_errorbar",
     "geom_histogram",
     "geom_hline",
+    "geom_jitter",
     "geom_label",
     "geom_line",
     "geom_point",
+    "geom_rect",
     "geom_ribbon",
+    "geom_rug",
+    "geom_segment",
     "geom_smooth",
+    "geom_step",
     "geom_text",
     "geom_tile",
     "geom_violin",

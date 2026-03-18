@@ -63,6 +63,20 @@ class Plot:
                     return self._replace(coord=other)
                 return NotImplemented
 
+    def __or__(self, other: Any) -> Any:
+        from plotten._composition import PlotGrid
+
+        if isinstance(other, Plot | PlotGrid):
+            return PlotGrid(plots=(self, other), direction="h")
+        return NotImplemented
+
+    def __truediv__(self, other: Any) -> Any:
+        from plotten._composition import PlotGrid
+
+        if isinstance(other, Plot | PlotGrid):
+            return PlotGrid(plots=(self, other), direction="v")
+        return NotImplemented
+
     def show(self) -> None:
         """Render and display the plot."""
         from plotten._render._mpl import render
