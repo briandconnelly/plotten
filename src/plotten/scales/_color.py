@@ -6,7 +6,7 @@ import matplotlib
 import matplotlib.colors as mcolors
 import narwhals as nw
 
-from plotten.scales._base import ScaleBase
+from plotten.scales._base import LegendEntry, ScaleBase
 
 
 class ScaleColorContinuous(ScaleBase):
@@ -47,6 +47,17 @@ class ScaleColorContinuous(ScaleBase):
         lo, hi = self.get_limits()
         return np.linspace(lo, hi, 5).tolist()
 
+    def legend_entries(self) -> list[LegendEntry]:
+        breaks = self.get_breaks()
+        lo, hi = self.get_limits()
+        span = hi - lo if hi != lo else 1.0
+        entries = []
+        for b in breaks:
+            norm = (b - lo) / span
+            hex_color = mcolors.to_hex(self._cmap(norm))
+            entries.append(LegendEntry(label=f"{b:.3g}", color=hex_color))
+        return entries
+
 
 class ScaleColorDiscrete(ScaleBase):
     """Map categorical values to distinct colors."""
@@ -81,6 +92,14 @@ class ScaleColorDiscrete(ScaleBase):
 
     def get_labels(self) -> list[str]:
         return [str(lev) for lev in self._levels]
+
+    def legend_entries(self) -> list[LegendEntry]:
+        n = max(len(self._levels), 1)
+        entries = []
+        for i, lev in enumerate(self._levels):
+            hex_color = mcolors.to_hex(self._cmap(i / max(n - 1, 1)))
+            entries.append(LegendEntry(label=str(lev), color=hex_color))
+        return entries
 
 
 def scale_color_continuous(cmap: str = "viridis") -> ScaleColorContinuous:

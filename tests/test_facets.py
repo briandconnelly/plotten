@@ -9,11 +9,23 @@ from plotten.facets import FacetWrap, FacetGrid
 
 
 def _make_df():
-    return pl.DataFrame({
-        "x": [1, 2, 3, 4, 5, 6],
-        "y": [2, 4, 1, 5, 3, 6],
-        "g": ["a", "a", "b", "b", "c", "c"],
-    })
+    return pl.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5, 6],
+            "y": [2, 4, 1, 5, 3, 6],
+            "g": ["a", "a", "b", "b", "c", "c"],
+        }
+    )
+
+
+def _save_and_check(p):
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        path = f.name
+    try:
+        p.save(path)
+        assert os.path.getsize(path) > 0
+    finally:
+        os.unlink(path)
 
 
 def test_facet_wrap_data_splitting():
@@ -61,38 +73,67 @@ def test_facet_grid_layout_rows_only():
 def test_facet_wrap_render_polars():
     df = _make_df()
     p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g")
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        path = f.name
-    try:
-        p.save(path)
-        assert os.path.getsize(path) > 0
-    finally:
-        os.unlink(path)
+    _save_and_check(p)
 
 
 def test_facet_wrap_render_pandas():
-    df = pd.DataFrame({
-        "x": [1, 2, 3, 4, 5, 6],
-        "y": [2, 4, 1, 5, 3, 6],
-        "g": ["a", "a", "b", "b", "c", "c"],
-    })
+    df = pd.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5, 6],
+            "y": [2, 4, 1, 5, 3, 6],
+            "g": ["a", "a", "b", "b", "c", "c"],
+        }
+    )
     p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g")
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        path = f.name
-    try:
-        p.save(path)
-        assert os.path.getsize(path) > 0
-    finally:
-        os.unlink(path)
+    _save_and_check(p)
 
 
 def test_facet_grid_render():
     df = _make_df()
     p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(cols="g")
-    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
-        path = f.name
-    try:
-        p.save(path)
-        assert os.path.getsize(path) > 0
-    finally:
-        os.unlink(path)
+    _save_and_check(p)
+
+
+def test_facet_grid_rows_and_cols():
+    df = pl.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5, 6, 7, 8],
+            "y": [2, 4, 1, 5, 3, 6, 2, 4],
+            "r": ["r1", "r1", "r1", "r1", "r2", "r2", "r2", "r2"],
+            "c": ["c1", "c1", "c2", "c2", "c1", "c1", "c2", "c2"],
+        }
+    )
+    fg = FacetGrid(rows="r", cols="c")
+    panels = fg.facet_data(df)
+    assert len(panels) == 4
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="r", cols="c")
+    _save_and_check(p)
+
+
+def test_facet_grid_rows_only_render():
+    df = _make_df()
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="g")
+    _save_and_check(p)
+
+
+def test_facet_wrap_free_x():
+    df = _make_df()
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", scales="free_x")
+    _save_and_check(p)
+
+
+def test_facet_wrap_free_y():
+    df = _make_df()
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", scales="free_y")
+    _save_and_check(p)
+
+
+def test_facet_wrap_free():
+    df = _make_df()
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", scales="free")
+    _save_and_check(p)
+
+
+def test_facet_wrap_nrow_layout():
+    fw = FacetWrap(facets="g", nrow=1)
+    assert fw.layout(3) == (1, 3)

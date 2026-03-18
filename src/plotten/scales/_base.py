@@ -1,9 +1,20 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from typing import Any
 
 import narwhals as nw
+
+
+@dataclass(frozen=True)
+class LegendEntry:
+    """A single entry in a legend."""
+
+    label: str
+    color: str | None = None
+    fill: str | None = None
+    size: float | None = None
 
 
 class ScaleBase(ABC):
@@ -26,6 +37,10 @@ class ScaleBase(ABC):
 
     def get_labels(self) -> list[str]:
         return [str(b) for b in self.get_breaks()]
+
+    def legend_entries(self) -> list[LegendEntry] | None:
+        """Return legend entries for this scale, or None if not applicable."""
+        return None
 
 
 def auto_scale(aesthetic: str, series: Any) -> ScaleBase:

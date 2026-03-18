@@ -1,10 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any
 
-import narwhals as nw
-import numpy as np
 
 from plotten.scales._position import ScaleContinuous
 

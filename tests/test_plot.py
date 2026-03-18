@@ -3,7 +3,7 @@ from plotten._layer import Layer
 from plotten._plot import Plot, ggplot
 from plotten.geoms._point import GeomPoint
 from plotten.scales._position import ScaleContinuous
-from plotten.themes import Theme, theme_minimal
+from plotten.themes import theme_minimal
 
 
 def test_ggplot_returns_plot():
@@ -38,6 +38,14 @@ def test_add_theme():
     p2 = p + theme_minimal()
     assert p2.theme.panel_background == "none"
     assert p.theme.panel_background == "#ebebeb"
+
+
+def test_add_unsupported_raises_type_error():
+    import pytest
+
+    p = ggplot()
+    with pytest.raises(TypeError):
+        p + 42
 
 
 def test_add_preserves_immutability():

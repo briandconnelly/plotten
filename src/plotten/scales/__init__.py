@@ -1,4 +1,4 @@
-from plotten.scales._base import ScaleBase, auto_scale
+from plotten.scales._base import LegendEntry, ScaleBase, auto_scale
 from plotten.scales._color import (
     ScaleColorContinuous,
     ScaleColorDiscrete,
@@ -9,6 +9,7 @@ from plotten.scales._log import ScaleLog, scale_x_log10, scale_y_log10
 from plotten.scales._position import ScaleContinuous, ScaleDiscrete
 
 __all__ = [
+    "LegendEntry",
     "ScaleBase",
     "ScaleContinuous",
     "ScaleColorContinuous",

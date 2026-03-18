@@ -3,14 +3,12 @@ from __future__ import annotations
 from typing import Any
 
 from plotten.geoms._base import GeomBase
-from plotten.stats._identity import StatIdentity
 
 
 class GeomLine(GeomBase):
     """Draw lines using ax.plot."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
-    default_stat: type = StatIdentity
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
         kwargs: dict[str, Any] = {}

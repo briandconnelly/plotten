@@ -24,8 +24,13 @@ class StatBoxplot(StatBase):
             groups.setdefault(xv, []).append(float(yv))
 
         result: dict[str, list] = {
-            "x": [], "ymin": [], "lower": [], "middle": [],
-            "upper": [], "ymax": [], "outliers_y": [],
+            "x": [],
+            "ymin": [],
+            "lower": [],
+            "middle": [],
+            "upper": [],
+            "ymax": [],
+            "outliers_y": [],
         }
 
         for x_key in sorted(groups):
@@ -49,7 +54,9 @@ class StatBoxplot(StatBase):
         # Return in same backend as input
         if "polars" in str(type(df)):
             import polars as pl
+
             return pl.DataFrame(result)
         else:
             import pandas as pd
+
             return pd.DataFrame(result)

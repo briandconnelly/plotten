@@ -14,8 +14,8 @@ class Stat(Protocol):
 @runtime_checkable
 class Geom(Protocol):
     required_aes: frozenset[str]
-    default_stat: type[Stat]
 
+    def default_stat(self) -> Stat: ...
     def draw(self, data: Any, ax: Any, params: dict) -> None: ...
 
 

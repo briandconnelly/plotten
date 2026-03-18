@@ -5,18 +5,28 @@ import polars as pl
 import pandas as pd
 
 from plotten import (
-    ggplot, aes, geom_point, geom_line, geom_bar, geom_smooth,
-    geom_histogram, theme_minimal, labs, facet_wrap, coord_flip,
+    ggplot,
+    aes,
+    geom_point,
+    geom_line,
+    geom_bar,
+    geom_smooth,
+    theme_minimal,
+    labs,
+    facet_wrap,
+    coord_flip,
     scale_y_log10,
 )
 
 
 def test_scatter_polars():
-    df = pl.DataFrame({
-        "x": [1, 2, 3, 4, 5],
-        "y": [2, 4, 1, 5, 3],
-        "g": ["a", "b", "a", "b", "a"],
-    })
+    df = pl.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5],
+            "y": [2, 4, 1, 5, 3],
+            "g": ["a", "b", "a", "b", "a"],
+        }
+    )
     p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point(size=5) + theme_minimal()
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
@@ -28,11 +38,13 @@ def test_scatter_polars():
 
 
 def test_scatter_pandas():
-    df = pd.DataFrame({
-        "x": [1, 2, 3, 4, 5],
-        "y": [2, 4, 1, 5, 3],
-        "g": ["a", "b", "a", "b", "a"],
-    })
+    df = pd.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5],
+            "y": [2, 4, 1, 5, 3],
+            "g": ["a", "b", "a", "b", "a"],
+        }
+    )
     p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + theme_minimal()
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
@@ -68,11 +80,13 @@ def test_bar_plot():
 
 
 def test_faceted_scatter():
-    df = pl.DataFrame({
-        "x": [1, 2, 3, 4, 5, 6],
-        "y": [2, 4, 1, 5, 3, 6],
-        "g": ["a", "a", "b", "b", "c", "c"],
-    })
+    df = pl.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5, 6],
+            "y": [2, 4, 1, 5, 3, 6],
+            "g": ["a", "a", "b", "b", "c", "c"],
+        }
+    )
     p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
@@ -84,10 +98,12 @@ def test_faceted_scatter():
 
 
 def test_smooth_with_ci():
-    df = pl.DataFrame({
-        "x": list(range(20)),
-        "y": [float(i) + (i % 3) for i in range(20)],
-    })
+    df = pl.DataFrame(
+        {
+            "x": list(range(20)),
+            "y": [float(i) + (i % 3) for i in range(20)],
+        }
+    )
     p = ggplot(df, aes(x="x", y="y")) + geom_point() + geom_smooth(method="ols")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
@@ -123,10 +139,12 @@ def test_log_scale():
 
 
 def test_multi_layer_composition():
-    df = pl.DataFrame({
-        "x": list(range(20)),
-        "y": [float(i) + (i % 3) for i in range(20)],
-    })
+    df = pl.DataFrame(
+        {
+            "x": list(range(20)),
+            "y": [float(i) + (i % 3) for i in range(20)],
+        }
+    )
     p = (
         ggplot(df, aes(x="x", y="y"))
         + geom_point()

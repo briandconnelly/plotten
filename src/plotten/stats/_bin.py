@@ -29,10 +29,11 @@ class StatBin(StatBase):
         result_dict = {"x": centers, "y": counts.tolist()}
 
         # Build result in same backend as input
-        result = nw.from_native(native).__class__.__module__
         if "polars" in str(type(native)):
             import polars as pl
+
             return pl.DataFrame(result_dict)
         else:
             import pandas as pd
+
             return pd.DataFrame(result_dict)

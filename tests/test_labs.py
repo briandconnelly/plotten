@@ -25,7 +25,7 @@ def test_labs_merge():
     b = Labs(title="B", caption="Cap")
     merged = a + b
     assert merged.title == "B"  # other wins
-    assert merged.x == "X1"    # kept from self
+    assert merged.x == "X1"  # kept from self
     assert merged.caption == "Cap"
 
 
@@ -36,7 +36,51 @@ def test_labs_immutable():
 
 def test_plot_with_labs():
     df = pl.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
-    p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="Test", x="X Label", y="Y Label")
+    p = (
+        ggplot(df, aes(x="x", y="y"))
+        + geom_point()
+        + labs(title="Test", x="X Label", y="Y Label")
+    )
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        path = f.name
+    try:
+        p.save(path)
+        assert os.path.getsize(path) > 0
+    finally:
+        os.unlink(path)
+
+
+def test_subtitle_only():
+    df = pl.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(subtitle="Just subtitle")
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        path = f.name
+    try:
+        p.save(path)
+        assert os.path.getsize(path) > 0
+    finally:
+        os.unlink(path)
+
+
+def test_title_and_subtitle():
+    df = pl.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+    p = (
+        ggplot(df, aes(x="x", y="y"))
+        + geom_point()
+        + labs(title="Main Title", subtitle="A subtitle")
+    )
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        path = f.name
+    try:
+        p.save(path)
+        assert os.path.getsize(path) > 0
+    finally:
+        os.unlink(path)
+
+
+def test_caption_rendering():
+    df = pl.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(caption="Source: test data")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
     try:

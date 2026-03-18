@@ -14,9 +14,5 @@ class StatCount(StatBase):
 
     def compute(self, df: Any) -> Any:
         frame = nw.from_native(df)
-        result = (
-            frame.group_by("x")
-            .agg(nw.len().alias("y"))
-            .sort("x")
-        )
+        result = frame.group_by("x").agg(nw.len().alias("y")).sort("x")
         return nw.to_native(result)

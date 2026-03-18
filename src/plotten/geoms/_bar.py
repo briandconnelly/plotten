@@ -3,14 +3,17 @@ from __future__ import annotations
 from typing import Any
 
 from plotten.geoms._base import GeomBase
-from plotten.stats._count import StatCount
 
 
 class GeomBar(GeomBase):
     """Draw bars using ax.bar."""
 
     required_aes: frozenset[str] = frozenset({"x"})
-    default_stat: type = StatCount
+
+    def default_stat(self) -> Any:
+        from plotten.stats._count import StatCount
+
+        return StatCount()
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
         kwargs: dict[str, Any] = {}

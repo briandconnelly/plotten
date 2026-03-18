@@ -3,14 +3,17 @@ from __future__ import annotations
 from typing import Any
 
 from plotten.geoms._base import GeomBase
-from plotten.stats._bin import StatBin
 
 
 class GeomHistogram(GeomBase):
     """Draw histogram bars."""
 
     required_aes: frozenset[str] = frozenset({"x"})
-    default_stat: type = StatBin
+
+    def default_stat(self) -> Any:
+        from plotten.stats._bin import StatBin
+
+        return StatBin()
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
         kwargs: dict[str, Any] = {}

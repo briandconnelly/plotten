@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import math
 from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
+from plotten._render._legend import draw_legend
 from plotten._render._resolve import ResolvedLayer, ResolvedPanel, ResolvedPlot, resolve
-from plotten.scales._position import ScaleContinuous, ScaleDiscrete
+from plotten.scales._position import ScaleDiscrete
 from plotten.themes._theme import Theme
 
 
@@ -33,6 +33,7 @@ def render(plot: Any) -> Figure:
         _apply_coord_limits(ax, resolved.coord, is_flipped)
         _apply_labs(fig, ax, resolved, theme)
         fig.tight_layout(pad=theme.margin * 10)
+        draw_legend(fig, [ax], resolved.scales, resolved.labs, theme)
     else:
         # Faceted
         n_panels = len(resolved.panels)
@@ -70,6 +71,11 @@ def render(plot: Any) -> Figure:
 
         _apply_labs(fig, axes[0][0], resolved, theme)
         fig.tight_layout(pad=theme.margin * 10)
+
+        visible_axes = [
+            axes[r][c] for idx in range(n_panels) for r, c in [divmod(idx, ncol)]
+        ]
+        draw_legend(fig, visible_axes, resolved.scales, resolved.labs, theme)
 
     return fig
 
@@ -159,8 +165,12 @@ def _flip_resolved(resolved: ResolvedPlot) -> ResolvedPlot:
                 new_data["y"] = new_data.pop("x")
             elif "y" in new_data:
                 new_data["x"] = new_data.pop("y")
-            new_layers.append(ResolvedLayer(geom=layer.geom, data=new_data, params=layer.params))
-        new_panels.append(ResolvedPanel(label=panel.label, layers=new_layers, scales=panel.scales))
+            new_layers.append(
+                ResolvedLayer(geom=layer.geom, data=new_data, params=layer.params)
+            )
+        new_panels.append(
+            ResolvedPanel(label=panel.label, layers=new_layers, scales=panel.scales)
+        )
 
     return ResolvedPlot(
         panels=new_panels,
@@ -198,20 +208,37 @@ def _apply_labs(fig: Figure, ax: Any, resolved: ResolvedPlot, theme: Theme) -> N
     if labs.y is not None:
         ax.set_ylabel(labs.y, fontsize=theme.label_size)
 
-    if labs.title is not None:
-        fig.suptitle(labs.title, fontsize=theme.title_size, fontfamily=theme.font_family)
-
-    if labs.subtitle is not None:
-        fig.text(
-            0.5, 0.95, labs.subtitle,
-            ha="center", fontsize=theme.label_size,
+    if labs.title is not None and labs.subtitle is not None:
+        fig.suptitle(
+            labs.title,
+            fontsize=theme.title_size,
             fontfamily=theme.font_family,
+            y=0.98,
+        )
+        fig.text(
+            0.5,
+            0.91,
+            labs.subtitle,
+            ha="center",
+            fontsize=theme.label_size,
+            fontfamily=theme.font_family,
+        )
+    elif labs.title is not None:
+        fig.suptitle(
+            labs.title, fontsize=theme.title_size, fontfamily=theme.font_family
+        )
+    elif labs.subtitle is not None:
+        fig.suptitle(
+            labs.subtitle, fontsize=theme.label_size, fontfamily=theme.font_family
         )
 
     if labs.caption is not None:
         fig.text(
-            0.99, 0.01, labs.caption,
-            ha="right", va="bottom",
+            0.99,
+            0.01,
+            labs.caption,
+            ha="right",
+            va="bottom",
             fontsize=theme.tick_size,
             fontfamily=theme.font_family,
         )

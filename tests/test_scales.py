@@ -14,8 +14,8 @@ def test_continuous_train_and_limits():
     series = pl.Series("x", [1.0, 5.0, 10.0])
     s.train(series)
     lo, hi = s.get_limits()
-    assert lo < 1.0   # padded
-    assert hi > 10.0   # padded
+    assert lo < 1.0  # padded
+    assert hi > 10.0  # padded
 
 
 def test_continuous_breaks():

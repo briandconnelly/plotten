@@ -3,14 +3,17 @@ from __future__ import annotations
 from typing import Any
 
 from plotten.geoms._base import GeomBase
-from plotten.stats._boxplot import StatBoxplot
 
 
 class GeomBoxplot(GeomBase):
     """Draw boxplots."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
-    default_stat: type = StatBoxplot
+
+    def default_stat(self) -> Any:
+        from plotten.stats._boxplot import StatBoxplot
+
+        return StatBoxplot()
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
         width = params.get("width", 0.7)
@@ -36,8 +39,14 @@ class GeomBoxplot(GeomBase):
 
             # Box body
             ax.bar(
-                pos, upper - lower, bottom=lower, width=width,
-                color=fill_color, alpha=alpha, edgecolor=line_color, linewidth=1,
+                pos,
+                upper - lower,
+                bottom=lower,
+                width=width,
+                color=fill_color,
+                alpha=alpha,
+                edgecolor=line_color,
+                linewidth=1,
             )
 
             # Median line
@@ -55,6 +64,9 @@ class GeomBoxplot(GeomBase):
             # Outliers
             if outliers:
                 ax.scatter(
-                    [pos] * len(outliers), outliers,
-                    color=line_color, s=20, zorder=5,
+                    [pos] * len(outliers),
+                    outliers,
+                    color=line_color,
+                    s=20,
+                    zorder=5,
                 )

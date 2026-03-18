@@ -10,13 +10,18 @@ from plotten.geoms._boxplot import GeomBoxplot
 from plotten.geoms._histogram import GeomHistogram
 from plotten.geoms._line import GeomLine
 from plotten.geoms._point import GeomPoint
+from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
 from plotten.geoms._smooth import GeomSmooth
 from plotten.geoms._text import GeomLabel, GeomText
 
 
 def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
     """Split params into Aes fields and remaining params."""
-    aes_kwargs = {k: params.pop(k) for k in list(params) if hasattr(Aes, k) and isinstance(params[k], str)}
+    aes_kwargs = {
+        k: params.pop(k)
+        for k in list(params)
+        if hasattr(Aes, k) and isinstance(params[k], str)
+    }
     return Aes(**aes_kwargs), params
 
 
@@ -41,8 +46,11 @@ def geom_bar(**params: Any) -> Layer:
 def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     """Create a histogram layer."""
     from plotten.stats._bin import StatBin
+
     mapping, params = _extract_aes(params)
-    return Layer(geom=GeomHistogram(), stat=StatBin(bins=bins), mapping=mapping, params=params)
+    return Layer(
+        geom=GeomHistogram(), stat=StatBin(bins=bins), mapping=mapping, params=params
+    )
 
 
 def geom_boxplot(**params: Any) -> Layer:
@@ -70,22 +78,45 @@ def geom_label(**params: Any) -> Layer:
     return Layer(geom=GeomLabel(), mapping=mapping, params=params)
 
 
+def geom_hline(yintercept: float, **params: Any) -> Layer:
+    """Create a horizontal reference line layer."""
+    return Layer(geom=GeomHLine(yintercept, **params), mapping=Aes(), params=params)
+
+
+def geom_vline(xintercept: float, **params: Any) -> Layer:
+    """Create a vertical reference line layer."""
+    return Layer(geom=GeomVLine(xintercept, **params), mapping=Aes(), params=params)
+
+
+def geom_abline(slope: float, intercept: float, **params: Any) -> Layer:
+    """Create an arbitrary reference line layer."""
+    return Layer(
+        geom=GeomAbLine(slope, intercept, **params), mapping=Aes(), params=params
+    )
+
+
 __all__ = [
+    "GeomAbLine",
     "GeomBase",
     "GeomBar",
     "GeomBoxplot",
+    "GeomHLine",
     "GeomHistogram",
     "GeomLabel",
     "GeomLine",
     "GeomPoint",
     "GeomSmooth",
     "GeomText",
+    "GeomVLine",
+    "geom_abline",
     "geom_bar",
     "geom_boxplot",
+    "geom_hline",
     "geom_histogram",
     "geom_label",
     "geom_line",
     "geom_point",
     "geom_smooth",
     "geom_text",
+    "geom_vline",
 ]

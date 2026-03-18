@@ -3,14 +3,12 @@ from __future__ import annotations
 from typing import Any
 
 from plotten.geoms._base import GeomBase
-from plotten.stats._identity import StatIdentity
 
 
 class GeomText(GeomBase):
     """Draw text at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
-    default_stat: type = StatIdentity
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
         color = params.get("color", "black")
@@ -26,7 +24,6 @@ class GeomLabel(GeomBase):
     """Draw text with a background box at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
-    default_stat: type = StatIdentity
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
         color = params.get("color", "black")
@@ -45,6 +42,12 @@ class GeomLabel(GeomBase):
 
         for x, y, label in zip(data["x"], data["y"], data["label"]):
             ax.text(
-                x, y, str(label),
-                color=color, fontsize=fontsize, ha=ha, va=va, bbox=bbox,
+                x,
+                y,
+                str(label),
+                color=color,
+                fontsize=fontsize,
+                ha=ha,
+                va=va,
+                bbox=bbox,
             )

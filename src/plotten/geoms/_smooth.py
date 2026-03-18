@@ -10,13 +10,12 @@ class GeomSmooth(GeomBase):
     """Draw a smooth fit line with optional CI ribbon."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
-    default_stat: type = StatSmooth
 
     def __init__(self, method: str = "loess", se: bool = True, **kwargs: Any) -> None:
         self._method = method
         self._se = se
 
-    def default_stat(self) -> StatSmooth:  # type: ignore[override]
+    def default_stat(self) -> StatSmooth:
         return StatSmooth(method=self._method, se=self._se)
 
     def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
@@ -32,6 +31,9 @@ class GeomSmooth(GeomBase):
         if se and "ymin" in data and "ymax" in data:
             if data["ymin"] != data["ymax"]:
                 ax.fill_between(
-                    data["x"], data["ymin"], data["ymax"],
-                    alpha=0.2, color=color,
+                    data["x"],
+                    data["ymin"],
+                    data["ymax"],
+                    alpha=0.2,
+                    color=color,
                 )

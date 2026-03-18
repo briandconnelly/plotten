@@ -1,6 +1,6 @@
 [project]
 name = "plotten"
-version = "0.2.0"
+version = "0.3.0"
 description = "A grammar-of-graphics plotting library for Python"
 readme = "README.md"
 authors = [

@@ -60,9 +60,11 @@ class StatSmooth(StatBase):
 
         if "polars" in str(type(df)):
             import polars as pl
+
             return pl.DataFrame(result)
         else:
             import pandas as pd
+
             return pd.DataFrame(result)
 
     def _ols(
@@ -110,8 +112,6 @@ class StatSmooth(StatBase):
         self, x: np.ndarray, y: np.ndarray, x_pred: np.ndarray
     ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         window = max(1, int(self.span * len(y)))
-        # Compute rolling mean on original data, then interpolate to x_pred
-        cumsum = np.cumsum(np.insert(y, 0, 0))
         # For each x_pred point, find nearest window of data
         y_pred = np.empty_like(x_pred)
         for i, xp in enumerate(x_pred):

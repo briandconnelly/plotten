@@ -19,10 +19,10 @@ def test_aes_merge():
     a = aes(x="a", y="b", color="c")
     b = aes(y="d", size="s")
     merged = a | b
-    assert merged.x == "a"       # kept from a
-    assert merged.y == "d"       # overridden by b
-    assert merged.color == "c"   # kept from a
-    assert merged.size == "s"    # new from b
+    assert merged.x == "a"  # kept from a
+    assert merged.y == "d"  # overridden by b
+    assert merged.color == "c"  # kept from a
+    assert merged.size == "s"  # new from b
 
 
 def test_aes_frozen():

@@ -8,6 +8,8 @@ from plotten._aes import Aes
 from plotten._labs import Labs
 from plotten._layer import Layer
 from plotten.coords._cartesian import CoordCartesian
+from plotten.coords._flip import CoordFlip
+from plotten.facets import FacetGrid, FacetWrap
 from plotten.scales._base import ScaleBase
 from plotten.themes._theme import Theme
 
@@ -42,14 +44,8 @@ class Plot:
             return self._replace(theme=self.theme + other)
         if isinstance(other, Labs):
             return self._replace(labs=self.labs + other)
-        if isinstance(other, CoordCartesian):
+        if isinstance(other, (CoordCartesian, CoordFlip)):
             return self._replace(coord=other)
-        # CoordFlip
-        from plotten.coords._flip import CoordFlip
-        if isinstance(other, CoordFlip):
-            return self._replace(coord=other)
-        # Facets
-        from plotten.facets import FacetWrap, FacetGrid
         if isinstance(other, (FacetWrap, FacetGrid)):
             return self._replace(facet=other)
         return NotImplemented

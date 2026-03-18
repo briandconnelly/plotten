@@ -10,6 +10,7 @@ from plotten.scales._log import ScaleLog
 def test_scale_log_breaks():
     s = ScaleLog(aesthetic="x", base=10)
     import pandas as pd
+
     s.train(pd.Series([1, 100, 10000]))
     breaks = s.get_breaks()
     assert 1 in breaks
@@ -20,6 +21,7 @@ def test_scale_log_breaks():
 def test_scale_log_limits():
     s = ScaleLog(aesthetic="y", base=10)
     import pandas as pd
+
     s.train(pd.Series([10, 1000]))
     lo, hi = s.get_limits()
     assert lo == 10
