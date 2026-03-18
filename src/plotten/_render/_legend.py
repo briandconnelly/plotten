@@ -1,26 +1,34 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
-from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 
-from plotten.scales._base import ScaleBase
+from plotten._enums import LegendPosition
 from plotten.scales._color import ScaleColorContinuous
-from plotten.themes._theme import Theme
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+    from matplotlib.figure import Figure
+
+    from plotten.scales._base import ScaleBase
+    from plotten.themes._theme import Theme
 
 
 def draw_legend(
     fig: Figure,
-    main_axes: list[Any],
+    main_axes: list[Axes],
     scales: dict[str, ScaleBase],
     labs: Any,
     theme: Theme,
 ) -> None:
     """Draw legends for color/fill scales."""
-    if theme.legend_position == "none":
-        return
+    match theme.legend_position:
+        case LegendPosition.NONE:
+            return
+        case _:
+            pos = theme.legend_position
 
     # Collect legend groups from scales that have legend entries
     legend_groups: list[tuple[str, str, ScaleBase]] = []
@@ -29,37 +37,30 @@ def draw_legend(
             scale = scales[aes_name]
             entries = scale.legend_entries()
             if entries:
-                title = (
-                    getattr(labs, aes_name, None) if labs is not None else None
-                ) or aes_name
+                title = (getattr(labs, aes_name, None) if labs is not None else None) or aes_name
                 legend_groups.append((aes_name, title, scale))
 
     if not legend_groups:
         return
 
-    pos = theme.legend_position
-
     # Shrink main axes to make room for legend
-    if pos == "right":
-        for ax in main_axes:
-            box = ax.get_position()
-            ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
-    elif pos == "left":
-        for ax in main_axes:
-            box = ax.get_position()
-            ax.set_position(
-                [box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height]
-            )
-    elif pos == "top":
-        for ax in main_axes:
-            box = ax.get_position()
-            ax.set_position([box.x0, box.y0, box.width, box.height * 0.85])
-    elif pos == "bottom":
-        for ax in main_axes:
-            box = ax.get_position()
-            ax.set_position(
-                [box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85]
-            )
+    match pos:
+        case LegendPosition.RIGHT:
+            for ax in main_axes:
+                box = ax.get_position()
+                ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
+        case LegendPosition.LEFT:
+            for ax in main_axes:
+                box = ax.get_position()
+                ax.set_position([box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height])
+        case LegendPosition.TOP:
+            for ax in main_axes:
+                box = ax.get_position()
+                ax.set_position([box.x0, box.y0, box.width, box.height * 0.85])
+        case LegendPosition.BOTTOM:
+            for ax in main_axes:
+                box = ax.get_position()
+                ax.set_position([box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85])
 
     # Draw each legend group
     for _aes_name, title, scale in legend_groups:
@@ -87,18 +88,19 @@ def _draw_discrete_legend(
     total_height = title_height + n_entries * entry_height + 0.02
     legend_width = 0.12
 
-    if position == "right":
-        x0 = 0.88
-        y0 = max(0.5 - total_height / 2, 0.05)
-    elif position == "left":
-        x0 = 0.01
-        y0 = max(0.5 - total_height / 2, 0.05)
-    elif position == "top":
-        x0 = 0.5 - legend_width / 2
-        y0 = 0.88
-    else:  # bottom
-        x0 = 0.5 - legend_width / 2
-        y0 = 0.01
+    match position:
+        case LegendPosition.RIGHT:
+            x0 = 0.88
+            y0 = max(0.5 - total_height / 2, 0.05)
+        case LegendPosition.LEFT:
+            x0 = 0.01
+            y0 = max(0.5 - total_height / 2, 0.05)
+        case LegendPosition.TOP:
+            x0 = 0.5 - legend_width / 2
+            y0 = 0.88
+        case _:  # bottom
+            x0 = 0.5 - legend_width / 2
+            y0 = 0.01
 
     legend_ax = fig.add_axes([x0, y0, legend_width, total_height])
     legend_ax.set_xlim(0, 1)
@@ -200,14 +202,15 @@ def _draw_continuous_legend(
     theme: Theme,
 ) -> None:
     """Draw a continuous colorbar legend."""
-    if position == "right":
-        x0, y0, w, h = 0.89, 0.15, 0.03, 0.6
-    elif position == "left":
-        x0, y0, w, h = 0.02, 0.15, 0.03, 0.6
-    elif position == "top":
-        x0, y0, w, h = 0.2, 0.92, 0.5, 0.03
-    else:  # bottom
-        x0, y0, w, h = 0.2, 0.02, 0.5, 0.03
+    match position:
+        case LegendPosition.RIGHT:
+            x0, y0, w, h = 0.89, 0.15, 0.03, 0.6
+        case LegendPosition.LEFT:
+            x0, y0, w, h = 0.02, 0.15, 0.03, 0.6
+        case LegendPosition.TOP:
+            x0, y0, w, h = 0.2, 0.92, 0.5, 0.03
+        case _:  # bottom
+            x0, y0, w, h = 0.2, 0.02, 0.5, 0.03
 
     cbar_ax = fig.add_axes([x0, y0, w, h])
 
@@ -249,10 +252,6 @@ def _draw_continuous_legend(
 
     # Title above colorbar
     if position in ("right", "left"):
-        cbar_ax.set_title(
-            title, fontsize=theme.label_size, fontfamily=theme.font_family, pad=4
-        )
+        cbar_ax.set_title(title, fontsize=theme.label_size, fontfamily=theme.font_family, pad=4)
     else:
-        cbar_ax.set_xlabel(
-            title, fontsize=theme.label_size, fontfamily=theme.font_family
-        )
+        cbar_ax.set_xlabel(title, fontsize=theme.label_size, fontfamily=theme.font_family)

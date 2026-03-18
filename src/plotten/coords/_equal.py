@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 class CoordEqual:
@@ -14,7 +17,7 @@ class CoordEqual:
         self.xlim = xlim
         self.ylim = ylim
 
-    def transform(self, data: Any, ax: Any) -> Any:
+    def transform(self, data: Any, ax: Axes) -> Any:
         ax.set_aspect("equal")
         if self.xlim is not None:
             ax.set_xlim(self.xlim)
@@ -36,7 +39,7 @@ class CoordFixed:
         self.xlim = xlim
         self.ylim = ylim
 
-    def transform(self, data: Any, ax: Any) -> Any:
+    def transform(self, data: Any, ax: Axes) -> Any:
         ax.set_aspect(self.ratio)
         if self.xlim is not None:
             ax.set_xlim(self.xlim)

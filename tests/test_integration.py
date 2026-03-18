@@ -1,21 +1,21 @@
 import os
 import tempfile
 
-import polars as pl
 import pandas as pd
+import polars as pl
 
 from plotten import (
-    ggplot,
     aes,
-    geom_point,
-    geom_line,
-    geom_bar,
-    geom_smooth,
-    theme_minimal,
-    labs,
-    facet_wrap,
     coord_flip,
+    facet_wrap,
+    geom_bar,
+    geom_line,
+    geom_point,
+    geom_smooth,
+    ggplot,
+    labs,
     scale_y_log10,
+    theme_minimal,
 )
 
 

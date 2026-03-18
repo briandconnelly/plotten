@@ -3,7 +3,7 @@ import tempfile
 
 import polars as pl
 
-from plotten import ggplot, aes, geom_bar, geom_point, coord_flip
+from plotten import aes, coord_flip, geom_bar, geom_point, ggplot
 from plotten.coords._cartesian import CoordCartesian
 
 

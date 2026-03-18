@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomCol(GeomBase):
+class GeomCol:
     """Draw bars with pre-computed heights (uses StatIdentity)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         if "fill" in data:
             kwargs["color"] = data["fill"]

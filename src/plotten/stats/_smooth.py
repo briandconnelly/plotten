@@ -5,10 +5,10 @@ from typing import Any
 import narwhals as nw
 import numpy as np
 
-from plotten.stats._base import StatBase
+from plotten._enums import SmoothMethod
 
 
-class StatSmooth(StatBase):
+class StatSmooth:
     """Compute a smooth fit line with optional confidence interval."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
@@ -37,15 +37,16 @@ class StatSmooth(StatBase):
 
         x_pred = np.linspace(x_sorted.min(), x_sorted.max(), self.n_points)
 
-        if self.method == "ols":
-            y_pred, ymin, ymax = self._ols(x_sorted, y_sorted, x_pred)
-        elif self.method == "loess":
-            y_pred, ymin, ymax = self._loess(x_sorted, y_sorted, x_pred)
-        elif self.method == "moving_average":
-            y_pred, ymin, ymax = self._moving_average(x_sorted, y_sorted, x_pred)
-        else:
-            msg = f"Unknown smoothing method: {self.method!r}"
-            raise ValueError(msg)
+        match self.method:
+            case SmoothMethod.OLS:
+                y_pred, ymin, ymax = self._ols(x_sorted, y_sorted, x_pred)
+            case SmoothMethod.LOESS:
+                y_pred, ymin, ymax = self._loess(x_sorted, y_sorted, x_pred)
+            case SmoothMethod.MOVING_AVERAGE:
+                y_pred, ymin, ymax = self._moving_average(x_sorted, y_sorted, x_pred)
+            case _:
+                msg = f"Unknown smoothing method: {self.method!r}"
+                raise ValueError(msg)
 
         if not self.se:
             ymin = y_pred.copy()
@@ -88,10 +89,7 @@ class StatSmooth(StatBase):
         try:
             from scipy.interpolate import UnivariateSpline
         except ImportError:
-            msg = (
-                "LOESS smoothing requires scipy. "
-                "Install it with: pip install plotten[smooth]"
-            )
+            msg = "LOESS smoothing requires scipy. Install it with: pip install plotten[smooth]"
             raise ImportError(msg) from None
 
         # Use a smoothing spline as LOESS approximation

@@ -91,9 +91,7 @@ class ScaleAlphaDiscrete(ScaleBase):
         if self._manual_values:
             return [self._manual_values.get(str(v), 1.0) for v in s.to_list()]
         n = max(len(self._levels), 1)
-        alpha_map = {
-            lev: 0.1 + 0.9 * i / max(n - 1, 1) for i, lev in enumerate(self._levels)
-        }
+        alpha_map = {lev: 0.1 + 0.9 * i / max(n - 1, 1) for i, lev in enumerate(self._levels)}
         return [alpha_map[v] for v in s.to_list()]
 
     def get_limits(self) -> tuple[float, float]:

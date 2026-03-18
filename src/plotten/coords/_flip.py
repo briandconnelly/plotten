@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 class CoordFlip:
@@ -14,7 +17,7 @@ class CoordFlip:
         self.xlim = xlim
         self.ylim = ylim
 
-    def transform(self, data: Any, ax: Any) -> Any:
+    def transform(self, data: Any, ax: Axes) -> Any:
         return data
 
 

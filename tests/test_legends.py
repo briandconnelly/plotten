@@ -3,12 +3,12 @@ import tempfile
 
 import polars as pl
 
-from plotten import ggplot, aes, geom_point, labs
+from plotten import aes, geom_point, ggplot, labs
+from plotten.facets import FacetWrap
 from plotten.scales._base import LegendEntry
 from plotten.scales._color import ScaleColorContinuous, ScaleColorDiscrete
 from plotten.scales._position import ScaleContinuous
 from plotten.themes import Theme
-from plotten.facets import FacetWrap
 
 
 def test_discrete_color_legend_entries():
@@ -66,11 +66,7 @@ def test_legend_position_none():
             "g": ["a", "b", "c"],
         }
     )
-    p = (
-        ggplot(df, aes(x="x", y="y", color="g"))
-        + geom_point()
-        + Theme(legend_position="none")
-    )
+    p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + Theme(legend_position="none")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
     try:
@@ -125,11 +121,7 @@ def test_legend_position_left():
             "g": ["a", "b", "c"],
         }
     )
-    p = (
-        ggplot(df, aes(x="x", y="y", color="g"))
-        + geom_point()
-        + Theme(legend_position="left")
-    )
+    p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + Theme(legend_position="left")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
     try:
@@ -147,11 +139,7 @@ def test_legend_position_top():
             "g": ["a", "b", "c"],
         }
     )
-    p = (
-        ggplot(df, aes(x="x", y="y", color="g"))
-        + geom_point()
-        + Theme(legend_position="top")
-    )
+    p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + Theme(legend_position="top")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
     try:
@@ -169,11 +157,7 @@ def test_legend_position_bottom():
             "g": ["a", "b", "c"],
         }
     )
-    p = (
-        ggplot(df, aes(x="x", y="y", color="g"))
-        + geom_point()
-        + Theme(legend_position="bottom")
-    )
+    p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + Theme(legend_position="bottom")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
     try:
@@ -192,11 +176,7 @@ def test_continuous_color_legend_positions():
         }
     )
     for pos in ("left", "top", "bottom"):
-        p = (
-            ggplot(df, aes(x="x", y="y", color="val"))
-            + geom_point()
-            + Theme(legend_position=pos)
-        )
+        p = ggplot(df, aes(x="x", y="y", color="val")) + geom_point() + Theme(legend_position=pos)
         with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
             path = f.name
         try:

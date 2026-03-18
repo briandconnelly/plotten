@@ -5,10 +5,8 @@ from typing import Any
 import narwhals as nw
 import numpy as np
 
-from plotten.stats._base import StatBase
 
-
-class StatViolin(StatBase):
+class StatViolin:
     """Compute mirrored KDE per group for violin plots."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
@@ -25,7 +23,7 @@ class StatViolin(StatBase):
 
         # Group by x (categorical)
         groups: dict[Any, list[float]] = {}
-        for xv, yv in zip(x_vals, y_vals):
+        for xv, yv in zip(x_vals, y_vals, strict=True):
             groups.setdefault(xv, []).append(float(yv))
 
         result: dict[str, list] = {

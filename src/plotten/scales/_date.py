@@ -28,11 +28,7 @@ class ScaleDateContinuous(ScaleBase):
     def _to_mpl_dates(self, values: Any) -> list[float]:
         """Convert temporal values to matplotlib date numbers."""
         s = nw.from_native(values, series_only=True)
-        # Cast to datetime then extract Python objects
-        try:
-            py_values = s.to_list()
-        except Exception:
-            py_values = s.to_list()
+        py_values = s.to_list()
         return [mdates.date2num(v) for v in py_values]
 
     def train(self, values: Any) -> None:

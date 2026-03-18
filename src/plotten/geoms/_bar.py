@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomBar(GeomBase):
+class GeomBar:
     """Draw bars using ax.bar."""
 
     required_aes: frozenset[str] = frozenset({"x"})
@@ -15,7 +16,7 @@ class GeomBar(GeomBase):
 
         return StatCount()
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         if "fill" in data:
             kwargs["color"] = data["fill"]

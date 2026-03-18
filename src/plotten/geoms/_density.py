@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomDensity(GeomBase):
+class GeomDensity:
     """Draw density curves."""
 
     required_aes: frozenset[str] = frozenset({"x"})
@@ -19,7 +20,7 @@ class GeomDensity(GeomBase):
 
         return StatDensity()
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         alpha = params.get("alpha", self._alpha)
         fill = params.get("fill", self._fill)
 

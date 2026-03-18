@@ -3,7 +3,7 @@ import tempfile
 
 import polars as pl
 
-from plotten import Labs, ggplot, aes, geom_point, labs
+from plotten import Labs, aes, geom_point, ggplot, labs
 
 
 def test_labs_creation():
@@ -36,11 +36,7 @@ def test_labs_immutable():
 
 def test_plot_with_labs():
     df = pl.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
-    p = (
-        ggplot(df, aes(x="x", y="y"))
-        + geom_point()
-        + labs(title="Test", x="X Label", y="Y Label")
-    )
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="Test", x="X Label", y="Y Label")
     with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
         path = f.name
     try:

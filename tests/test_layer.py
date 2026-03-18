@@ -1,3 +1,5 @@
+import pytest
+
 from plotten._aes import Aes, aes
 from plotten._layer import Layer
 from plotten.geoms._point import GeomPoint
@@ -21,6 +23,6 @@ def test_layer_frozen():
     layer = Layer(geom=GeomPoint())
     try:
         layer.geom = None  # type: ignore[misc]
-        assert False, "Should have raised"
+        pytest.fail("Should have raised")
     except AttributeError:
         pass

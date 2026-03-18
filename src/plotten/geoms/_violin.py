@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomViolin(GeomBase):
+class GeomViolin:
     """Draw violin plots (mirrored KDE per group)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
@@ -15,7 +16,7 @@ class GeomViolin(GeomBase):
 
         return StatViolin()
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         fill_color = params.get("fill", "#4C72B0")
         alpha = params.get("alpha", 0.7)
         line_color = params.get("color", "black")

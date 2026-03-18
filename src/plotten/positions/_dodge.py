@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from plotten.positions._base import PositionBase
 
-
-class PositionDodge(PositionBase):
+class PositionDodge:
     """Dodge overlapping objects side-by-side."""
 
     def __init__(self, width: float = 0.9) -> None:
@@ -34,7 +32,7 @@ class PositionDodge(PositionBase):
         group_width = self.width / n_groups
 
         new_x = []
-        for x_val, g in zip(data["x"], groups):
+        for x_val, g in zip(data["x"], groups, strict=True):
             idx = group_index[g]
             offset = (idx - (n_groups - 1) / 2) * group_width
             new_x.append(x_val + offset)

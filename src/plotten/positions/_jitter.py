@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import random
 
-from plotten.positions._base import PositionBase
 
-
-class PositionJitter(PositionBase):
+class PositionJitter:
     """Add random noise to x and/or y positions."""
 
-    def __init__(
-        self, width: float = 0.4, height: float = 0.0, seed: int | None = None
-    ) -> None:
+    def __init__(self, width: float = 0.4, height: float = 0.0, seed: int | None = None) -> None:
         self.width = width
         self.height = height
         self.seed = seed
@@ -20,13 +16,9 @@ class PositionJitter(PositionBase):
 
         result = dict(data)
         if "x" in data and self.width > 0:
-            result["x"] = [
-                v + rng.uniform(-self.width / 2, self.width / 2) for v in data["x"]
-            ]
+            result["x"] = [v + rng.uniform(-self.width / 2, self.width / 2) for v in data["x"]]
         if "y" in data and self.height > 0:
-            result["y"] = [
-                v + rng.uniform(-self.height / 2, self.height / 2) for v in data["y"]
-            ]
+            result["y"] = [v + rng.uniform(-self.height / 2, self.height / 2) for v in data["y"]]
         return result
 
 

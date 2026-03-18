@@ -1,31 +1,42 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomText(GeomBase):
+class GeomText:
     """Draw text at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         color = params.get("color", "black")
         fontsize = params.get("size", 10)
         ha = params.get("ha", "center")
         va = params.get("va", "center")
 
-        for x, y, label in zip(data["x"], data["y"], data["label"]):
+        for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(x, y, str(label), color=color, fontsize=fontsize, ha=ha, va=va)
 
 
-class GeomLabel(GeomBase):
+class GeomLabel:
     """Draw text with a background box at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         color = params.get("color", "black")
         fontsize = params.get("size", 10)
         ha = params.get("ha", "center")
@@ -40,7 +51,7 @@ class GeomLabel(GeomBase):
             edgecolor=color,
         )
 
-        for x, y, label in zip(data["x"], data["y"], data["label"]):
+        for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(
                 x,
                 y,

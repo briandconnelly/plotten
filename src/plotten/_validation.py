@@ -39,9 +39,9 @@ def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -
 
 def validate_data_type(aesthetic: str, series: Any, scale: Any) -> None:
     """Warn if continuous scale gets all-string data or vice versa."""
-    from plotten.scales._position import ScaleContinuous, ScaleDiscrete
-
     import narwhals as nw
+
+    from plotten.scales._position import ScaleContinuous, ScaleDiscrete
 
     s = nw.from_native(series, series_only=True)
     if isinstance(scale, ScaleContinuous) and not s.dtype.is_numeric():

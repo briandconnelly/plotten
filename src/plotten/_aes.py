@@ -1,8 +1,10 @@
 from __future__ import annotations
+
 from dataclasses import dataclass
+from typing import Self
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Aes:
     """Aesthetic mapping specification."""
 
@@ -19,9 +21,9 @@ class Aes:
     ymax: str | None = None
     group: str | None = None
 
-    def __or__(self, other: Aes) -> Aes:
+    def __or__(self, other: Aes) -> Self:
         """Merge aesthetics. other's non-None fields win."""
-        return Aes(
+        return type(self)(
             **{
                 f.name: (
                     getattr(other, f.name)

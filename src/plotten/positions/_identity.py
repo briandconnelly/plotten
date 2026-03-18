@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from plotten.positions._base import PositionBase
 
-
-class PositionIdentity(PositionBase):
+class PositionIdentity:
     """No position adjustment — returns data unchanged."""
 
     def adjust(self, data: dict, params: dict) -> dict:

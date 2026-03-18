@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from plotten.positions._base import PositionBase
 
-
-class PositionFill(PositionBase):
+class PositionFill:
     """Stack and normalize to [0, 1]."""
 
     def adjust(self, data: dict, params: dict) -> dict:
@@ -26,7 +24,7 @@ class PositionFill(PositionBase):
 
         # First pass: compute totals per x
         totals: dict = {}
-        for x, y in zip(xs, ys):
+        for x, y in zip(xs, ys, strict=True):
             totals[x] = totals.get(x, 0.0) + y
 
         # Second pass: stack and normalize
@@ -34,7 +32,7 @@ class PositionFill(PositionBase):
         new_y = list(ys)
         new_ymin = [0.0] * len(ys)
 
-        for i, (x, y, _g) in enumerate(zip(xs, ys, groups)):
+        for i, (x, y, _g) in enumerate(zip(xs, ys, groups, strict=True)):
             total = totals[x] if totals[x] != 0 else 1.0
             base = cumulative.get(x, 0.0)
             new_ymin[i] = base / total

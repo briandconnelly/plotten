@@ -3,7 +3,7 @@ import tempfile
 
 import polars as pl
 
-from plotten import ggplot, aes, geom_point, geom_hline, geom_vline, geom_abline
+from plotten import aes, geom_abline, geom_hline, geom_point, geom_vline, ggplot
 from plotten.facets import FacetWrap
 
 
@@ -31,11 +31,7 @@ def test_geom_vline():
 
 def test_geom_abline():
     df = pl.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
-    p = (
-        ggplot(df, aes(x="x", y="y"))
-        + geom_point()
-        + geom_abline(slope=1.0, intercept=0.0)
-    )
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + geom_abline(slope=1.0, intercept=0.0)
     _save_and_check(p)
 
 
@@ -72,8 +68,6 @@ def test_refline_style_params():
     p = (
         ggplot(df, aes(x="x", y="y"))
         + geom_point()
-        + geom_hline(
-            yintercept=2.0, color="red", linestyle="--", linewidth=2, alpha=0.5
-        )
+        + geom_hline(yintercept=2.0, color="red", linestyle="--", linewidth=2, alpha=0.5)
     )
     _save_and_check(p)

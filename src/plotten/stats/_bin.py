@@ -5,10 +5,8 @@ from typing import Any
 import narwhals as nw
 import numpy as np
 
-from plotten.stats._base import StatBase
 
-
-class StatBin(StatBase):
+class StatBin:
     """Bin continuous x into intervals and count per bin."""
 
     required_aes: frozenset[str] = frozenset({"x"})

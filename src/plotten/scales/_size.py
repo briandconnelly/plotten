@@ -91,9 +91,7 @@ class ScaleSizeDiscrete(ScaleBase):
         if self._manual_values:
             return [self._manual_values.get(str(v), 5.0) for v in s.to_list()]
         n = max(len(self._levels), 1)
-        size_map = {
-            lev: 1 + 9 * i / max(n - 1, 1) for i, lev in enumerate(self._levels)
-        }
+        size_map = {lev: 1 + 9 * i / max(n - 1, 1) for i, lev in enumerate(self._levels)}
         return [size_map[v] for v in s.to_list()]
 
     def get_limits(self) -> tuple[float, float]:

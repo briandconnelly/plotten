@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+from typing import Self
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Labs:
     """Labels for plot title, subtitle, axes, and aesthetics."""
 
@@ -16,7 +17,7 @@ class Labs:
     size: str | None = None
     caption: str | None = None
 
-    def __add__(self, other: Labs) -> Labs:
+    def __add__(self, other: Labs) -> Self:
         """Merge labels — other's non-None values win."""
         if not isinstance(other, Labs):
             return NotImplemented
@@ -27,7 +28,7 @@ class Labs:
                 kwargs[f.name] = other_val
             else:
                 kwargs[f.name] = getattr(self, f.name)
-        return Labs(**kwargs)
+        return type(self)(**kwargs)
 
 
 def labs(**kwargs: str) -> Labs:

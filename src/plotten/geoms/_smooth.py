@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
 from plotten.stats._smooth import StatSmooth
 
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
-class GeomSmooth(GeomBase):
+
+class GeomSmooth:
     """Draw a smooth fit line with optional CI ribbon."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
@@ -18,7 +20,7 @@ class GeomSmooth(GeomBase):
     def default_stat(self) -> StatSmooth:
         return StatSmooth(method=self._method, se=self._se)
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         color = params.get("color", "#3366CC")
         if "alpha" in params:
@@ -28,12 +30,11 @@ class GeomSmooth(GeomBase):
 
         # CI ribbon
         se = params.get("se", self._se)
-        if se and "ymin" in data and "ymax" in data:
-            if data["ymin"] != data["ymax"]:
-                ax.fill_between(
-                    data["x"],
-                    data["ymin"],
-                    data["ymax"],
-                    alpha=0.2,
-                    color=color,
-                )
+        if se and "ymin" in data and "ymax" in data and data["ymin"] != data["ymax"]:
+            ax.fill_between(
+                data["x"],
+                data["ymin"],
+                data["ymax"],
+                alpha=0.2,
+                color=color,
+            )

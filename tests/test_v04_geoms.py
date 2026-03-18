@@ -167,11 +167,7 @@ def test_errorbar_with_points(backend):
         },
         backend,
     )
-    p = (
-        ggplot(df, aes(x="x", y="y"))
-        + geom_point()
-        + geom_errorbar(ymin="lo", ymax="hi")
-    )
+    p = ggplot(df, aes(x="x", y="y")) + geom_point() + geom_errorbar(ymin="lo", ymax="hi")
     assert_renders(p)
 
 

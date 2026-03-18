@@ -3,7 +3,7 @@ import tempfile
 
 import polars as pl
 
-from plotten import ggplot, aes, geom_point, scale_x_log10, scale_y_log10
+from plotten import aes, geom_point, ggplot, scale_x_log10, scale_y_log10
 from plotten.scales._log import ScaleLog
 
 

@@ -2,6 +2,13 @@
 
 from plotten._aes import Aes, aes
 from plotten._annotate import annotate
+from plotten._enums import (
+    AnnotationType,
+    FacetScales,
+    LegendPosition,
+    SizeUnit,
+    SmoothMethod,
+)
 from plotten._labs import Labs, labs
 from plotten._plot import Plot, ggplot
 from plotten._validation import PlottenError
@@ -23,8 +30,8 @@ from plotten.geoms import (
     geom_col,
     geom_density,
     geom_errorbar,
-    geom_hline,
     geom_histogram,
+    geom_hline,
     geom_label,
     geom_line,
     geom_point,
@@ -92,14 +99,17 @@ from plotten.themes import Theme, theme_dark, theme_default, theme_minimal
 
 __all__ = [
     "Aes",
+    "AnnotationType",
     "CoordCartesian",
     "CoordEqual",
     "CoordFixed",
     "CoordFlip",
     "FacetGrid",
+    "FacetScales",
     "FacetWrap",
     "Labs",
     "LegendEntry",
+    "LegendPosition",
     "Plot",
     "PlottenError",
     "PositionDodge",
@@ -120,6 +130,8 @@ __all__ = [
     "ScaleShapeDiscrete",
     "ScaleSizeContinuous",
     "ScaleSizeDiscrete",
+    "SizeUnit",
+    "SmoothMethod",
     "Theme",
     "aes",
     "annotate",
@@ -135,8 +147,8 @@ __all__ = [
     "geom_col",
     "geom_density",
     "geom_errorbar",
-    "geom_hline",
     "geom_histogram",
+    "geom_hline",
     "geom_label",
     "geom_line",
     "geom_point",

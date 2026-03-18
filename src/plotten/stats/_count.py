@@ -4,10 +4,8 @@ from typing import Any
 
 import narwhals as nw
 
-from plotten.stats._base import StatBase
 
-
-class StatCount(StatBase):
+class StatCount:
     """Group by x and count rows to produce y."""
 
     required_aes: frozenset[str] = frozenset({"x"})

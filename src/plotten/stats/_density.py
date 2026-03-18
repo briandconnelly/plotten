@@ -5,10 +5,8 @@ from typing import Any
 import narwhals as nw
 import numpy as np
 
-from plotten.stats._base import StatBase
 
-
-class StatDensity(StatBase):
+class StatDensity:
     """Compute kernel density estimate."""
 
     required_aes: frozenset[str] = frozenset({"x"})
@@ -28,7 +26,7 @@ class StatDensity(StatBase):
             color_vals = frame.get_column("color").to_list()
             # Group by color
             groups: dict[Any, list[float]] = {}
-            for xv, cv in zip(x_arr, color_vals):
+            for xv, cv in zip(x_arr, color_vals, strict=True):
                 groups.setdefault(cv, []).append(float(xv))
 
             # Shared x grid across all groups

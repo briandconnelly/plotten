@@ -1,4 +1,6 @@
-from plotten.themes import Theme, theme_default, theme_minimal, theme_dark
+import pytest
+
+from plotten.themes import Theme, theme_dark, theme_default, theme_minimal
 
 
 def test_theme_defaults():
@@ -32,6 +34,6 @@ def test_theme_frozen():
     t = Theme()
     try:
         t.title_size = 99  # type: ignore[misc]
-        assert False
+        pytest.fail("Should have raised")
     except AttributeError:
         pass

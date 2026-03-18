@@ -4,13 +4,13 @@ import tempfile
 import polars as pl
 
 from plotten import (
-    ggplot,
     aes,
-    geom_histogram,
     geom_boxplot,
+    geom_histogram,
+    geom_label,
     geom_smooth,
     geom_text,
-    geom_label,
+    ggplot,
 )
 
 

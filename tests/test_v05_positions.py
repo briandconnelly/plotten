@@ -185,30 +185,22 @@ class TestPositionIntegration:
         )
 
     def test_dodge_col_renders(self, grouped_data):
-        p = ggplot(grouped_data, aes(x="x", y="y", fill="g")) + geom_col(
-            position=position_dodge()
-        )
+        p = ggplot(grouped_data, aes(x="x", y="y", fill="g")) + geom_col(position=position_dodge())
         fig = p._repr_png_()
         assert len(fig) > 0
 
     def test_stack_col_renders(self, grouped_data):
-        p = ggplot(grouped_data, aes(x="x", y="y", fill="g")) + geom_col(
-            position=position_stack()
-        )
+        p = ggplot(grouped_data, aes(x="x", y="y", fill="g")) + geom_col(position=position_stack())
         fig = p._repr_png_()
         assert len(fig) > 0
 
     def test_jitter_point_renders(self):
         df = pl.DataFrame({"x": [1, 1, 1, 2, 2, 2], "y": [1, 2, 3, 1, 2, 3]})
-        p = ggplot(df, aes(x="x", y="y")) + geom_point(
-            position=position_jitter(seed=42)
-        )
+        p = ggplot(df, aes(x="x", y="y")) + geom_point(position=position_jitter(seed=42))
         fig = p._repr_png_()
         assert len(fig) > 0
 
     def test_fill_col_renders(self, grouped_data):
-        p = ggplot(grouped_data, aes(x="x", y="y", fill="g")) + geom_col(
-            position=position_fill()
-        )
+        p = ggplot(grouped_data, aes(x="x", y="y", fill="g")) + geom_col(position=position_fill())
         fig = p._repr_png_()
         assert len(fig) > 0

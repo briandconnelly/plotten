@@ -1,10 +1,10 @@
 import polars as pl
 
 from plotten.scales import (
-    ScaleContinuous,
-    ScaleDiscrete,
     ScaleColorContinuous,
     ScaleColorDiscrete,
+    ScaleContinuous,
+    ScaleDiscrete,
     auto_scale,
 )
 

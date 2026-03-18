@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
+from typing import Self
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Theme:
     """Visual theme controlling the appearance of a plot."""
 
@@ -27,7 +28,7 @@ class Theme:
     margin: float = 0.1
     legend_position: str = "right"
 
-    def __add__(self, other: Theme) -> Theme:
+    def __add__(self, other: Theme) -> Self:
         """Layer *other* on top of *self*.
 
         For each field, if *other*'s value differs from the class default the
@@ -43,4 +44,4 @@ class Theme:
                 kwargs[f.name] = other_val
             else:
                 kwargs[f.name] = getattr(self, f.name)
-        return Theme(**kwargs)
+        return type(self)(**kwargs)

@@ -1,8 +1,8 @@
-from plotten._protocols import Stat, Geom, Scale, Coord
-from plotten.geoms._point import GeomPoint
-from plotten.stats._identity import StatIdentity
-from plotten.scales._position import ScaleContinuous
+from plotten._protocols import Coord, Geom, Scale, Stat
 from plotten.coords._cartesian import CoordCartesian
+from plotten.geoms._point import GeomPoint
+from plotten.scales._position import ScaleContinuous
+from plotten.stats._identity import StatIdentity
 
 
 def test_stat_protocol():

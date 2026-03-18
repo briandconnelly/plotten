@@ -7,7 +7,7 @@ from typing import Any
 import narwhals as nw
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FacetWrap:
     """Wrap panels by a single faceting variable."""
 

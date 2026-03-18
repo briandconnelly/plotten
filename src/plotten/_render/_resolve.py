@@ -2,16 +2,19 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 
-from plotten._aes import Aes
-from plotten._layer import Layer
+from plotten._enums import FacetScales
 from plotten.scales._base import ScaleBase, auto_scale
 
+if TYPE_CHECKING:
+    from plotten._aes import Aes
+    from plotten._layer import Layer
 
-@dataclass
+
+@dataclass(slots=True)
 class ResolvedLayer:
     """A layer with stat applied and data resolved to plain dicts."""
 
@@ -21,7 +24,7 @@ class ResolvedLayer:
     position: Any | None = None
 
 
-@dataclass
+@dataclass(slots=True)
 class ResolvedPanel:
     """A single panel (facet) of layers and scales."""
 
@@ -30,7 +33,7 @@ class ResolvedPanel:
     scales: dict[str, ScaleBase] = field(default_factory=dict)
 
 
-@dataclass
+@dataclass(slots=True)
 class ResolvedPlot:
     """Fully resolved plot ready for rendering."""
 
@@ -72,9 +75,8 @@ def _resolve_layers(
         rename_exprs = {}
         for aes_field in merged_aes.__dataclass_fields__:
             col_name = getattr(merged_aes, aes_field)
-            if col_name is not None and col_name in frame.columns:
-                if col_name != aes_field:
-                    rename_exprs[col_name] = aes_field
+            if col_name is not None and col_name in frame.columns and col_name != aes_field:
+                rename_exprs[col_name] = aes_field
 
         if rename_exprs:
             frame = frame.rename(rename_exprs)
@@ -99,7 +101,7 @@ def _resolve_layers(
             data_dict[col] = series.to_list()
 
         # 6. Infer and train scales (skip list-type columns like outliers_y, y_grid)
-        for aes_name, values_list in data_dict.items():
+        for aes_name, _values_list in data_dict.items():
             series = frame.get_column(aes_name)
             if str(series.dtype).startswith(("List", "list", "Object", "object")):
                 continue
@@ -108,7 +110,7 @@ def _resolve_layers(
                     native_series = series.to_native()
                     scales[aes_name] = auto_scale(aes_name, native_series)
                 scales[aes_name].train(series.to_native())
-            except (TypeError, Exception):
+            except (TypeError, ValueError):
                 continue
 
         # 7. Map aesthetics through scales
@@ -179,95 +181,89 @@ def resolve(plot: Any) -> ResolvedPlot:
     global_scales: dict[str, ScaleBase] = dict(explicit_scales)
     free_scales = getattr(facet, "scales", "fixed")
 
-    if free_scales == "fixed":
-        # All panels share global scales
-        for label, subset in panel_data:
-            layers, global_scales = _resolve_layers(
-                subset, plot.mapping, plot.layers, global_scales
-            )
-            panels.append(ResolvedPanel(label=label, layers=layers, scales={}))
-    elif free_scales == "free":
-        # Each panel gets fully independent scales; color/fill also go to global
-        # for the legend.
-        for label, subset in panel_data:
-            panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
-            layers, panel_scales = _resolve_layers(
-                subset, plot.mapping, plot.layers, panel_scales
-            )
-            # Promote color/fill scales to global so the legend can use them
-            for k in ("color", "fill"):
-                if k in panel_scales and k not in global_scales:
-                    global_scales[k] = panel_scales[k]
-            panels.append(
-                ResolvedPanel(label=label, layers=layers, scales=panel_scales)
-            )
-    elif free_scales == "free_x":
-        # y (and color/fill) are shared; x is per-panel
-        for label, subset in panel_data:
-            panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
-            layers, panel_scales = _resolve_layers(
-                subset, plot.mapping, plot.layers, panel_scales
-            )
-            # Merge shared axes into global
-            for k, v in panel_scales.items():
-                if k == "x":
-                    continue  # x is free
-                if k not in global_scales:
-                    global_scales[k] = v
-                elif k in ("y",):
-                    # Train the global scale with this panel's data
-                    global_scales[k]._domain_min = (
-                        min(global_scales[k]._domain_min, v._domain_min)
-                        if hasattr(v, "_domain_min")
-                        and v._domain_min is not None
-                        and global_scales[k]._domain_min is not None
-                        else global_scales[k]._domain_min
-                        or getattr(v, "_domain_min", None)
-                    )
-                    global_scales[k]._domain_max = (
-                        max(global_scales[k]._domain_max, v._domain_max)
-                        if hasattr(v, "_domain_max")
-                        and v._domain_max is not None
-                        and global_scales[k]._domain_max is not None
-                        else global_scales[k]._domain_max
-                        or getattr(v, "_domain_max", None)
-                    )
-            panels.append(
-                ResolvedPanel(label=label, layers=layers, scales=panel_scales)
-            )
-    elif free_scales == "free_y":
-        # x (and color/fill) are shared; y is per-panel
-        for label, subset in panel_data:
-            panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
-            layers, panel_scales = _resolve_layers(
-                subset, plot.mapping, plot.layers, panel_scales
-            )
-            # Merge shared axes into global
-            for k, v in panel_scales.items():
-                if k == "y":
-                    continue  # y is free
-                if k not in global_scales:
-                    global_scales[k] = v
-                elif k in ("x",):
-                    global_scales[k]._domain_min = (
-                        min(global_scales[k]._domain_min, v._domain_min)
-                        if hasattr(v, "_domain_min")
-                        and v._domain_min is not None
-                        and global_scales[k]._domain_min is not None
-                        else global_scales[k]._domain_min
-                        or getattr(v, "_domain_min", None)
-                    )
-                    global_scales[k]._domain_max = (
-                        max(global_scales[k]._domain_max, v._domain_max)
-                        if hasattr(v, "_domain_max")
-                        and v._domain_max is not None
-                        and global_scales[k]._domain_max is not None
-                        else global_scales[k]._domain_max
-                        or getattr(v, "_domain_max", None)
-                    )
-            panels.append(
-                ResolvedPanel(label=label, layers=layers, scales=panel_scales)
-            )
+    match free_scales:
+        case FacetScales.FIXED:
+            # All panels share global scales
+            for label, subset in panel_data:
+                layers, global_scales = _resolve_layers(
+                    subset, plot.mapping, plot.layers, global_scales
+                )
+                panels.append(ResolvedPanel(label=label, layers=layers, scales={}))
+
+        case FacetScales.FREE:
+            # Each panel gets fully independent scales; color/fill also go to global
+            # for the legend.
+            for label, subset in panel_data:
+                panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
+                layers, panel_scales = _resolve_layers(
+                    subset, plot.mapping, plot.layers, panel_scales
+                )
+                # Promote color/fill scales to global so the legend can use them
+                for k in ("color", "fill"):
+                    if k in panel_scales and k not in global_scales:
+                        global_scales[k] = panel_scales[k]
+                panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
+
+        case FacetScales.FREE_X:
+            # y (and color/fill) are shared; x is per-panel
+            for label, subset in panel_data:
+                panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
+                layers, panel_scales = _resolve_layers(
+                    subset, plot.mapping, plot.layers, panel_scales
+                )
+                # Merge shared axes into global
+                for k, v in panel_scales.items():
+                    if k == "x":
+                        continue  # x is free
+                    if k not in global_scales:
+                        global_scales[k] = v
+                    elif k in ("y",):
+                        # Train the global scale with this panel's data
+                        global_scales[k]._domain_min = (
+                            min(global_scales[k]._domain_min, v._domain_min)
+                            if hasattr(v, "_domain_min")
+                            and v._domain_min is not None
+                            and global_scales[k]._domain_min is not None
+                            else global_scales[k]._domain_min or getattr(v, "_domain_min", None)
+                        )
+                        global_scales[k]._domain_max = (
+                            max(global_scales[k]._domain_max, v._domain_max)
+                            if hasattr(v, "_domain_max")
+                            and v._domain_max is not None
+                            and global_scales[k]._domain_max is not None
+                            else global_scales[k]._domain_max or getattr(v, "_domain_max", None)
+                        )
+                panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
+
+        case FacetScales.FREE_Y:
+            # x (and color/fill) are shared; y is per-panel
+            for label, subset in panel_data:
+                panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
+                layers, panel_scales = _resolve_layers(
+                    subset, plot.mapping, plot.layers, panel_scales
+                )
+                # Merge shared axes into global
+                for k, v in panel_scales.items():
+                    if k == "y":
+                        continue  # y is free
+                    if k not in global_scales:
+                        global_scales[k] = v
+                    elif k in ("x",):
+                        global_scales[k]._domain_min = (
+                            min(global_scales[k]._domain_min, v._domain_min)
+                            if hasattr(v, "_domain_min")
+                            and v._domain_min is not None
+                            and global_scales[k]._domain_min is not None
+                            else global_scales[k]._domain_min or getattr(v, "_domain_min", None)
+                        )
+                        global_scales[k]._domain_max = (
+                            max(global_scales[k]._domain_max, v._domain_max)
+                            if hasattr(v, "_domain_max")
+                            and v._domain_max is not None
+                            and global_scales[k]._domain_max is not None
+                            else global_scales[k]._domain_max or getattr(v, "_domain_max", None)
+                        )
+                panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 
     return ResolvedPlot(
         panels=panels,

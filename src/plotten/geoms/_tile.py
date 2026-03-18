@@ -1,18 +1,24 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from matplotlib.patches import Rectangle
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomTile(GeomBase):
+class GeomTile:
     """Draw rectangular tiles (heatmap cells)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         width = params.get("width", 1.0)
         height = params.get("height", 1.0)
         text_color = params.get("text_color", "black")

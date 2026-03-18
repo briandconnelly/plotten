@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 class CoordCartesian:
@@ -14,7 +17,7 @@ class CoordCartesian:
         self.xlim = xlim
         self.ylim = ylim
 
-    def transform(self, data: Any, ax: Any) -> Any:
+    def transform(self, data: Any, ax: Axes) -> Any:
         """Apply coordinate limits to the axes."""
         if self.xlim is not None:
             ax.set_xlim(self.xlim)

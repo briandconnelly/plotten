@@ -1,7 +1,6 @@
-import pytest
-
 import narwhals as nw
 import polars as pl
+import pytest
 
 
 def test_stat_density_basic():

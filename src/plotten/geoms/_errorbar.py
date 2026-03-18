@@ -1,16 +1,22 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomErrorbar(GeomBase):
+class GeomErrorbar:
     """Draw error bars (ymin to ymax whiskers)."""
 
     required_aes: frozenset[str] = frozenset({"x", "ymin", "ymax"})
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         color = params.get("color", "black")
         linewidth = params.get("linewidth", 1)
         width = params.get("width", 0.2)

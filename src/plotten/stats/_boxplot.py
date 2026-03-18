@@ -5,10 +5,8 @@ from typing import Any
 import narwhals as nw
 import numpy as np
 
-from plotten.stats._base import StatBase
 
-
-class StatBoxplot(StatBase):
+class StatBoxplot:
     """Compute boxplot summary statistics grouped by x."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
@@ -20,7 +18,7 @@ class StatBoxplot(StatBase):
 
         # Group by x
         groups: dict[Any, list[float]] = {}
-        for xv, yv in zip(x_vals, y_vals):
+        for xv, yv in zip(x_vals, y_vals, strict=True):
             groups.setdefault(xv, []).append(float(yv))
 
         result: dict[str, list] = {

@@ -1,11 +1,12 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from plotten.geoms._base import GeomBase
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
-class GeomHLine(GeomBase):
+class GeomHLine:
     """Draw a horizontal reference line."""
 
     required_aes: frozenset[str] = frozenset()
@@ -14,7 +15,12 @@ class GeomHLine(GeomBase):
         self._yintercept = yintercept
         self._style = kwargs
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         for key in ("color", "linestyle", "linewidth", "alpha"):
             if key in params:
@@ -24,7 +30,7 @@ class GeomHLine(GeomBase):
         ax.axhline(self._yintercept, **kwargs)
 
 
-class GeomVLine(GeomBase):
+class GeomVLine:
     """Draw a vertical reference line."""
 
     required_aes: frozenset[str] = frozenset()
@@ -33,7 +39,12 @@ class GeomVLine(GeomBase):
         self._xintercept = xintercept
         self._style = kwargs
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         for key in ("color", "linestyle", "linewidth", "alpha"):
             if key in params:
@@ -43,7 +54,7 @@ class GeomVLine(GeomBase):
         ax.axvline(self._xintercept, **kwargs)
 
 
-class GeomAbLine(GeomBase):
+class GeomAbLine:
     """Draw a line with given slope and intercept."""
 
     required_aes: frozenset[str] = frozenset()
@@ -53,7 +64,12 @@ class GeomAbLine(GeomBase):
         self._intercept = intercept
         self._style = kwargs
 
-    def draw(self, data: dict[str, Any], ax: Any, params: dict) -> None:
+    def default_stat(self) -> Any:
+        from plotten.stats._identity import StatIdentity
+
+        return StatIdentity()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         for key in ("color", "linestyle", "linewidth", "alpha"):
             if key in params:

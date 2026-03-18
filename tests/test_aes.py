@@ -1,3 +1,5 @@
+import pytest
+
 from plotten._aes import Aes, aes
 
 
@@ -29,6 +31,6 @@ def test_aes_frozen():
     a = aes(x="x")
     try:
         a.x = "y"  # type: ignore[misc]
-        assert False, "Should have raised"
+        pytest.fail("Should have raised")
     except AttributeError:
         pass

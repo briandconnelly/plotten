@@ -1,8 +1,8 @@
-import pytest
-import polars as pl
 import narwhals as nw
+import polars as pl
+import pytest
 
-from plotten.stats import StatIdentity, StatCount, StatBin
+from plotten.stats import StatBin, StatCount, StatIdentity
 from plotten.stats._smooth import StatSmooth
 
 

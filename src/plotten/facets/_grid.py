@@ -7,7 +7,7 @@ from typing import Any
 import narwhals as nw
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class FacetGrid:
     """Grid panels by row and/or column variables."""
 
@@ -25,9 +25,7 @@ class FacetGrid:
             col_levels = sorted(frame.get_column(self.cols).unique().to_list(), key=str)
             for rl in row_levels:
                 for cl in col_levels:
-                    subset = frame.filter(
-                        (nw.col(self.rows) == rl) & (nw.col(self.cols) == cl)
-                    )
+                    subset = frame.filter((nw.col(self.rows) == rl) & (nw.col(self.cols) == cl))
                     label = f"{rl} ~ {cl}"
                     result.append((label, nw.to_native(subset)))
         elif self.rows is not None:

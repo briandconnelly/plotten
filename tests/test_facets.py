@@ -1,11 +1,11 @@
 import os
 import tempfile
 
-import polars as pl
 import pandas as pd
+import polars as pl
 
-from plotten import ggplot, aes, geom_point, facet_wrap, facet_grid
-from plotten.facets import FacetWrap, FacetGrid
+from plotten import aes, facet_grid, facet_wrap, geom_point, ggplot
+from plotten.facets import FacetGrid, FacetWrap
 
 
 def _make_df():

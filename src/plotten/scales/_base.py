@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 
 import narwhals as nw
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True, kw_only=True)
 class LegendEntry:
     """A single entry in a legend."""
 
@@ -20,22 +19,18 @@ class LegendEntry:
     linetype: str | None = None
 
 
-class ScaleBase(ABC):
+class ScaleBase:
     """Base class for all scales."""
 
     def __init__(self, aesthetic: str) -> None:
         self.aesthetic = aesthetic
 
-    @abstractmethod
     def train(self, values: Any) -> None: ...
 
-    @abstractmethod
     def map_data(self, values: Any) -> Any: ...
 
-    @abstractmethod
     def get_limits(self) -> tuple[float, float]: ...
 
-    @abstractmethod
     def get_breaks(self) -> list: ...
 
     def get_labels(self) -> list[str]:
@@ -53,46 +48,50 @@ def auto_scale(aesthetic: str, series: Any) -> ScaleBase:
 
     s = nw.from_native(series, series_only=True)
 
-    if aesthetic in ("color", "fill"):
-        if s.dtype.is_numeric():
-            return ScaleColorContinuous(aesthetic=aesthetic)
-        return ScaleColorDiscrete(aesthetic=aesthetic)
-
-    if aesthetic == "size":
-        try:
-            from plotten.scales._size import ScaleSizeContinuous, ScaleSizeDiscrete
-
+    match aesthetic:
+        case "color" | "fill":
             if s.dtype.is_numeric():
-                return ScaleSizeContinuous(aesthetic=aesthetic)
-            return ScaleSizeDiscrete(aesthetic=aesthetic)
-        except ImportError:
-            pass
+                return ScaleColorContinuous(aesthetic=aesthetic)
+            return ScaleColorDiscrete(aesthetic=aesthetic)
 
-    if aesthetic == "alpha":
-        try:
-            from plotten.scales._alpha import ScaleAlphaContinuous, ScaleAlphaDiscrete
+        case "size":
+            try:
+                from plotten.scales._size import ScaleSizeContinuous, ScaleSizeDiscrete
 
-            if s.dtype.is_numeric():
-                return ScaleAlphaContinuous(aesthetic=aesthetic)
-            return ScaleAlphaDiscrete(aesthetic=aesthetic)
-        except ImportError:
-            pass
+                if s.dtype.is_numeric():
+                    return ScaleSizeContinuous(aesthetic=aesthetic)
+                return ScaleSizeDiscrete(aesthetic=aesthetic)
+            except ImportError:
+                pass
 
-    if aesthetic == "shape":
-        try:
-            from plotten.scales._shape import ScaleShapeDiscrete
+        case "alpha":
+            try:
+                from plotten.scales._alpha import (
+                    ScaleAlphaContinuous,
+                    ScaleAlphaDiscrete,
+                )
 
-            return ScaleShapeDiscrete(aesthetic=aesthetic)
-        except ImportError:
-            pass
+                if s.dtype.is_numeric():
+                    return ScaleAlphaContinuous(aesthetic=aesthetic)
+                return ScaleAlphaDiscrete(aesthetic=aesthetic)
+            except ImportError:
+                pass
 
-    if aesthetic == "linetype":
-        try:
-            from plotten.scales._linetype import ScaleLinetypeDiscrete
+        case "shape":
+            try:
+                from plotten.scales._shape import ScaleShapeDiscrete
 
-            return ScaleLinetypeDiscrete(aesthetic=aesthetic)
-        except ImportError:
-            pass
+                return ScaleShapeDiscrete(aesthetic=aesthetic)
+            except ImportError:
+                pass
+
+        case "linetype":
+            try:
+                from plotten.scales._linetype import ScaleLinetypeDiscrete
+
+                return ScaleLinetypeDiscrete(aesthetic=aesthetic)
+            except ImportError:
+                pass
 
     # Detect temporal dtypes before numeric check
     dtype_str = str(s.dtype).lower()

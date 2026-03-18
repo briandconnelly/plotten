@@ -6,7 +6,6 @@ from plotten._aes import Aes
 from plotten._layer import Layer
 from plotten.geoms._area import GeomArea
 from plotten.geoms._bar import GeomBar
-from plotten.geoms._base import GeomBase
 from plotten.geoms._boxplot import GeomBoxplot
 from plotten.geoms._col import GeomCol
 from plotten.geoms._density import GeomDensity
@@ -25,9 +24,7 @@ from plotten.geoms._violin import GeomViolin
 def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
     """Split params into Aes fields and remaining params."""
     aes_kwargs = {
-        k: params.pop(k)
-        for k in list(params)
-        if hasattr(Aes, k) and isinstance(params[k], str)
+        k: params.pop(k) for k in list(params) if hasattr(Aes, k) and isinstance(params[k], str)
     }
     return Aes(**aes_kwargs), params
 
@@ -195,7 +192,6 @@ def geom_violin(**params: Any) -> Layer:
 __all__ = [
     "GeomAbLine",
     "GeomArea",
-    "GeomBase",
     "GeomBar",
     "GeomBoxplot",
     "GeomCol",
@@ -219,8 +215,8 @@ __all__ = [
     "geom_col",
     "geom_density",
     "geom_errorbar",
-    "geom_hline",
     "geom_histogram",
+    "geom_hline",
     "geom_label",
     "geom_line",
     "geom_point",

@@ -33,8 +33,7 @@ class ScaleShapeDiscrete(ScaleBase):
         if self._manual_values:
             return [self._manual_values.get(str(v), "o") for v in s.to_list()]
         shape_map = {
-            lev: DEFAULT_SHAPES[i % len(DEFAULT_SHAPES)]
-            for i, lev in enumerate(self._levels)
+            lev: DEFAULT_SHAPES[i % len(DEFAULT_SHAPES)] for i, lev in enumerate(self._levels)
         }
         return [shape_map[v] for v in s.to_list()]
 

@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from plotten.positions._base import PositionBase
 
-
-class PositionNudge(PositionBase):
+class PositionNudge:
     """Shift all x and/or y values by a fixed amount."""
 
     def __init__(self, x: float = 0, y: float = 0) -> None:

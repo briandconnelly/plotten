@@ -1,5 +1,9 @@
 from __future__ import annotations
-from typing import Protocol, Any, runtime_checkable
+
+from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
 
 
 @runtime_checkable
@@ -16,7 +20,7 @@ class Geom(Protocol):
     required_aes: frozenset[str]
 
     def default_stat(self) -> Stat: ...
-    def draw(self, data: Any, ax: Any, params: dict) -> None: ...
+    def draw(self, data: Any, ax: Axes, params: dict) -> None: ...
 
 
 @runtime_checkable
@@ -31,7 +35,7 @@ class Scale(Protocol):
 
 @runtime_checkable
 class Coord(Protocol):
-    def transform(self, data: Any, ax: Any) -> Any: ...
+    def transform(self, data: Any, ax: Axes) -> Any: ...
 
 
 @runtime_checkable

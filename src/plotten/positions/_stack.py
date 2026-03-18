@@ -1,9 +1,7 @@
 from __future__ import annotations
 
-from plotten.positions._base import PositionBase
 
-
-class PositionStack(PositionBase):
+class PositionStack:
     """Stack overlapping objects on top of each other."""
 
     def adjust(self, data: dict, params: dict) -> dict:
@@ -29,7 +27,7 @@ class PositionStack(PositionBase):
         new_y = list(ys)
         new_ymin = [0.0] * len(ys)
 
-        for i, (x, y, _g) in enumerate(zip(xs, ys, groups)):
+        for i, (x, y, _g) in enumerate(zip(xs, ys, groups, strict=True)):
             base = cumulative.get(x, 0.0)
             new_ymin[i] = base
             new_y[i] = base + y

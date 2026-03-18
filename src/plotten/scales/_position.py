@@ -97,9 +97,7 @@ class ScaleDiscrete(ScaleBase):
     def get_labels(self) -> list[str]:
         if self._manual_labels is not None:
             if isinstance(self._manual_labels, dict):
-                return [
-                    self._manual_labels.get(str(lev), str(lev)) for lev in self._levels
-                ]
+                return [self._manual_labels.get(str(lev), str(lev)) for lev in self._levels]
             return list(self._manual_labels)
         return [str(lev) for lev in self._levels]
 

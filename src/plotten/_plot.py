@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import io
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Self
 
 from plotten._aes import Aes
+from plotten._enums import SizeUnit
 from plotten._labs import Labs
 from plotten._layer import Layer
 from plotten.coords._cartesian import CoordCartesian
@@ -14,7 +15,7 @@ from plotten.scales._base import ScaleBase
 from plotten.themes._theme import Theme
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class Plot:
     """Immutable plot specification built up via ``+`` operator."""
 
@@ -27,33 +28,35 @@ class Plot:
     labs: Labs = field(default_factory=Labs)
     facet: Any = None
 
-    def _replace(self, **kwargs: Any) -> Plot:
+    def _replace(self, **kwargs: Any) -> Self:
         """Return a copy with given fields replaced."""
         from dataclasses import fields as dc_fields
 
         vals = {f.name: getattr(self, f.name) for f in dc_fields(self)}
         vals.update(kwargs)
-        return Plot(**vals)
+        return type(self)(**vals)
 
     def __add__(self, other: Any) -> Plot:
-        if isinstance(other, Layer):
-            return self._replace(layers=(*self.layers, other))
-        if isinstance(other, ScaleBase):
-            return self._replace(scales=(*self.scales, other))
-        if isinstance(other, Theme):
-            return self._replace(theme=self.theme + other)
-        if isinstance(other, Labs):
-            return self._replace(labs=self.labs + other)
-        if isinstance(other, (CoordCartesian, CoordFlip)):
-            return self._replace(coord=other)
-        # Support new coord types
-        from plotten.coords._equal import CoordEqual, CoordFixed
+        match other:
+            case Layer():
+                return self._replace(layers=(*self.layers, other))
+            case ScaleBase():
+                return self._replace(scales=(*self.scales, other))
+            case Theme():
+                return self._replace(theme=self.theme + other)
+            case Labs():
+                return self._replace(labs=self.labs + other)
+            case CoordCartesian() | CoordFlip():
+                return self._replace(coord=other)
+            case FacetWrap() | FacetGrid():
+                return self._replace(facet=other)
+            case _:
+                # Support new coord types
+                from plotten.coords._equal import CoordEqual, CoordFixed
 
-        if isinstance(other, (CoordEqual, CoordFixed)):
-            return self._replace(coord=other)
-        if isinstance(other, (FacetWrap, FacetGrid)):
-            return self._replace(facet=other)
-        return NotImplemented
+                if isinstance(other, CoordEqual | CoordFixed):
+                    return self._replace(coord=other)
+                return NotImplemented
 
     def show(self) -> None:
         """Render and display the plot."""
@@ -75,8 +78,17 @@ class Plot:
 
         fig = render(self)
         if width is not None or height is not None:
-            unit_factors = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4, "px": 1 / dpi}
-            factor = unit_factors.get(units, 1.0)
+            match units:
+                case SizeUnit.INCHES:
+                    factor = 1.0
+                case SizeUnit.CM:
+                    factor = 1 / 2.54
+                case SizeUnit.MM:
+                    factor = 1 / 25.4
+                case SizeUnit.PX:
+                    factor = 1 / dpi
+                case _:
+                    factor = 1.0
             cur_w, cur_h = fig.get_size_inches()
             new_w = width * factor if width is not None else cur_w
             new_h = height * factor if height is not None else cur_h
