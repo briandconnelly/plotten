@@ -9,6 +9,10 @@ class ScaleSqrt(ScaleContinuous):
     def __init__(self, aesthetic: str = "x", **kwargs) -> None:
         super().__init__(aesthetic, **kwargs)
 
+    def get_limits(self) -> tuple[float, float]:
+        lo, hi = super().get_limits()
+        return (max(lo, 0), hi)
+
 
 def scale_x_sqrt(**kwargs) -> ScaleSqrt:
     """Create a sqrt x scale."""

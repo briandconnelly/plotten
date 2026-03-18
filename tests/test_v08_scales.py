@@ -76,6 +76,32 @@ class TestScaleSqrt:
         assert fig is not None
         plt.close(fig)
 
+    def test_sqrt_limits_clamp_to_zero(self):
+        """Sqrt scale must not produce negative lower limits (sqrt of negative = NaN)."""
+        import pandas as pd
+
+        from plotten.scales._sqrt import ScaleSqrt
+
+        scale = ScaleSqrt(aesthetic="y")
+        scale.train(pd.Series([5, 15, 45, 90]))
+        lo, hi = scale.get_limits()
+        assert lo >= 0
+
+    def test_sqrt_render_data_visible(self):
+        """Regression: sqrt panel previously rendered blank due to NaN limits."""
+        df = pl.DataFrame(
+            {
+                "area": [1, 10, 100, 500, 1000, 5000, 10000, 50000],
+                "species": [5, 15, 45, 90, 130, 250, 340, 550],
+            }
+        )
+        p = ggplot(df, aes(x="area", y="species")) + geom_point() + scale_y_sqrt()
+        fig = render(p)
+        ax = fig.axes[0]
+        # Data must be visible — check scatter has children
+        assert len(ax.collections) > 0
+        plt.close(fig)
+
 
 class TestLabelFormatters:
     def test_label_comma(self):

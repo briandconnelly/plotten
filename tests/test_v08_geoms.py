@@ -127,6 +127,18 @@ class TestGeomCrossbar:
         assert fig is not None
         plt.close(fig)
 
+    def test_crossbar_y_limits_include_ymin_ymax(self):
+        """Regression: y-axis must encompass ymin/ymax, not just y."""
+        df = pl.DataFrame({"x": [1, 2], "y": [5, 8], "ymin": [2, 5], "ymax": [8, 11]})
+        p = ggplot(df, aes(x="x", y="y", ymin="ymin", ymax="ymax")) + geom_crossbar()
+        from plotten._render._resolve import resolve
+
+        resolved = resolve(p)
+        y_scale = resolved.scales["y"]
+        lo, hi = y_scale.get_limits()
+        assert lo <= 2, f"y-axis lower limit {lo} does not include ymin=2"
+        assert hi >= 11, f"y-axis upper limit {hi} does not include ymax=11"
+
     def test_crossbar_no_group_splitting(self):
         from plotten.geoms._crossbar import GeomCrossbar
 

@@ -146,6 +146,17 @@ def _resolve_layers(
             except (TypeError, ValueError):
                 continue
 
+        # 6b. Widen position scales with auxiliary columns (ymin/ymax → y, xmin/xmax → x)
+        _AUX_TO_POSITION = {"ymin": "y", "ymax": "y", "xmin": "x", "xmax": "x"}
+        for aux_col, pos_aes in _AUX_TO_POSITION.items():
+            if aux_col in data_dict and pos_aes in scales:
+                try:
+                    aux_series = frame.get_column(aux_col)
+                    if not str(aux_series.dtype).startswith(("List", "list", "Object", "object")):
+                        scales[pos_aes].train(aux_series.to_native())
+                except (TypeError, ValueError, KeyError):
+                    continue
+
         # 7. Map aesthetics through scales
         for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
             if aes_name in data_dict and aes_name in scales:
