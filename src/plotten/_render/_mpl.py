@@ -397,9 +397,11 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
         fig.subplots_adjust(top=0.93)
 
     if labs.caption is not None:
+        cur_bottom = fig.subplotpars.bottom
+        fig.subplots_adjust(bottom=cur_bottom + 0.03)
         fig.text(
             0.99,
-            0.01,
+            0.005,
             labs.caption,
             ha="right",
             va="bottom",

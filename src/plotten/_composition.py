@@ -242,7 +242,9 @@ def render_grid(grid: PlotGrid) -> Any:
             fig.subplots_adjust(top=0.93 - extra)
 
         if ann.caption is not None:
-            fig.text(0.99, 0.01, ann.caption, ha="right", va="bottom", fontsize=9)
+            cur_bottom = fig.subplotpars.bottom
+            fig.subplots_adjust(bottom=cur_bottom + 0.03)
+            fig.text(0.99, 0.005, ann.caption, ha="right", va="bottom", fontsize=9)
         if ann.tag_levels is not None:
             for i, ax in enumerate(leaf_axes):
                 tag = _tag_label(i, ann.tag_levels)
