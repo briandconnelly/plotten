@@ -16,6 +16,7 @@ from plotten.geoms._point import GeomPoint
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
 from plotten.geoms._ribbon import GeomRibbon
 from plotten.geoms._smooth import GeomSmooth
+from plotten.geoms._summary import GeomSummary
 from plotten.geoms._text import GeomLabel, GeomText
 from plotten.geoms._tile import GeomTile
 from plotten.geoms._violin import GeomViolin
@@ -189,6 +190,26 @@ def geom_violin(**params: Any) -> Layer:
     return Layer(geom=GeomViolin(), mapping=mapping, params=params, position=position)
 
 
+def stat_summary(
+    fun_y: str = "mean",
+    fun_ymin: str = "mean_se_lower",
+    fun_ymax: str = "mean_se_upper",
+    **params: Any,
+) -> Layer:
+    """Create a summary layer (point + error bars)."""
+    from plotten.stats._summary import StatSummary
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomSummary(),
+        stat=StatSummary(fun_y=fun_y, fun_ymin=fun_ymin, fun_ymax=fun_ymax),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 __all__ = [
     "GeomAbLine",
     "GeomArea",
@@ -204,6 +225,7 @@ __all__ = [
     "GeomPoint",
     "GeomRibbon",
     "GeomSmooth",
+    "GeomSummary",
     "GeomText",
     "GeomTile",
     "GeomVLine",
@@ -226,4 +248,5 @@ __all__ = [
     "geom_tile",
     "geom_violin",
     "geom_vline",
+    "stat_summary",
 ]

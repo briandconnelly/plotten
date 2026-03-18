@@ -27,6 +27,7 @@ class Plot:
     theme: Theme = field(default_factory=Theme)
     labs: Labs = field(default_factory=Labs)
     facet: Any = None
+    guides: dict | None = None
 
     def _replace(self, **kwargs: Any) -> Self:
         """Return a copy with given fields replaced."""
@@ -50,6 +51,10 @@ class Plot:
                 return self._replace(coord=other)
             case FacetWrap() | FacetGrid():
                 return self._replace(facet=other)
+            case dict():
+                # Guides dict
+                existing = self.guides or {}
+                return self._replace(guides={**existing, **other})
             case _:
                 # Support new coord types
                 from plotten.coords._equal import CoordEqual, CoordFixed

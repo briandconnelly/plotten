@@ -28,6 +28,43 @@ class Theme:
     margin: float = 0.1
     legend_position: str = "right"
 
+    # Per-axis text sizing
+    axis_title_x_size: float | None = None
+    axis_title_y_size: float | None = None
+    axis_text_x_size: float | None = None
+    axis_text_y_size: float | None = None
+    axis_text_x_rotation: float = 0
+    axis_text_y_rotation: float = 0
+
+    # Panel border
+    panel_border_color: str | None = None
+    panel_border_width: float = 1.0
+
+    # Facet strip
+    strip_background: str = "#d9d9d9"
+    strip_text_size: float | None = None
+    strip_text_color: str = "#000000"
+
+    # Title/subtitle colors
+    title_color: str = "#000000"
+    subtitle_size: float | None = None
+    subtitle_color: str = "#555555"
+
+    # Legend styling
+    legend_background: str | None = None
+    legend_title_size: float | None = None
+    legend_text_size: float | None = None
+
+    # Grid per-axis control
+    grid_major_x: bool = True
+    grid_major_y: bool = True
+    grid_minor_x: bool = False
+    grid_minor_y: bool = False
+
+    # Axis line visibility
+    axis_line_x: bool = True
+    axis_line_y: bool = True
+
     def __add__(self, other: Theme) -> Self:
         """Layer *other* on top of *self*.
 

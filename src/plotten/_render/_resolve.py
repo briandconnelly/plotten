@@ -43,6 +43,7 @@ class ResolvedPlot:
     theme: Any = None
     labs: Any = None
     facet: Any = None
+    guides: dict | None = None
 
 
 def _resolve_layers(
@@ -173,6 +174,7 @@ def resolve(plot: Any) -> ResolvedPlot:
             theme=plot.theme,
             labs=plot.labs,
             facet=None,
+            guides=plot.guides,
         )
 
     # Faceted: split data into panels
@@ -272,4 +274,5 @@ def resolve(plot: Any) -> ResolvedPlot:
         theme=plot.theme,
         labs=plot.labs,
         facet=facet,
+        guides=plot.guides,
     )

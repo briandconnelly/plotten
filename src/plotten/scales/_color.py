@@ -66,7 +66,10 @@ class ScaleColorContinuous(ScaleBase):
         for b in breaks:
             norm = (b - lo) / span
             hex_color = mcolors.to_hex(self._cmap(norm))
-            entries.append(LegendEntry(label=f"{b:.3g}", color=hex_color))
+            if self.aesthetic == "fill":
+                entries.append(LegendEntry(label=f"{b:.3g}", fill=hex_color))
+            else:
+                entries.append(LegendEntry(label=f"{b:.3g}", color=hex_color))
         return entries
 
 
@@ -117,12 +120,18 @@ class ScaleColorDiscrete(ScaleBase):
         if self._manual_values:
             for lev in self._levels:
                 hex_color = self._manual_values.get(str(lev), "#000000")
-                entries.append(LegendEntry(label=str(lev), color=hex_color))
+                if self.aesthetic == "fill":
+                    entries.append(LegendEntry(label=str(lev), fill=hex_color))
+                else:
+                    entries.append(LegendEntry(label=str(lev), color=hex_color))
             return entries
         n = max(len(self._levels), 1)
         for i, lev in enumerate(self._levels):
             hex_color = mcolors.to_hex(self._cmap(i / max(n - 1, 1)))
-            entries.append(LegendEntry(label=str(lev), color=hex_color))
+            if self.aesthetic == "fill":
+                entries.append(LegendEntry(label=str(lev), fill=hex_color))
+            else:
+                entries.append(LegendEntry(label=str(lev), color=hex_color))
         return entries
 
 
@@ -142,3 +151,11 @@ def scale_color_manual(values: dict[str, str]) -> ScaleColorDiscrete:
 def scale_fill_manual(values: dict[str, str]) -> ScaleColorDiscrete:
     """Create a discrete fill scale with manually specified colors."""
     return ScaleColorDiscrete(aesthetic="fill", values=values)
+
+
+def scale_fill_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
+    return ScaleColorContinuous(aesthetic="fill", cmap_name=cmap)
+
+
+def scale_fill_discrete(palette: str = "tab10") -> ScaleColorDiscrete:
+    return ScaleColorDiscrete(aesthetic="fill", palette=palette)

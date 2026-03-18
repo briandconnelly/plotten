@@ -36,7 +36,7 @@ def render(plot: Any) -> Figure:
         _apply_coord_limits(ax, resolved.coord, is_flipped)
         _apply_labs(fig, ax, resolved, theme)
         fig.tight_layout(pad=theme.margin * 10)
-        draw_legend(fig, [ax], resolved.scales, resolved.labs, theme)
+        draw_legend(fig, [ax], resolved.scales, resolved.labs, theme, resolved.guides)
     else:
         # Faceted
         n_panels = len(resolved.panels)
@@ -63,7 +63,16 @@ def render(plot: Any) -> Figure:
             _apply_coord_limits(ax, resolved.coord, is_flipped)
 
             # Panel strip title
-            ax.set_title(panel.label, fontsize=theme.label_size, pad=6)
+            strip_bg = getattr(theme, "strip_background", "#d9d9d9")
+            strip_text_size = getattr(theme, "strip_text_size", None) or theme.label_size
+            strip_text_color = getattr(theme, "strip_text_color", "#000000")
+            ax.set_title(
+                panel.label,
+                fontsize=strip_text_size,
+                color=strip_text_color,
+                pad=6,
+                bbox={"facecolor": strip_bg, "edgecolor": "none", "pad": 3},
+            )
 
         # Hide empty axes
         for idx in range(n_panels, nrow * ncol):
@@ -74,7 +83,7 @@ def render(plot: Any) -> Figure:
         fig.tight_layout(pad=theme.margin * 10)
 
         visible_axes = [axes[r][c] for idx in range(n_panels) for r, c in [divmod(idx, ncol)]]
-        draw_legend(fig, visible_axes, resolved.scales, resolved.labs, theme)
+        draw_legend(fig, visible_axes, resolved.scales, resolved.labs, theme, resolved.guides)
 
     return fig
 
@@ -92,26 +101,82 @@ def _render_panel(
     else:
         ax.set_facecolor("none")
 
-    # Grid
-    ax.grid(True, color=theme.grid_color, linewidth=theme.grid_line_width)
+    # Grid — per-axis control
+    grid_major_x = getattr(theme, "grid_major_x", True)
+    grid_major_y = getattr(theme, "grid_major_y", True)
+    grid_minor_x = getattr(theme, "grid_minor_x", False)
+    grid_minor_y = getattr(theme, "grid_minor_y", False)
+
+    # Clear any default grid, then apply per-axis
+    ax.grid(False)
+    if grid_major_x:
+        ax.xaxis.grid(True, which="major", color=theme.grid_color, linewidth=theme.grid_line_width)
+    if grid_major_y:
+        ax.yaxis.grid(True, which="major", color=theme.grid_color, linewidth=theme.grid_line_width)
+    if grid_minor_x or grid_minor_y:
+        ax.minorticks_on()
+        if grid_minor_x:
+            ax.xaxis.grid(
+                True, which="minor", color=theme.grid_color, linewidth=theme.grid_line_width * 0.5
+            )
+        if grid_minor_y:
+            ax.yaxis.grid(
+                True, which="minor", color=theme.grid_color, linewidth=theme.grid_line_width * 0.5
+            )
     ax.set_axisbelow(True)
 
     # Spine styling
     for spine in ax.spines.values():
         spine.set_linewidth(theme.axis_line_width)
 
-    # Tick styling
-    ax.tick_params(labelsize=theme.tick_size, length=theme.tick_length)
+    # Axis line visibility
+    axis_line_x = getattr(theme, "axis_line_x", True)
+    axis_line_y = getattr(theme, "axis_line_y", True)
+    ax.spines["bottom"].set_visible(axis_line_x)
+    ax.spines["top"].set_visible(axis_line_x)
+    ax.spines["left"].set_visible(axis_line_y)
+    ax.spines["right"].set_visible(axis_line_y)
+
+    # Panel border
+    panel_border_color = getattr(theme, "panel_border_color", None)
+    panel_border_width = getattr(theme, "panel_border_width", 1.0)
+    if panel_border_color is not None:
+        for spine in ax.spines.values():
+            spine.set_visible(True)
+            spine.set_edgecolor(panel_border_color)
+            spine.set_linewidth(panel_border_width)
+
+    # Tick styling — per-axis sizes and rotation
+    axis_text_x_size = getattr(theme, "axis_text_x_size", None) or theme.tick_size
+    axis_text_y_size = getattr(theme, "axis_text_y_size", None) or theme.tick_size
+    axis_text_x_rotation = getattr(theme, "axis_text_x_rotation", 0)
+    axis_text_y_rotation = getattr(theme, "axis_text_y_rotation", 0)
+
+    ax.tick_params(
+        axis="x",
+        labelsize=axis_text_x_size,
+        labelrotation=axis_text_x_rotation,
+        length=theme.tick_length,
+    )
+    ax.tick_params(
+        axis="y",
+        labelsize=axis_text_y_size,
+        labelrotation=axis_text_y_rotation,
+        length=theme.tick_length,
+    )
 
     # Draw layers
     for layer in panel.layers:
         layer.geom.draw(layer.data, ax, layer.params)
 
-    # Font
+    # Font — per-axis title sizes
+    axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
+    axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+
     ax.xaxis.label.set_fontfamily(theme.font_family)
     ax.yaxis.label.set_fontfamily(theme.font_family)
-    ax.xaxis.label.set_fontsize(theme.label_size)
-    ax.yaxis.label.set_fontsize(theme.label_size)
+    ax.xaxis.label.set_fontsize(axis_title_x_size)
+    ax.yaxis.label.set_fontsize(axis_title_y_size)
 
 
 def _apply_scales(ax: Axes, scales: dict) -> None:
@@ -218,6 +283,7 @@ def _flip_resolved(resolved: ResolvedPlot) -> ResolvedPlot:
         theme=resolved.theme,
         labs=resolved.labs,
         facet=resolved.facet,
+        guides=resolved.guides,
     )
 
 
@@ -241,17 +307,27 @@ def _apply_labs(fig: Figure, ax: Axes, resolved: ResolvedPlot, theme: Theme) -> 
     if labs is None:
         return
 
+    # Per-axis title sizes
+    axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
+    axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+
     # Axis labels (fallback to column name "x"/"y" already set by _apply_scales)
     if labs.x is not None:
-        ax.set_xlabel(labs.x, fontsize=theme.label_size)
+        ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
     if labs.y is not None:
-        ax.set_ylabel(labs.y, fontsize=theme.label_size)
+        ax.set_ylabel(labs.y, fontsize=axis_title_y_size)
+
+    # Title and subtitle colors
+    title_color = getattr(theme, "title_color", "#000000")
+    subtitle_size = getattr(theme, "subtitle_size", None) or theme.label_size
+    subtitle_color = getattr(theme, "subtitle_color", "#555555")
 
     if labs.title is not None and labs.subtitle is not None:
         fig.suptitle(
             labs.title,
             fontsize=theme.title_size,
             fontfamily=theme.font_family,
+            color=title_color,
             y=0.98,
         )
         fig.text(
@@ -259,13 +335,24 @@ def _apply_labs(fig: Figure, ax: Axes, resolved: ResolvedPlot, theme: Theme) -> 
             0.91,
             labs.subtitle,
             ha="center",
-            fontsize=theme.label_size,
+            fontsize=subtitle_size,
             fontfamily=theme.font_family,
+            color=subtitle_color,
         )
     elif labs.title is not None:
-        fig.suptitle(labs.title, fontsize=theme.title_size, fontfamily=theme.font_family)
+        fig.suptitle(
+            labs.title,
+            fontsize=theme.title_size,
+            fontfamily=theme.font_family,
+            color=title_color,
+        )
     elif labs.subtitle is not None:
-        fig.suptitle(labs.subtitle, fontsize=theme.label_size, fontfamily=theme.font_family)
+        fig.suptitle(
+            labs.subtitle,
+            fontsize=subtitle_size,
+            fontfamily=theme.font_family,
+            color=subtitle_color,
+        )
 
     if labs.caption is not None:
         fig.text(

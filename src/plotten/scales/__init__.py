@@ -6,12 +6,22 @@ from plotten.scales._alpha import (
     scale_alpha_manual,
 )
 from plotten.scales._base import LegendEntry, ScaleBase, auto_scale
+from plotten.scales._brewer import (
+    ScaleBrewerContinuous,
+    ScaleBrewerDiscrete,
+    scale_color_brewer,
+    scale_color_distiller,
+    scale_fill_brewer,
+    scale_fill_distiller,
+)
 from plotten.scales._color import (
     ScaleColorContinuous,
     ScaleColorDiscrete,
     scale_color_continuous,
     scale_color_discrete,
     scale_color_manual,
+    scale_fill_continuous,
+    scale_fill_discrete,
     scale_fill_manual,
 )
 from plotten.scales._date import (
@@ -20,6 +30,14 @@ from plotten.scales._date import (
     scale_x_datetime,
     scale_y_date,
     scale_y_datetime,
+)
+from plotten.scales._gradient import (
+    ScaleGradient,
+    ScaleGradient2,
+    scale_color_gradient,
+    scale_color_gradient2,
+    scale_fill_gradient,
+    scale_fill_gradient2,
 )
 from plotten.scales._linetype import (
     ScaleLinetypeDiscrete,
@@ -53,11 +71,15 @@ __all__ = [
     "ScaleAlphaContinuous",
     "ScaleAlphaDiscrete",
     "ScaleBase",
+    "ScaleBrewerContinuous",
+    "ScaleBrewerDiscrete",
     "ScaleColorContinuous",
     "ScaleColorDiscrete",
     "ScaleContinuous",
     "ScaleDateContinuous",
     "ScaleDiscrete",
+    "ScaleGradient",
+    "ScaleGradient2",
     "ScaleLinetypeDiscrete",
     "ScaleLog",
     "ScaleShapeDiscrete",
@@ -67,9 +89,19 @@ __all__ = [
     "scale_alpha_continuous",
     "scale_alpha_discrete",
     "scale_alpha_manual",
+    "scale_color_brewer",
     "scale_color_continuous",
     "scale_color_discrete",
+    "scale_color_distiller",
+    "scale_color_gradient",
+    "scale_color_gradient2",
     "scale_color_manual",
+    "scale_fill_brewer",
+    "scale_fill_continuous",
+    "scale_fill_discrete",
+    "scale_fill_distiller",
+    "scale_fill_gradient",
+    "scale_fill_gradient2",
     "scale_fill_manual",
     "scale_linetype_discrete",
     "scale_linetype_manual",
