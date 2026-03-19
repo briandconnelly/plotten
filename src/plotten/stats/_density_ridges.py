@@ -14,9 +14,15 @@ class StatDensityRidges:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 
-    def __init__(self, bandwidth: float | None = None, n_points: int = 128) -> None:
+    def __init__(
+        self,
+        bandwidth: float | None = None,
+        n_points: int = 128,
+        bw_adjust: float = 1.0,
+    ) -> None:
         self.bandwidth = bandwidth
         self.n_points = n_points
+        self.bw_adjust = bw_adjust
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
@@ -73,6 +79,8 @@ class StatDensityRidges:
             std = np.std(data, ddof=1) if n > 1 else 1.0
             bw = 1.06 * std * n ** (-0.2)
             bw = max(bw, 1e-6)
+
+        bw *= self.bw_adjust
 
         density = np.zeros_like(x_grid)
         for xi in data:

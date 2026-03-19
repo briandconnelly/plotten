@@ -1,3 +1,4 @@
+from plotten.positions._beeswarm import PositionBeeswarm, position_beeswarm
 from plotten.positions._dodge import PositionDodge, position_dodge
 from plotten.positions._dodge2 import PositionDodge2, position_dodge2
 from plotten.positions._fill import PositionFill, position_fill
@@ -8,6 +9,7 @@ from plotten.positions._nudge import PositionNudge, position_nudge
 from plotten.positions._stack import PositionStack, position_stack
 
 __all__ = [
+    "PositionBeeswarm",
     "PositionDodge",
     "PositionDodge2",
     "PositionFill",
@@ -16,6 +18,7 @@ __all__ = [
     "PositionJitterDodge",
     "PositionNudge",
     "PositionStack",
+    "position_beeswarm",
     "position_dodge",
     "position_dodge2",
     "position_fill",

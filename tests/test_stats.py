@@ -1162,3 +1162,112 @@ class TestGeomErrorbarhFactory:
         fig = render(p)
         assert fig is not None
         plt.close(fig)
+
+
+# --- KDE bandwidth parameters ---
+
+
+class TestStatDensityBandwidth:
+    def test_bw_method_silverman(self):
+        from plotten.stats._density import StatDensity
+
+        df = pl.DataFrame({"x": [float(i) for i in range(50)]})
+        stat = StatDensity(bw_method="silverman")
+        result = cast("nw.DataFrame", nw.from_native(stat.compute(df)))
+        assert "x" in result.columns
+        assert "y" in result.columns
+        assert len(result) == 200
+
+    def test_bw_method_scott(self):
+        from plotten.stats._density import StatDensity
+
+        df = pl.DataFrame({"x": [float(i) for i in range(50)]})
+        stat = StatDensity(bw_method="scott")
+        result = cast("nw.DataFrame", nw.from_native(stat.compute(df)))
+        assert len(result) == 200
+
+    def test_bw_method_scalar(self):
+        from plotten.stats._density import StatDensity
+
+        df = pl.DataFrame({"x": [float(i) for i in range(50)]})
+        stat = StatDensity(bw_method=0.5)
+        result = cast("nw.DataFrame", nw.from_native(stat.compute(df)))
+        assert len(result) == 200
+
+    def test_bw_adjust_smoother(self):
+        """Higher bw_adjust produces smoother density with lower peak."""
+        from plotten.stats._density import StatDensity
+
+        df = pl.DataFrame({"x": [1.0, 1.0, 1.0, 5.0, 5.0, 5.0]})
+        default = cast("nw.DataFrame", nw.from_native(StatDensity().compute(df)))
+        smooth = cast("nw.DataFrame", nw.from_native(StatDensity(bw_adjust=2.0).compute(df)))
+        default_peak = max(default.get_column("y").to_list())
+        smooth_peak = max(smooth.get_column("y").to_list())
+        assert smooth_peak < default_peak
+
+    def test_bw_adjust_rougher(self):
+        """Lower bw_adjust produces rougher density with higher peak."""
+        from plotten.stats._density import StatDensity
+
+        df = pl.DataFrame({"x": [1.0, 1.0, 1.0, 5.0, 5.0, 5.0]})
+        default = cast("nw.DataFrame", nw.from_native(StatDensity().compute(df)))
+        rough = cast("nw.DataFrame", nw.from_native(StatDensity(bw_adjust=0.3).compute(df)))
+        default_peak = max(default.get_column("y").to_list())
+        rough_peak = max(rough.get_column("y").to_list())
+        assert rough_peak > default_peak
+
+    def test_bw_adjust_with_groups(self):
+        from plotten.stats._density import StatDensity
+
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0],
+                "color": ["a", "a", "a", "b", "b", "b"],
+            }
+        )
+        stat = StatDensity(bw_adjust=0.5)
+        result = cast("nw.DataFrame", nw.from_native(stat.compute(df)))
+        assert "color" in result.columns
+
+    def test_geom_density_forwards_bw_params(self):
+        df = pl.DataFrame({"x": [float(i) for i in range(50)]})
+        p = ggplot(df, plotten.aes(x="x")) + plotten.geom_density(bw_adjust=0.5)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_geom_density_bw_method(self):
+        df = pl.DataFrame({"x": [float(i) for i in range(50)]})
+        p = ggplot(df, plotten.aes(x="x")) + plotten.geom_density(bw_method="silverman")
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestStatDensityRidgesBandwidth:
+    def test_bw_adjust(self):
+        from plotten.stats._density_ridges import StatDensityRidges
+
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+                "y": ["a", "a", "a", "a", "a", "b", "b", "b", "b", "b"],
+            }
+        )
+        stat = StatDensityRidges(bw_adjust=0.5)
+        result = cast("nw.DataFrame", nw.from_native(stat.compute(df)))
+        assert "x" in result.columns
+        assert "ymin" in result.columns
+        assert "ymax" in result.columns
+
+    def test_geom_density_ridges_forwards_bw_adjust(self):
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 4.0, 5.0],
+                "y": ["a", "a", "a", "a", "a", "b", "b", "b", "b", "b"],
+            }
+        )
+        p = ggplot(df, plotten.aes(x="x", y="y")) + plotten.geom_density_ridges(bw_adjust=2.0)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)

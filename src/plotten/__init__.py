@@ -47,6 +47,7 @@ from plotten.coords import (
     coord_polar,
     coord_trans,
 )
+from plotten.datasets import load_dataset
 from plotten.facets import (
     FacetGrid,
     FacetWrap,
@@ -112,6 +113,7 @@ from plotten.geoms import (
     stat_summary_bin,
 )
 from plotten.positions import (
+    PositionBeeswarm,
     PositionDodge,
     PositionDodge2,
     PositionFill,
@@ -120,6 +122,7 @@ from plotten.positions import (
     PositionJitterDodge,
     PositionNudge,
     PositionStack,
+    position_beeswarm,
     position_dodge,
     position_dodge2,
     position_fill,
@@ -284,6 +287,7 @@ __all__ = [
     "PlotGrid",
     "PlottenError",
     "PlottenWarning",
+    "PositionBeeswarm",
     "PositionDodge",
     "PositionDodge2",
     "PositionFill",
@@ -399,8 +403,10 @@ __all__ = [
     "labeller_both",
     "labeller_wrap",
     "labs",
+    "load_dataset",
     "plot_annotation",
     "plot_grid",
+    "position_beeswarm",
     "position_dodge",
     "position_dodge2",
     "position_fill",

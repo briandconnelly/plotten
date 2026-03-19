@@ -12,8 +12,15 @@ class StatDensity:
 
     required_aes: frozenset[str] = frozenset({"x"})
 
-    def __init__(self, n_points: int = 200) -> None:
+    def __init__(
+        self,
+        n_points: int = 200,
+        bw_method: str | float | None = None,
+        bw_adjust: float = 1.0,
+    ) -> None:
         self._n_points = n_points
+        self._bw_method = bw_method
+        self._bw_adjust = bw_adjust
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         from scipy.stats import gaussian_kde
@@ -42,7 +49,9 @@ class StatDensity:
 
             for group_label in sorted(groups):
                 vals = np.array(groups[group_label])
-                kde = gaussian_kde(vals)
+                kde = gaussian_kde(vals, bw_method=self._bw_method)
+                if self._bw_adjust != 1.0:
+                    kde.set_bandwidth(kde.factor * self._bw_adjust)
                 density = kde(x_grid)
                 result_x.extend(x_grid.tolist())
                 result_y.extend(density.tolist())
@@ -58,7 +67,9 @@ class StatDensity:
             x_max = float(x_arr.max())
             pad = (x_max - x_min) * 0.1
             x_grid = np.linspace(x_min - pad, x_max + pad, self._n_points)
-            kde = gaussian_kde(x_arr)
+            kde = gaussian_kde(x_arr, bw_method=self._bw_method)
+            if self._bw_adjust != 1.0:
+                kde.set_bandwidth(kde.factor * self._bw_adjust)
             density = kde(x_grid)
             result = {
                 "x": x_grid.tolist(),

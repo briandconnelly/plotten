@@ -148,14 +148,22 @@ def geom_abline(slope: float, intercept: float, **params: Any) -> Layer:
     )
 
 
-def geom_density(fill: bool = True, alpha: float = 0.3, **params: Any) -> Layer:
+def geom_density(
+    fill: bool = True,
+    alpha: float = 0.3,
+    bw_method: str | float | None = None,
+    bw_adjust: float = 1.0,
+    **params: Any,
+) -> Layer:
     """Create a density curve layer."""
+    from plotten.stats._density import StatDensity
+
     position = params.pop("position", None)
     mapping, params = _extract_aes(params)
     geom = GeomDensity(fill=fill, alpha=alpha)
     return Layer(
         geom=geom,
-        stat=geom.default_stat(),
+        stat=StatDensity(bw_method=bw_method, bw_adjust=bw_adjust),
         mapping=mapping,
         params=params,
         position=position,
@@ -493,7 +501,10 @@ def geom_quantile(
 
 
 def geom_density_ridges(
-    bandwidth: float | None = None, n_points: int = 128, **params: Any
+    bandwidth: float | None = None,
+    n_points: int = 128,
+    bw_adjust: float = 1.0,
+    **params: Any,
 ) -> Layer:
     """Create a ridge plot (stacked density curves by group)."""
     from plotten.geoms._density_ridges import GeomDensityRidges
@@ -503,7 +514,7 @@ def geom_density_ridges(
     mapping, params = _extract_aes(params)
     return Layer(
         geom=GeomDensityRidges(),
-        stat=StatDensityRidges(bandwidth=bandwidth, n_points=n_points),
+        stat=StatDensityRidges(bandwidth=bandwidth, n_points=n_points, bw_adjust=bw_adjust),
         mapping=mapping,
         params=params,
         position=position,

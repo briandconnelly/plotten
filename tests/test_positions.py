@@ -359,3 +359,94 @@ class TestPositionJitterdodgeFactory:
         fig = render(p)
         assert fig is not None
         plt.close(fig)
+
+
+# --- position_beeswarm ---
+
+
+class TestPositionBeeswarm:
+    def test_basic(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm(spacing=0.1)
+        data = {"x": [1.0, 1.0, 1.0], "y": [1.0, 1.05, 1.1]}
+        result = pb.adjust(data, {})
+        xs = result["x"]
+        # Points should have been offset to avoid overlap
+        assert len(set(xs)) > 1
+
+    def test_single_point_unchanged(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm()
+        data = {"x": [1.0], "y": [2.0]}
+        result = pb.adjust(data, {})
+        assert result["x"] == [1.0]
+
+    def test_no_overlap_no_adjustment(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm(spacing=0.05)
+        data = {"x": [1.0, 1.0], "y": [1.0, 2.0]}  # far apart
+        result = pb.adjust(data, {})
+        assert result["x"] == [1.0, 1.0]
+
+    def test_side_left(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm(spacing=0.1, side="left")
+        data = {"x": [1.0, 1.0, 1.0], "y": [1.0, 1.01, 1.02]}
+        result = pb.adjust(data, {})
+        for x in result["x"]:
+            assert x <= 1.0
+
+    def test_side_right(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm(spacing=0.1, side="right")
+        data = {"x": [1.0, 1.0, 1.0], "y": [1.0, 1.01, 1.02]}
+        result = pb.adjust(data, {})
+        for x in result["x"]:
+            assert x >= 1.0
+
+    def test_multiple_groups(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm(spacing=0.1)
+        data = {"x": [1.0, 1.0, 2.0, 2.0], "y": [1.0, 1.01, 1.0, 1.01]}
+        result = pb.adjust(data, {})
+        # Group 1 and group 2 adjusted independently
+        assert len(result["x"]) == 4
+
+    def test_missing_keys(self):
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = PositionBeeswarm()
+        data = {"x": [1.0, 2.0]}  # no y
+        result = pb.adjust(data, {})
+        assert result == data
+
+    def test_factory_function(self):
+        from plotten import position_beeswarm
+        from plotten.positions._beeswarm import PositionBeeswarm
+
+        pb = position_beeswarm(spacing=0.2, side="left")
+        assert isinstance(pb, PositionBeeswarm)
+        assert pb.spacing == 0.2
+        assert pb.side == "left"
+
+    def test_integration_with_geom_point(self):
+        df = pl.DataFrame(
+            {
+                "x": ["A", "A", "A", "A", "B", "B", "B", "B"],
+                "y": [1.0, 1.1, 1.2, 1.3, 2.0, 2.1, 2.2, 2.3],
+            }
+        )
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point(position=plotten.position_beeswarm(spacing=0.1))
+            + plotten.scale_x_discrete()
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
