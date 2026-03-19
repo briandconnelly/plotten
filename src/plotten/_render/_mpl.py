@@ -199,6 +199,7 @@ def _apply_facet_axis_labs(
     labs_obj = resolved.labs
     axis_title_x_size = theme.axis_title_x_size or theme.label_size
     axis_title_y_size = theme.axis_title_y_size or theme.label_size
+    strip_at_bottom = getattr(resolved.facet, "strip_position", "top") == "bottom"
 
     for idx in range(n_panels):
         r, c = divmod(idx, ncol)
@@ -207,7 +208,10 @@ def _apply_facet_axis_labs(
         # Bottom row (or last row with panels) gets x label
         is_bottom = (r == nrow - 1) or (idx + ncol >= n_panels)
         if is_bottom and labs_obj and labs_obj.x:
-            ax.set_xlabel(labs_obj.x, fontsize=axis_title_x_size)
+            xlabel_kwargs: dict[str, Any] = {"fontsize": axis_title_x_size}
+            if strip_at_bottom:
+                xlabel_kwargs["labelpad"] = 24
+            ax.set_xlabel(labs_obj.x, **xlabel_kwargs)
         elif not is_bottom:
             ax.set_xlabel("")
             ax.tick_params(axis="x", labelbottom=False)
