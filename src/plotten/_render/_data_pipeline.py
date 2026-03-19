@@ -92,7 +92,13 @@ def _resolve_layers(
                 )
             continue
 
-        frame = cast("nw.DataFrame", nw.from_native(raw_data))
+        wrapped = nw.from_native(raw_data)
+        frame = cast("nw.DataFrame", wrapped.collect() if hasattr(wrapped, "collect") else wrapped)
+
+        # Cast Decimal columns to Float64 (e.g. DuckDB infers DECIMAL for literals)
+        decimal_cols = [col for col, dtype in frame.schema.items() if "Decimal" in str(dtype)]
+        if decimal_cols:
+            frame = frame.with_columns(nw.col(c).cast(nw.Float64) for c in decimal_cols)
         normal_mappings, after_stat_mappings, after_scale_mappings, interaction_mappings = (
             _separate_mappings(merged_aes)
         )
