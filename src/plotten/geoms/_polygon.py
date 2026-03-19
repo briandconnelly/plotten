@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from matplotlib.patches import Polygon
-
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -25,6 +23,8 @@ class GeomPolygon:
         return StatIdentity()
 
     def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+        from matplotlib.patches import Polygon
+
         x_vals = data["x"]
         y_vals = data["y"]
         vertices = list(zip(x_vals, y_vals, strict=True))

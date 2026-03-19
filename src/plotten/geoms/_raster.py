@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import numpy as np
-
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -20,6 +18,8 @@ class GeomRaster:
         return StatIdentity()
 
     def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+        import numpy as np
+
         x = np.asarray(data["x"], dtype=float)
         y = np.asarray(data["y"], dtype=float)
         z = np.asarray(data["z"], dtype=float)

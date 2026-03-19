@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import difflib
 from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, Self
 
@@ -113,10 +114,16 @@ def theme(**kwargs: Any) -> Theme:
     valid_fields = {f.name for f in fields(Theme)}
     invalid = set(kwargs) - valid_fields
     if invalid:
-        msg = (
-            f"Unknown theme properties: {sorted(invalid)}. "
-            f"Valid properties: {sorted(valid_fields)}"
-        )
+        suggestions: list[str] = []
+        valid_list = sorted(valid_fields)
+        for name in sorted(invalid):
+            matches = difflib.get_close_matches(name, valid_list, n=2, cutoff=0.6)
+            if matches:
+                suggestions.append(f"  '{name}' — did you mean {matches}?")
+            else:
+                suggestions.append(f"  '{name}'")
+        hint = "\n".join(suggestions)
+        msg = f"Unknown theme properties:\n{hint}\nValid properties: {valid_list}"
         raise TypeError(msg)
     return Theme(**kwargs)
 

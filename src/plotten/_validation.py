@@ -49,25 +49,65 @@ def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -
         )
 
 
-def validate_data_type(aesthetic: str, series: Any, scale: Any) -> None:
+def validate_mapped_columns(
+    mappings: dict[str, str],
+    data_columns: list[str],
+    required_aes: frozenset[str] | None = None,
+) -> None:
+    """Raise PlottenError if mapped column names are not present in the data.
+
+    Only checks aesthetics listed in *required_aes* (if provided) to avoid
+    false positives for literal values like ``aes(fill='steelblue')``.
+    Uses ``difflib.get_close_matches`` to suggest similar column names.
+    """
+    missing = {
+        col_name: aes_field
+        for aes_field, col_name in mappings.items()
+        if col_name not in data_columns
+        and col_name != aes_field
+        and (required_aes is None or aes_field in required_aes)
+    }
+    if not missing:
+        return
+
+    parts: list[str] = []
+    for col_name, aes_field in sorted(missing.items()):
+        matches = difflib.get_close_matches(col_name, data_columns, n=2, cutoff=0.6)
+        hint = f" Did you mean {matches}?" if matches else ""
+        parts.append(
+            f"  aes({aes_field}='{col_name}') — column '{col_name}' not found in data.{hint}"
+        )
+    raise PlottenError(
+        "Column(s) referenced in aesthetic mapping not found in data:\n"
+        + "\n".join(parts)
+        + f"\nAvailable columns: {sorted(data_columns)}"
+    )
+
+
+def validate_data_type(
+    aesthetic: str, series: Any, scale: Any, *, column_name: str | None = None
+) -> None:
     """Warn if continuous scale gets all-string data or vice versa."""
     import narwhals as nw
 
     from plotten.scales._position import ScaleContinuous, ScaleDiscrete
 
     s = nw.from_native(series, series_only=True)
+    col_info = f" (column '{column_name}')" if column_name else ""
     if isinstance(scale, ScaleContinuous) and not s.dtype.is_numeric():
         dtype_str = str(s.dtype).lower()
         if not any(t in dtype_str for t in ("date", "datetime", "timestamp")):
             warnings.warn(
-                f"Continuous scale for '{aesthetic}' received non-numeric data "
-                f"(dtype: {s.dtype}). Consider using a discrete scale.",
+                f"Continuous scale for '{aesthetic}'{col_info} received "
+                f"non-numeric data (dtype: {s.dtype}). "
+                f"Consider using a discrete scale.",
                 stacklevel=4,
             )
     elif isinstance(scale, ScaleDiscrete) and s.dtype.is_numeric():
         warnings.warn(
-            f"Discrete scale for '{aesthetic}' received numeric data "
-            f"(dtype: {s.dtype}). Consider using a continuous scale.",
+            f"Discrete scale for '{aesthetic}'{col_info} received "
+            f"numeric data (dtype: {s.dtype}). "
+            f"Consider using a continuous scale.",
             stacklevel=4,
         )
 

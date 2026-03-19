@@ -1,6 +1,6 @@
 [project]
 name = "plotten"
-version = "0.9.0"
+version = "1.0.0"
 description = "A grammar-of-graphics plotting library for Python"
 readme = "README.md"
 authors = [
@@ -25,6 +25,7 @@ dev = [
     "scipy>=1.10",
     "ty>=0.0.1a7",
     "prek>=0.3.6",
+    "pytest-cov>=7.0.0",
 ]
 
 [build-system]

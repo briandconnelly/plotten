@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from matplotlib.patches import Rectangle
-
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -20,6 +18,8 @@ class GeomTile:
         return StatIdentity()
 
     def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+        from matplotlib.patches import Rectangle
+
         width = params.get("width", 1.0)
         height = params.get("height", 1.0)
         text_color = params.get("text_color", "black")

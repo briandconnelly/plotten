@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from matplotlib.patches import Rectangle
-
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -20,6 +18,8 @@ class GeomCrossbar:
         return StatIdentity()
 
     def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+        from matplotlib.patches import Rectangle
+
         width = params.get("width", 0.5)
         fill_color = params.get("fill", "#4C72B0")
         edge_color = params.get("color", "black")

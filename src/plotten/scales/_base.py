@@ -29,6 +29,11 @@ class ScaleBase:
         self.aesthetic = aesthetic
         self._domain_min = None
         self._domain_max = None
+        self._cache: dict[str, Any] = {}
+
+    def _invalidate_cache(self) -> None:
+        """Clear cached computation results (called after training)."""
+        self._cache.clear()
 
     def train(self, values: Any) -> None:
         raise NotImplementedError
@@ -68,6 +73,7 @@ class MappedContinuousScale(ScaleBase):
             self._domain_min = vmin
         if self._domain_max is None or vmax > self._domain_max:
             self._domain_max = vmax
+        self._invalidate_cache()
 
     def get_limits(self) -> tuple[float, float]:
         if self._limits is not None:
@@ -77,16 +83,22 @@ class MappedContinuousScale(ScaleBase):
         return (lo, hi)
 
     def get_breaks(self) -> list:
+        cached = self._cache.get("breaks")
+        if cached is not None:
+            return cached
         lo, hi = self.get_limits()
         if self._breaks is None:
             import numpy as np
 
             from plotten._defaults import DEFAULT_CONTINUOUS_BREAK_COUNT
 
-            return np.linspace(lo, hi, DEFAULT_CONTINUOUS_BREAK_COUNT).tolist()
-        if callable(self._breaks):
-            return list(self._breaks((lo, hi)))  # type: ignore[operator]
-        return list(self._breaks)
+            result = np.linspace(lo, hi, DEFAULT_CONTINUOUS_BREAK_COUNT).tolist()
+        elif callable(self._breaks):
+            result = list(self._breaks((lo, hi)))  # type: ignore[operator]
+        else:
+            result = list(self._breaks)
+        self._cache["breaks"] = result
+        return result
 
 
 class MappedDiscreteScale(ScaleBase):
@@ -104,6 +116,7 @@ class MappedDiscreteScale(ScaleBase):
         for lev in new_levels:
             if lev not in self._levels:
                 self._levels.append(lev)
+        self._invalidate_cache()
 
     def get_limits(self) -> tuple[float, float]:
         return (0, len(self._levels))
@@ -112,7 +125,12 @@ class MappedDiscreteScale(ScaleBase):
         return list(range(len(self._levels)))
 
     def get_labels(self) -> list[str]:
-        return [str(lev) for lev in self._levels]
+        cached = self._cache.get("labels")
+        if cached is not None:
+            return cached
+        result = [str(lev) for lev in self._levels]
+        self._cache["labels"] = result
+        return result
 
 
 def auto_scale(aesthetic: str, series: Any) -> ScaleBase:

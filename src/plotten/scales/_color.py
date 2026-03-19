@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import matplotlib
-import matplotlib.colors as mcolors
 import narwhals as nw
 
 from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscreteScale
@@ -19,6 +17,8 @@ class ScaleColorContinuous(MappedContinuousScale):
         breaks: list[float] | None = None,
         limits: tuple[float, float] | None = None,
     ) -> None:
+        import matplotlib
+
         super().__init__(aesthetic)
         self._cmap_name = cmap_name
         self._cmap = matplotlib.colormaps[cmap_name]
@@ -26,6 +26,8 @@ class ScaleColorContinuous(MappedContinuousScale):
         self._limits = limits
 
     def map_data(self, values: Any) -> Any:
+        import matplotlib.colors as mcolors
+
         s = nw.from_native(values, series_only=True)
         lo, hi = self.get_limits()
         span = hi - lo if hi != lo else 1.0
@@ -33,6 +35,8 @@ class ScaleColorContinuous(MappedContinuousScale):
         return [mcolors.to_hex(self._cmap(n)) for n in normalized]
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         breaks = self.get_breaks()
         lo, hi = self.get_limits()
         span = hi - lo if hi != lo else 1.0
@@ -56,6 +60,8 @@ class ScaleColorDiscrete(MappedDiscreteScale):
         palette: str = "tab10",
         values: dict[str, str] | None = None,
     ) -> None:
+        import matplotlib
+
         super().__init__(aesthetic)
         self._palette_name = palette
         self._cmap = matplotlib.colormaps[palette]
@@ -63,6 +69,8 @@ class ScaleColorDiscrete(MappedDiscreteScale):
         self._manual_values = values
 
     def map_data(self, values: Any) -> Any:
+        import matplotlib.colors as mcolors
+
         s = nw.from_native(values, series_only=True)
         if self._manual_values:
             return [self._manual_values.get(str(v), "#000000") for v in s.to_list()]
@@ -74,6 +82,8 @@ class ScaleColorDiscrete(MappedDiscreteScale):
         return [color_map[v] for v in s.to_list()]
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         entries = []
         if self._manual_values:
             for lev in self._levels:

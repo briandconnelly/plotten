@@ -49,5 +49,14 @@ class Aes:
 
 
 def aes(**kwargs: str | AfterStat | AfterScale | Interaction) -> Aes:
-    """Convenience constructor for Aes."""
+    """Convenience constructor for Aes.
+
+    Accepts ``colour`` as an alias for ``color`` (ggplot2 convention).
+    """
+    # Support British spelling alias
+    if "colour" in kwargs:
+        if "color" in kwargs:
+            msg = "Cannot specify both 'color' and 'colour' in aes()"
+            raise TypeError(msg)
+        kwargs["color"] = kwargs.pop("colour")
     return Aes(**kwargs)

@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import matplotlib.colors as mcolors
-from matplotlib.colors import LinearSegmentedColormap
-
 from plotten.scales._base import LegendEntry
 from plotten.scales._color import ScaleColorContinuous
 
@@ -20,12 +17,16 @@ class ScaleGradient(ScaleColorContinuous):
         breaks: list[float] | None = None,
         limits: tuple[float, float] | None = None,
     ) -> None:
+        from matplotlib.colors import LinearSegmentedColormap
+
         super().__init__(aesthetic=aesthetic, cmap_name="viridis", breaks=breaks, limits=limits)
         self._low = low
         self._high = high
         self._cmap = LinearSegmentedColormap.from_list("gradient2", [low, high], N=256)
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         breaks = self.get_breaks()
         lo, hi = self.get_limits()
         span = hi - lo if hi != lo else 1.0
@@ -53,6 +54,8 @@ class ScaleGradient2(ScaleColorContinuous):
         breaks: list[float] | None = None,
         limits: tuple[float, float] | None = None,
     ) -> None:
+        from matplotlib.colors import LinearSegmentedColormap
+
         super().__init__(aesthetic=aesthetic, cmap_name="viridis", breaks=breaks, limits=limits)
         self._low = low
         self._mid = mid
@@ -61,6 +64,7 @@ class ScaleGradient2(ScaleColorContinuous):
         self._cmap = LinearSegmentedColormap.from_list("gradient3", [low, mid, high], N=256)
 
     def map_data(self, values: Any) -> Any:
+        import matplotlib.colors as mcolors
         import narwhals as nw
 
         s = nw.from_native(values, series_only=True)
@@ -79,6 +83,8 @@ class ScaleGradient2(ScaleColorContinuous):
         return result
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         breaks = self.get_breaks()
         lo, hi = self.get_limits()
         mid = self._midpoint

@@ -117,8 +117,15 @@ def _separate_mappings(
 _AUX_TO_POSITION = {"ymin": "y", "ymax": "y", "xmin": "x", "xmax": "x"}
 
 
-def _train_scales(frame: Any, data_dict: dict[str, Any], scales: dict[str, ScaleBase]) -> None:
+def _train_scales(
+    frame: Any,
+    data_dict: dict[str, Any],
+    scales: dict[str, ScaleBase],
+    column_origins: dict[str, str] | None = None,
+) -> None:
     """Infer and train scales from computed data. Mutates *scales* in-place."""
+    from plotten._validation import validate_data_type
+
     for aes_name in data_dict:
         series = frame.get_column(aes_name)
         if str(series.dtype).startswith(("List", "list", "Object", "object")):
@@ -127,6 +134,10 @@ def _train_scales(frame: Any, data_dict: dict[str, Any], scales: dict[str, Scale
             if aes_name not in scales:
                 native_series = series.to_native()
                 scales[aes_name] = auto_scale(aes_name, native_series)
+            col_name = column_origins.get(aes_name) if column_origins else None
+            validate_data_type(
+                aes_name, series.to_native(), scales[aes_name], column_name=col_name
+            )
             scales[aes_name].train(series.to_native())
         except (TypeError, ValueError):
             continue
@@ -209,6 +220,11 @@ def _resolve_layers(
                 nw.to_native(frame.with_columns(new_frame.get_column(aes_field)))
             )
 
+        # Validate that mapped column names exist in the data
+        from plotten._validation import validate_mapped_columns
+
+        validate_mapped_columns(normal_mappings, frame.columns, layer.geom.required_aes)
+
         # Rename columns based on aesthetic mapping
         rename_exprs = {
             col_name: aes_field
@@ -252,7 +268,13 @@ def _resolve_layers(
         # Build data dict
         data_dict: dict[str, Any] = {col: frame.get_column(col).to_list() for col in frame.columns}
 
-        _train_scales(frame, data_dict, scales)
+        # Map aesthetic names back to original column names for error messages
+        column_origins = {
+            aes_field: col_name
+            for aes_field, col_name in normal_mappings.items()
+            if col_name != aes_field
+        }
+        _train_scales(frame, data_dict, scales, column_origins)
         _map_aesthetics(frame, data_dict, scales, after_scale_mappings)
 
         # Position adjustment

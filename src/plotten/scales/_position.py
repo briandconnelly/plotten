@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from plotten.scales._sec_axis import SecAxis
 
 import narwhals as nw
-import numpy as np
 
 from plotten.scales._base import ScaleBase
 
@@ -58,6 +57,7 @@ class ScaleContinuous(ScaleBase):
             self._domain_min = vmin
         if self._domain_max is None or vmax > self._domain_max:
             self._domain_max = vmax
+        self._invalidate_cache()
 
     def map_data(self, values: Any) -> Any:
         return values  # identity — matplotlib handles position mapping
@@ -73,20 +73,34 @@ class ScaleContinuous(ScaleBase):
         return (lo - pad, hi + pad)
 
     def get_breaks(self) -> list:
+        cached = self._cache.get("breaks")
+        if cached is not None:
+            return cached
         lo, hi = self.get_limits()
         if self._breaks is None:
-            return np.linspace(lo, hi, 6).tolist()
-        if callable(self._breaks):
-            return list(self._breaks((lo, hi)))  # type: ignore[operator]
-        return list(self._breaks)
+            import numpy as np
+
+            result = np.linspace(lo, hi, 6).tolist()
+        elif callable(self._breaks):
+            result = list(self._breaks((lo, hi)))  # type: ignore[operator]
+        else:
+            result = list(self._breaks)
+        self._cache["breaks"] = result
+        return result
 
     def get_labels(self) -> list[str]:
+        cached = self._cache.get("labels")
+        if cached is not None:
+            return cached
         labels = self._labels
         if labels is None:
-            return [_smart_format(b) for b in self.get_breaks()]
-        if isinstance(labels, list):
-            return labels.copy()  # type: ignore[return-value]
-        return [labels(b) for b in self.get_breaks()]
+            result: list[str] = [_smart_format(b) for b in self.get_breaks()]
+        elif isinstance(labels, list):
+            result = list(labels)
+        else:
+            result = [labels(b) for b in self.get_breaks()]
+        self._cache["labels"] = result
+        return result
 
 
 class ScaleDiscrete(ScaleBase):
@@ -109,6 +123,7 @@ class ScaleDiscrete(ScaleBase):
         for lev in new_levels:
             if lev not in self._levels:
                 self._levels.append(lev)
+        self._invalidate_cache()
 
     def map_data(self, values: Any) -> Any:
         s = nw.from_native(values, series_only=True)
@@ -128,11 +143,18 @@ class ScaleDiscrete(ScaleBase):
         return list(range(len(self._levels)))
 
     def get_labels(self) -> list[str]:
+        cached = self._cache.get("labels")
+        if cached is not None:
+            return cached
         if self._manual_labels is not None:
             if isinstance(self._manual_labels, dict):
-                return [self._manual_labels.get(str(lev), str(lev)) for lev in self._levels]
-            return list(self._manual_labels)
-        return [str(lev) for lev in self._levels]
+                result = [self._manual_labels.get(str(lev), str(lev)) for lev in self._levels]
+            else:
+                result = list(self._manual_labels)
+        else:
+            result = [str(lev) for lev in self._levels]
+        self._cache["labels"] = result
+        return result
 
 
 def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:

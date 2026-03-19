@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import matplotlib.dates as mdates
 import narwhals as nw
 
 from plotten.scales._base import ScaleBase
@@ -27,6 +26,8 @@ class ScaleDateContinuous(ScaleBase):
 
     def _to_mpl_dates(self, values: Any) -> list[float]:
         """Convert temporal values to matplotlib date numbers."""
+        import matplotlib.dates as mdates
+
         s = nw.from_native(values, series_only=True)
         py_values = s.to_list()
         return [mdates.date2num(v) for v in py_values]
@@ -47,6 +48,8 @@ class ScaleDateContinuous(ScaleBase):
 
     def get_limits(self) -> tuple[float, float]:
         if self._limits is not None:
+            import matplotlib.dates as mdates
+
             return (mdates.date2num(self._limits[0]), mdates.date2num(self._limits[1]))
         lo = self._domain_min if self._domain_min is not None else 0.0
         hi = self._domain_max if self._domain_max is not None else 1.0

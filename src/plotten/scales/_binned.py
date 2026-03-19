@@ -3,10 +3,7 @@ from __future__ import annotations
 import bisect
 from typing import Any
 
-import matplotlib
-import matplotlib.colors as mcolors
 import narwhals as nw
-import numpy as np
 
 from plotten.scales._base import LegendEntry, MappedContinuousScale
 
@@ -38,6 +35,8 @@ class ScaleColorBinned(MappedContinuousScale):
         na_value: str = "#cccccc",
         limits: tuple[float, float] | None = None,
     ) -> None:
+        import matplotlib
+
         super().__init__(aesthetic)
         self._breaks_spec = breaks
         self._cmap_name = cmap
@@ -54,6 +53,8 @@ class ScaleColorBinned(MappedContinuousScale):
 
     def _compute_boundaries(self) -> list[float]:
         """Return sorted internal bin boundaries (excluding domain min/max)."""
+        import numpy as np
+
         lo, hi = self.get_limits()
         spec = self._breaks_spec
         if isinstance(spec, int):
@@ -74,6 +75,10 @@ class ScaleColorBinned(MappedContinuousScale):
         return self._bin_edges()
 
     def map_data(self, values: Any) -> Any:
+        import math
+
+        import matplotlib.colors as mcolors
+
         s = nw.from_native(values, series_only=True)
         edges = self._bin_edges()
         n_bins = len(edges) - 1
@@ -88,7 +93,7 @@ class ScaleColorBinned(MappedContinuousScale):
 
         result: list[str] = []
         for v in s.to_list():
-            if v is None or (isinstance(v, float) and np.isnan(v)):
+            if v is None or (isinstance(v, float) and math.isnan(v)):
                 result.append(self._na_value)
                 continue
             # bisect_right gives the index of the first edge > v
@@ -99,6 +104,8 @@ class ScaleColorBinned(MappedContinuousScale):
         return result
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         edges = self._bin_edges()
         n_bins = len(edges) - 1
         entries: list[LegendEntry] = []

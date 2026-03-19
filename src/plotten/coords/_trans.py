@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
+import math as _math
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-import numpy as np
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,10 +54,10 @@ class CoordTrans:
 
 _TRANSFORMS: dict[str, Callable] = {
     "identity": lambda x: x,
-    "log10": lambda x: np.log10(x) if x > 0 else float("nan"),
-    "sqrt": lambda x: np.sqrt(x) if x >= 0 else float("nan"),
+    "log10": lambda x: _math.log10(x) if x > 0 else float("nan"),
+    "sqrt": lambda x: _math.sqrt(x) if x >= 0 else float("nan"),
     "reverse": lambda x: -x,
-    "exp": lambda x: np.exp(x),
+    "exp": lambda x: _math.exp(x),
     "reciprocal": lambda x: 1 / x if x != 0 else float("nan"),
 }
 

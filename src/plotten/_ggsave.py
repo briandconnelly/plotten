@@ -8,7 +8,6 @@ if TYPE_CHECKING:
     from pathlib import Path
 
 from plotten._enums import SizeUnit
-from plotten._render._mpl import render
 
 
 def ggsave(
@@ -39,6 +38,8 @@ def ggsave(
     transparent : bool
         If True, the figure and axes backgrounds are transparent.
     """
+    from plotten._render._mpl import render
+
     fig = render(plot)
 
     # Convert units to inches

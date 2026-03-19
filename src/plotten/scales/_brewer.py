@@ -2,9 +2,6 @@ from __future__ import annotations
 
 from typing import Any
 
-import matplotlib
-import matplotlib.colors as mcolors
-
 from plotten.scales._base import LegendEntry
 from plotten.scales._color import ScaleColorContinuous, ScaleColorDiscrete
 
@@ -22,6 +19,7 @@ class ScaleBrewerDiscrete(ScaleColorDiscrete):
         self._direction = direction
 
     def map_data(self, values: Any) -> Any:
+        import matplotlib.colors as mcolors
         import narwhals as nw
 
         s = nw.from_native(values, series_only=True)
@@ -36,6 +34,8 @@ class ScaleBrewerDiscrete(ScaleColorDiscrete):
         return [color_map[v] for v in s.to_list()]
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         n = max(len(self._levels), 1)
         indices = list(range(n))
         if self._direction == -1:
@@ -59,12 +59,16 @@ class ScaleBrewerContinuous(ScaleColorContinuous):
         palette: str = "RdYlBu",
         direction: int = 1,
     ) -> None:
+        import matplotlib
+
         super().__init__(aesthetic=aesthetic, cmap_name=palette)
         self._direction = direction
         if direction == -1:
             self._cmap = matplotlib.colormaps[palette].reversed()
 
     def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
         breaks = self.get_breaks()
         lo, hi = self.get_limits()
         span = hi - lo if hi != lo else 1.0

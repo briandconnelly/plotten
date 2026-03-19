@@ -94,15 +94,29 @@ class PlotGrid:
         dpi: int = 150,
         width: float | None = None,
         height: float | None = None,
+        units: str = "in",
     ) -> None:
         """Render and save the grid to a file."""
         import matplotlib.pyplot as plt
 
+        from plotten._enums import SizeUnit
+
         fig = render_grid(self)
         if width is not None or height is not None:
+            match units:
+                case SizeUnit.INCHES:
+                    factor = 1.0
+                case SizeUnit.CM:
+                    factor = 1 / 2.54
+                case SizeUnit.MM:
+                    factor = 1 / 25.4
+                case SizeUnit.PX:
+                    factor = 1 / dpi
+                case _:
+                    factor = 1.0
             cur_w, cur_h = fig.get_size_inches()
-            new_w = width if width is not None else cur_w
-            new_h = height if height is not None else cur_h
+            new_w = width * factor if width is not None else cur_w
+            new_h = height * factor if height is not None else cur_h
             fig.set_size_inches(new_w, new_h)
         fig.savefig(path, dpi=dpi, bbox_inches="tight")
         plt.close(fig)
