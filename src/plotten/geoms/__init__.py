@@ -12,6 +12,7 @@ from plotten.geoms._contour import GeomContour, GeomContourFilled
 from plotten.geoms._crossbar import GeomCrossbar
 from plotten.geoms._curve import GeomCurve
 from plotten.geoms._density import GeomDensity
+from plotten.geoms._density_ridges import GeomDensityRidges
 from plotten.geoms._dotplot import GeomDotplot
 from plotten.geoms._errorbar import GeomErrorbar
 from plotten.geoms._hex import GeomHex
@@ -106,11 +107,11 @@ def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     )
 
 
-def geom_smooth(method: str = "loess", se: bool = True, **params: Any) -> Layer:
+def geom_smooth(method: str = "loess", se: bool = True, degree: int = 2, **params: Any) -> Layer:
     """Create a smooth line layer."""
     position = params.pop("position", None)
     mapping, params = _extract_aes(params)
-    geom = GeomSmooth(method=method, se=se)
+    geom = GeomSmooth(method=method, se=se, degree=degree)
     return Layer(
         geom=geom,
         stat=geom.default_stat(),
@@ -384,6 +385,21 @@ def stat_summary_bin(
     )
 
 
+def stat_ellipse(level: float = 0.95, segments: int = 51, **params: Any) -> Layer:
+    """Draw a confidence ellipse around bivariate data."""
+    from plotten.stats._ellipse import StatEllipse
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomPolygon(),
+        stat=StatEllipse(level=level, segments=segments),
+        mapping=mapping,
+        params={**params, "fill": params.get("fill", "none")},
+        position=position,
+    )
+
+
 def stat_density_2d_filled(**params: Any) -> Layer:
     """Create a filled 2D density contour layer."""
     from plotten.stats._density2d import StatDensity2d
@@ -394,6 +410,67 @@ def stat_density_2d_filled(**params: Any) -> Layer:
     return Layer(
         geom=GeomContourFilled(),
         stat=StatDensity2d(n=n),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def stat_poly_eq(
+    degree: int = 1, label_x: float = 0.05, label_y: float = 0.95, **params: Any
+) -> Layer:
+    """Overlay polynomial equation and R² text."""
+    from plotten.stats._poly_eq import StatPolyEq
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomText(),
+        stat=StatPolyEq(degree=degree, label_x=label_x, label_y=label_y),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def geom_count(**params: Any) -> Layer:
+    """Count overlapping points and map count to size."""
+    from plotten._computed import AfterStat
+    from plotten.stats._count_overlap import StatCountOverlap
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+
+    # Default: map size to after_stat("n") unless user explicitly set size
+    default_mapping = Aes(size=AfterStat("n"))
+    combined = default_mapping | mapping
+
+    return Layer(
+        geom=GeomPoint(),
+        stat=StatCountOverlap(),
+        mapping=combined,
+        params=params,
+        position=position,
+    )
+
+
+def stat_sum(**params: Any) -> Layer:
+    """Alias for geom_count -- count overlapping observations."""
+    return geom_count(**params)
+
+
+def geom_density_ridges(
+    bandwidth: float | None = None, n_points: int = 128, **params: Any
+) -> Layer:
+    """Create a ridge plot (stacked density curves by group)."""
+    from plotten.geoms._density_ridges import GeomDensityRidges
+    from plotten.stats._density_ridges import StatDensityRidges
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomDensityRidges(),
+        stat=StatDensityRidges(bandwidth=bandwidth, n_points=n_points),
         mapping=mapping,
         params=params,
         position=position,
@@ -411,6 +488,7 @@ __all__ = [
     "GeomCrossbar",
     "GeomCurve",
     "GeomDensity",
+    "GeomDensityRidges",
     "GeomDotplot",
     "GeomErrorbar",
     "GeomHLine",
@@ -444,9 +522,11 @@ __all__ = [
     "geom_col",
     "geom_contour",
     "geom_contour_filled",
+    "geom_count",
     "geom_crossbar",
     "geom_curve",
     "geom_density",
+    "geom_density_ridges",
     "geom_dotplot",
     "geom_errorbar",
     "geom_hex",
@@ -477,7 +557,10 @@ __all__ = [
     "stat_density_2d",
     "stat_density_2d_filled",
     "stat_ecdf",
+    "stat_ellipse",
     "stat_function",
+    "stat_poly_eq",
+    "stat_sum",
     "stat_summary",
     "stat_summary_bin",
 ]

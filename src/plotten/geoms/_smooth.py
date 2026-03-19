@@ -14,12 +14,15 @@ class GeomSmooth:
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
 
-    def __init__(self, method: str = "loess", se: bool = True, **kwargs: Any) -> None:
+    def __init__(
+        self, method: str = "loess", se: bool = True, degree: int = 2, **kwargs: Any
+    ) -> None:
         self._method = method
         self._se = se
+        self._degree = degree
 
     def default_stat(self) -> StatSmooth:
-        return StatSmooth(method=self._method, se=self._se)
+        return StatSmooth(method=self._method, se=self._se, degree=self._degree)
 
     def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}

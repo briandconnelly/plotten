@@ -28,6 +28,7 @@ class SmoothMethod(StrEnum):
     OLS = "ols"
     LOESS = "loess"
     MOVING_AVERAGE = "moving_average"
+    POLY = "poly"
 
 
 class SizeUnit(StrEnum):

@@ -3,12 +3,16 @@ from plotten.stats._bin2d import StatBin2d
 from plotten.stats._boxplot import StatBoxplot
 from plotten.stats._contour import StatContour
 from plotten.stats._count import StatCount
+from plotten.stats._count_overlap import StatCountOverlap
 from plotten.stats._density import StatDensity
 from plotten.stats._density2d import StatDensity2d
+from plotten.stats._density_ridges import StatDensityRidges
 from plotten.stats._dotplot import StatDotplot
 from plotten.stats._ecdf import StatECDF
+from plotten.stats._ellipse import StatEllipse
 from plotten.stats._function import StatFunction
 from plotten.stats._identity import StatIdentity
+from plotten.stats._poly_eq import StatPolyEq
 from plotten.stats._qq import StatQQ, StatQQLine
 from plotten.stats._smooth import StatSmooth
 from plotten.stats._summary import StatSummary
@@ -21,12 +25,16 @@ __all__ = [
     "StatBoxplot",
     "StatContour",
     "StatCount",
+    "StatCountOverlap",
     "StatDensity",
     "StatDensity2d",
+    "StatDensityRidges",
     "StatDotplot",
     "StatECDF",
+    "StatEllipse",
     "StatFunction",
     "StatIdentity",
+    "StatPolyEq",
     "StatQQ",
     "StatQQLine",
     "StatSmooth",

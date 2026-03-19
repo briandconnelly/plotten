@@ -19,11 +19,13 @@ class StatSmooth:
         span: float = 0.75,
         se: bool = True,
         n_points: int = 80,
+        degree: int = 2,
     ) -> None:
         self.method = method
         self.span = span
         self.se = se
         self.n_points = n_points
+        self.degree = degree
 
     def compute(self, df: Any) -> Any:
         frame = nw.from_native(df)
@@ -44,6 +46,8 @@ class StatSmooth:
                 y_pred, ymin, ymax = self._loess(x_sorted, y_sorted, x_pred)
             case SmoothMethod.MOVING_AVERAGE:
                 y_pred, ymin, ymax = self._moving_average(x_sorted, y_sorted, x_pred)
+            case SmoothMethod.POLY:
+                y_pred, ymin, ymax = self._poly(x_sorted, y_sorted, x_pred)
             case _:
                 msg = f"Unknown smoothing method: {self.method!r}"
                 raise ValueError(msg)
@@ -112,4 +116,21 @@ class StatSmooth:
 
         ymin = y_pred.copy()
         ymax = y_pred.copy()
+        return y_pred, ymin, ymax
+
+    def _poly(
+        self, x: np.ndarray, y: np.ndarray, x_pred: np.ndarray
+    ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        coeffs = np.polyfit(x, y, self.degree)
+        y_pred = np.polyval(coeffs, x_pred)
+        # SE from residuals
+        residuals = y - np.polyval(coeffs, x)
+        n = len(y)
+        p = self.degree + 1
+        se = np.sqrt(np.sum(residuals**2) / max(n - p, 1))
+        x_mean = np.mean(x)
+        x_ss = np.sum((x - x_mean) ** 2)
+        se_pred = se * np.sqrt(1 / n + (x_pred - x_mean) ** 2 / x_ss)
+        ymin = y_pred - 1.96 * se_pred
+        ymax = y_pred + 1.96 * se_pred
         return y_pred, ymin, ymax
