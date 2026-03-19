@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomRaster:
     """Draw a raster (grid of colored cells) using pcolormesh."""
@@ -17,7 +19,7 @@ class GeomRaster:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         import numpy as np
 
         x = np.asarray(data["x"], dtype=float)

@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomRug:
     """Draw rug marks (marginal tick marks) along axes."""
@@ -17,7 +19,7 @@ class GeomRug:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from matplotlib.transforms import blended_transform_factory
 
         sides = params.get("sides", "b")

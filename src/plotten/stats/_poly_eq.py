@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 
@@ -18,8 +19,8 @@ class StatPolyEq:
         self.label_x = label_x
         self.label_y = label_y
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x = np.array(frame.get_column("x").to_list(), dtype=float)
         y = np.array(frame.get_column("y").to_list(), dtype=float)
 

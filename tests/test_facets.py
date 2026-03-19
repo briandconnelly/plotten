@@ -1,11 +1,27 @@
 import os
 import tempfile
 
+import matplotlib.pyplot as plt
 import pandas as pd
 import polars as pl
+import pytest
 
-from plotten import aes, facet_grid, facet_wrap, geom_point, ggplot
+from plotten import (
+    Aes,
+    aes,
+    facet_grid,
+    facet_wrap,
+    geom_point,
+    ggplot,
+    label_value,
+    labeller_both,
+    labeller_wrap,
+    labs,
+)
+from plotten._render._mpl import render
 from plotten.facets import FacetGrid, FacetWrap
+
+# --- from test_facets.py ---
 
 
 def _make_df():
@@ -137,3 +153,150 @@ def test_facet_wrap_free():
 def test_facet_wrap_nrow_layout():
     fw = FacetWrap(facets="g", nrow=1)
     assert fw.layout(3) == (1, 3)
+
+
+# --- from test_v10_facet_labels.py ---
+
+"""Tests for smart facet axis labels (1B)."""
+
+
+def test_facet_shared_edge_labels():
+    """Bottom row gets x-labels, left column gets y-labels, interiors suppressed."""
+    df = pl.DataFrame(
+        {
+            "x": list(range(24)),
+            "y": list(range(24)),
+            "g": [f"panel_{i // 8}" for i in range(24)],
+        }
+    )
+    plot = (
+        ggplot(df, aes(x="x", y="y"))
+        + geom_point()
+        + facet_wrap("g", ncol=2)
+        + labs(x="X Axis", y="Y Axis")
+    )
+    fig = render(plot)
+
+    # At minimum, the figure should render without error
+    assert len(fig.get_axes()) >= 2
+    plt.close(fig)
+
+
+def test_facet_single_row():
+    """Single row: all panels are bottom row, only left gets y-label."""
+    df = pl.DataFrame(
+        {
+            "x": list(range(6)),
+            "y": list(range(6)),
+            "g": ["a", "a", "b", "b", "c", "c"],
+        }
+    )
+    plot = (
+        ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", ncol=3) + labs(x="X", y="Y")
+    )
+    fig = render(plot)
+    assert len(fig.get_axes()) >= 3
+    plt.close(fig)
+
+
+# --- from test_v13_facets.py ---
+
+"""Tests for v0.13.0 facet enhancements."""
+
+
+@pytest.fixture
+def sample_df():
+    return pd.DataFrame(
+        {
+            "x": [1, 2, 3, 4, 5, 6],
+            "y": [2, 4, 1, 3, 5, 2],
+            "group": ["A", "A", "B", "B", "C", "C"],
+        }
+    )
+
+
+class TestCustomLabeller:
+    def test_labeller_both(self, sample_df):
+        p = (
+            ggplot(sample_df, Aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("group", labeller=labeller_both("group"))
+        )
+        fig = render(p)
+        assert fig is not None
+
+    def test_labeller_wrap(self, sample_df):
+        df = pd.DataFrame(
+            {
+                "x": [1, 2, 3, 4],
+                "y": [1, 2, 3, 4],
+                "cat": [
+                    "Very Long Category Name",
+                    "Very Long Category Name",
+                    "Another Long Name Here",
+                    "Another Long Name Here",
+                ],
+            }
+        )
+        p = (
+            ggplot(df, Aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("cat", labeller=labeller_wrap(12))
+        )
+        fig = render(p)
+        assert fig is not None
+
+    def test_custom_lambda_labeller(self, sample_df):
+        p = (
+            ggplot(sample_df, Aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("group", labeller=lambda v: f"Group {v}")
+        )
+        fig = render(p)
+        assert fig is not None
+
+    def test_label_value_default(self, sample_df):
+        p = (
+            ggplot(sample_df, Aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("group", labeller=label_value)
+        )
+        fig = render(p)
+        assert fig is not None
+
+    def test_labeller_on_facet_grid(self, sample_df):
+        p = (
+            ggplot(sample_df, Aes(x="x", y="y"))
+            + geom_point()
+            + facet_grid(cols="group", labeller=labeller_both("group"))
+        )
+        fig = render(p)
+        assert fig is not None
+
+
+class TestStripPosition:
+    def test_strip_bottom(self, sample_df):
+        p = (
+            ggplot(sample_df, Aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("group", strip_position="bottom")
+        )
+        fig = render(p)
+        assert fig is not None
+
+    def test_strip_top_default(self, sample_df):
+        p = ggplot(sample_df, Aes(x="x", y="y")) + geom_point() + facet_wrap("group")
+        fig = render(p)
+        assert fig is not None
+
+
+class TestDropParameter:
+    def test_drop_true_default(self, sample_df):
+        p = ggplot(sample_df, Aes(x="x", y="y")) + geom_point() + facet_wrap("group", drop=True)
+        fig = render(p)
+        assert fig is not None
+
+    def test_drop_false(self, sample_df):
+        p = ggplot(sample_df, Aes(x="x", y="y")) + geom_point() + facet_wrap("group", drop=False)
+        fig = render(p)
+        assert fig is not None

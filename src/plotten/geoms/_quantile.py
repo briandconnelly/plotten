@@ -7,6 +7,8 @@ from plotten.stats._quantile import StatQuantile
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomQuantile:
     """Draw quantile regression lines."""
@@ -25,7 +27,7 @@ class GeomQuantile:
     def default_stat(self) -> StatQuantile:
         return StatQuantile(quantiles=self._quantiles, n_points=self._n_points)
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         kwargs: dict[str, Any] = {}
         if "color" in data:
             color = data["color"]

@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomBoxplot:
     """Draw boxplots."""
@@ -17,7 +19,7 @@ class GeomBoxplot:
 
         return StatBoxplot()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         width = params.get("width", 0.7)
         fill_color = params.get("fill", "#4C72B0")
         alpha = params.get("alpha", 0.7)

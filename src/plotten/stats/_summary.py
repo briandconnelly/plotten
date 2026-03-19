@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
+
+import narwhals as nw
+import narwhals.typing
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
-import narwhals as nw
 import numpy as np
 
 _BUILTIN_FUNS: dict[str, Callable[[np.ndarray], float]] = {
@@ -82,8 +84,8 @@ class StatSummary:
             self._fun_ymin = _resolve_fun(fun_ymin)
             self._fun_ymax = _resolve_fun(fun_ymax)
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_vals = frame.get_column("x").to_list()
         y_vals = frame.get_column("y").to_list()
 

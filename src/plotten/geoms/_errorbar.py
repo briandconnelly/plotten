@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomErrorbar:
     """Draw error bars (ymin to ymax whiskers)."""
@@ -17,7 +19,7 @@ class GeomErrorbar:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         color = params.get("color", "black")
         linewidth = params.get("linewidth", 1)
         width = params.get("width", 0.2)

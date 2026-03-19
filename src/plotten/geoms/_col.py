@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomCol:
     """Draw bars with pre-computed heights (uses StatIdentity)."""
@@ -17,7 +19,7 @@ class GeomCol:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         kwargs: dict[str, Any] = {}
         if "fill" in data:
             kwargs["color"] = data["fill"]

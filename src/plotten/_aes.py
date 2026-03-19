@@ -7,7 +7,7 @@ if TYPE_CHECKING:
     from plotten._computed import AfterScale, AfterStat
     from plotten._interaction import Interaction
 
-AesValue = "str | AfterStat | AfterScale | Interaction | None"
+type AesValue = str | AfterStat | AfterScale | Interaction | None
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)

@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 
@@ -11,8 +12,8 @@ class StatECDF:
 
     required_aes: frozenset[str] = frozenset({"x"})
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_vals = frame.get_column("x").to_list()
         x_arr = np.array(x_vals, dtype=float)
         sorted_x = np.sort(x_arr)

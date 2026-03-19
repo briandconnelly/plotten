@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._render._resolve import ResolvedPanel, ResolvedPlot
+    from plotten._types import GeomDrawData, GeomParams
     from plotten.themes._theme import Theme
 
 
@@ -115,10 +116,11 @@ def render_panel(
     # Draw layers
     coord = resolved.coord
     for layer in panel.layers:
-        draw_data = layer.data
+        draw_data = cast("GeomDrawData", layer.data)
         if hasattr(coord, "transform_data"):
             draw_data = coord.transform_data(draw_data, resolved.scales)  # type: ignore[union-attr]
-        layer.geom.draw(draw_data, ax, layer.params)
+        draw_params = cast("GeomParams", layer.params)
+        layer.geom.draw(draw_data, ax, draw_params)
 
     # Font — per-axis title sizes
     axis_title_x_size = theme.axis_title_x_size or theme.label_size

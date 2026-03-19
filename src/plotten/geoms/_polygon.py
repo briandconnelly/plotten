@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
 
-def _scalar(values: list) -> Any:
-    """Extract a single value from a uniform-group list."""
-    return values[0]
+from plotten.geoms._draw_helpers import scalar
 
 
 class GeomPolygon:
@@ -22,7 +21,7 @@ class GeomPolygon:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from matplotlib.patches import Polygon
 
         x_vals = data["x"]
@@ -31,13 +30,13 @@ class GeomPolygon:
 
         fill_color = data.get("fill")
         if isinstance(fill_color, list):
-            fill_color = _scalar(fill_color)
+            fill_color = scalar(fill_color)
         if fill_color is None:
             fill_color = params.get("fill", "#3366CC")
 
         edge_color = data.get("color")
         if isinstance(edge_color, list):
-            edge_color = _scalar(edge_color)
+            edge_color = scalar(edge_color)
         if edge_color is None:
             edge_color = params.get("color", "black")
 

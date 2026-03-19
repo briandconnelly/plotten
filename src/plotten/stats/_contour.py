@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    import narwhals as nw
+    import narwhals.typing
 
 
 class StatContour:
@@ -11,12 +15,12 @@ class StatContour:
     def __init__(self, bins: int = 10) -> None:
         self._bins = bins
 
-    def compute(self, df: Any) -> Any:
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         import narwhals as nw
         import numpy as np
         from scipy.interpolate import griddata
 
-        frame = nw.from_native(df)
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x = frame.get_column("x").to_numpy().astype(float)
         y = frame.get_column("y").to_numpy().astype(float)
         z = frame.get_column("z").to_numpy().astype(float)

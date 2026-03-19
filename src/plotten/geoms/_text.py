@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomText:
     """Draw text at each point."""
@@ -17,7 +19,7 @@ class GeomText:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         color = params.get("color", "black")
         fontsize = params.get("size", 10)
         ha = params.get("ha", "center")
@@ -43,7 +45,7 @@ class GeomLabel:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         color = params.get("color", "black")
         fontsize = params.get("size", 10)
         ha = params.get("ha", "center")

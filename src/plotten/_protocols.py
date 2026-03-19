@@ -3,15 +3,19 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Protocol, runtime_checkable
 
 if TYPE_CHECKING:
+    import narwhals as nw
+    import narwhals.typing
     from matplotlib.axes import Axes
+
+    from plotten._types import GeomDrawData, GeomParams
 
 
 @runtime_checkable
 class Stat(Protocol):
     required_aes: frozenset[str]
 
-    def compute(self, df: Any) -> Any:
-        """Takes a narwhals df, returns a narwhals df."""
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        """Takes a narwhals-compatible frame, returns a narwhals frame."""
         ...
 
 
@@ -20,7 +24,7 @@ class Geom(Protocol):
     required_aes: frozenset[str]
 
     def default_stat(self) -> Stat: ...
-    def draw(self, data: Any, ax: Axes, params: dict) -> None: ...
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None: ...
 
 
 @runtime_checkable

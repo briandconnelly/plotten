@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomErrorbarH:
     """Draw horizontal error bars (xmin to xmax whiskers)."""
@@ -17,7 +19,7 @@ class GeomErrorbarH:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         color = params.get("color", "black")
         linewidth = params.get("linewidth", 1)
         height = params.get("height", 0.2)

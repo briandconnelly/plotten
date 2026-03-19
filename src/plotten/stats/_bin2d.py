@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 
@@ -14,8 +15,8 @@ class StatBin2d:
     def __init__(self, bins: int | tuple[int, int] = 30) -> None:
         self._bins = bins
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_vals = np.array(frame.get_column("x").to_list(), dtype=float)
         y_vals = np.array(frame.get_column("y").to_list(), dtype=float)
 

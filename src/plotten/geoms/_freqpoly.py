@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
 
-def _scalar(values: list) -> Any:
-    """Extract a single value from a uniform-group list."""
-    return values[0]
+from plotten.geoms._draw_helpers import scalar
 
 
 class GeomFreqpoly:
@@ -22,24 +21,24 @@ class GeomFreqpoly:
 
         return StatBin()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         kwargs: dict[str, Any] = {}
         if "color" in data:
             color = data["color"]
-            kwargs["color"] = _scalar(color) if isinstance(color, list) else color
+            kwargs["color"] = scalar(color) if isinstance(color, list) else color
         if "alpha" in data:
             alpha = data["alpha"]
-            kwargs["alpha"] = _scalar(alpha) if isinstance(alpha, list) else alpha
+            kwargs["alpha"] = scalar(alpha) if isinstance(alpha, list) else alpha
         elif "alpha" in params:
             kwargs["alpha"] = params["alpha"]
         if "linetype" in data:
             lt = data["linetype"]
-            kwargs["linestyle"] = _scalar(lt) if isinstance(lt, list) else lt
+            kwargs["linestyle"] = scalar(lt) if isinstance(lt, list) else lt
         elif "linetype" in params:
             kwargs["linestyle"] = params["linetype"]
         if "size" in data:
             size = data["size"]
-            kwargs["linewidth"] = _scalar(size) if isinstance(size, list) else size
+            kwargs["linewidth"] = scalar(size) if isinstance(size, list) else size
         elif "size" in params:
             kwargs["linewidth"] = params["size"]
         ax.plot(data["x"], data["y"], **kwargs)

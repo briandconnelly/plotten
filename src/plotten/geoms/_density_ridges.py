@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 # Default discrete palette for ridge groups.
 _RIDGE_PALETTE = [
     "#1f77b4",
@@ -33,7 +35,7 @@ class GeomDensityRidges:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         x = data["x"]
         ymin = data["ymin"]
         ymax = data["ymax"]

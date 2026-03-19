@@ -16,14 +16,17 @@ from plotten._render._resolve import ResolvedPlot, resolve
 from plotten.themes._theme import Theme, theme_get
 
 if TYPE_CHECKING:
+    from matplotlib.axes import Axes
     from matplotlib.figure import Figure
+
+    from plotten._plot import Plot
 
 
 def render_single(
-    plot: Any,
+    plot: Plot,
     resolved: ResolvedPlot,
-    fig: Any,
-    ax: Any,
+    fig: Figure,
+    ax: Axes,
     *,
     draw_legend: bool = True,
 ) -> None:
@@ -56,7 +59,7 @@ def render_single(
             ax.set_title(labs.title, fontsize=theme.title_size)
 
 
-def render(plot: Any) -> Figure:
+def render(plot: Plot) -> Figure:
     """Render a Plot spec to a matplotlib Figure."""
     from plotten.coords._flip import CoordFlip
     from plotten.coords._polar import CoordPolar

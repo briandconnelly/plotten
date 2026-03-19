@@ -31,7 +31,7 @@ from plotten._guides import (
 from plotten._interaction import Interaction, interaction
 from plotten._labs import Labs, labs
 from plotten._plot import Plot, ggplot
-from plotten._validation import PlottenError
+from plotten._validation import PlottenError, PlottenWarning
 from plotten._watermark import Watermark, watermark
 from plotten.coords import (
     CoordCartesian,
@@ -283,6 +283,7 @@ __all__ = [
     "PlotAnnotation",
     "PlotGrid",
     "PlottenError",
+    "PlottenWarning",
     "PositionDodge",
     "PositionDodge2",
     "PositionFill",

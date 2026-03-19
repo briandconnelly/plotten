@@ -7,6 +7,8 @@ from plotten.stats._smooth import StatSmooth
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomSmooth:
     """Draw a smooth fit line with optional CI ribbon."""
@@ -24,7 +26,7 @@ class GeomSmooth:
     def default_stat(self) -> StatSmooth:
         return StatSmooth(method=self._method, se=self._se, degree=self._degree)
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         kwargs: dict[str, Any] = {}
         color = params.get("color", "#3366CC")
         if "alpha" in params:

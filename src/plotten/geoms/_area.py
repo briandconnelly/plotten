@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
 
-def _scalar(values: list) -> Any:
-    """Extract a single value from a uniform-group list."""
-    return values[0]
+from plotten.geoms._draw_helpers import scalar
 
 
 class GeomArea:
@@ -22,11 +21,11 @@ class GeomArea:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         kwargs: dict[str, Any] = {}
         if "fill" in data:
             fill = data["fill"]
-            kwargs["color"] = _scalar(fill) if isinstance(fill, list) else fill
+            kwargs["color"] = scalar(fill) if isinstance(fill, list) else fill
         elif "color" in params:
             kwargs["color"] = params["color"]
         kwargs["alpha"] = params.get("alpha", 0.5)

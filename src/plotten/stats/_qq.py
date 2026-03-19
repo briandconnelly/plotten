@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 
@@ -11,10 +12,10 @@ class StatQQ:
 
     required_aes: frozenset[str] = frozenset({"x"})
 
-    def compute(self, df: Any) -> Any:
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         from scipy.stats import norm
 
-        frame = nw.from_native(df)
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_vals = frame.get_column("x").to_list()
         sample = np.sort(np.array(x_vals, dtype=float))
         n = len(sample)
@@ -36,10 +37,10 @@ class StatQQLine:
 
     required_aes: frozenset[str] = frozenset({"x"})
 
-    def compute(self, df: Any) -> Any:
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         from scipy.stats import norm
 
-        frame = nw.from_native(df)
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_vals = frame.get_column("x").to_list()
         sample = np.array(x_vals, dtype=float)
 

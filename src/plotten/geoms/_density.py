@@ -5,10 +5,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
 
-def _scalar(values: list) -> Any:
-    """Extract a single value from a uniform-group list."""
-    return values[0]
+from plotten.geoms._draw_helpers import scalar
 
 
 class GeomDensity:
@@ -26,13 +25,13 @@ class GeomDensity:
 
         return StatDensity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         alpha = params.get("alpha", self._alpha)
         fill = params.get("fill", self._fill)
 
         color = data.get("color", params.get("color", "#3366CC"))
         if isinstance(color, list):
-            color = _scalar(color)
+            color = scalar(color)
 
         ax.plot(data["x"], data["y"], color=color)
         if fill:

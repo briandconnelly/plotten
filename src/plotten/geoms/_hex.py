@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomHex:
     """Draw hexagonal bin plots using matplotlib's hexbin."""
@@ -17,7 +19,7 @@ class GeomHex:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         gridsize = params.get("bins", 30)
         cmap = params.get("cmap", "viridis")
         alpha = params.get("alpha", 1.0)

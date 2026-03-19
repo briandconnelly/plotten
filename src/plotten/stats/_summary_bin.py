@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 if TYPE_CHECKING:
@@ -30,8 +31,8 @@ class StatSummaryBin:
         self._fun_ymin = _resolve_fun(fun_ymin)
         self._fun_ymax = _resolve_fun(fun_ymax)
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_values = frame.get_column("x").to_list()
         y_values = frame.get_column("y").to_list()
 

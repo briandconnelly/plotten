@@ -8,7 +8,9 @@ from typing import Any
 class PlottenError(Exception):
     """Custom exception with helpful messages for plotten users."""
 
-    pass
+
+class PlottenWarning(UserWarning):
+    """Warning category for recoverable plotten issues."""
 
 
 def _suggest_columns(missing: set[str] | frozenset[str], data_columns: list[str]) -> str:
@@ -101,6 +103,7 @@ def validate_data_type(
                 f"Continuous scale for '{aesthetic}'{col_info} received "
                 f"non-numeric data (dtype: {s.dtype}). "
                 f"Consider using a discrete scale.",
+                PlottenWarning,
                 stacklevel=4,
             )
     elif isinstance(scale, ScaleDiscrete) and s.dtype.is_numeric():
@@ -108,6 +111,7 @@ def validate_data_type(
             f"Discrete scale for '{aesthetic}'{col_info} received "
             f"numeric data (dtype: {s.dtype}). "
             f"Consider using a continuous scale.",
+            PlottenWarning,
             stacklevel=4,
         )
 

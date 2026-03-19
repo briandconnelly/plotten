@@ -10,6 +10,8 @@ from plotten.geoms._text import GeomText
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class _GeomAnnotRect:
     """Internal geom for annotate("rect")."""
@@ -28,7 +30,7 @@ class _GeomAnnotRect:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from matplotlib.patches import Rectangle
 
         alpha = self.kwargs.get("alpha", params.get("alpha", 0.3))
@@ -62,7 +64,7 @@ class _GeomAnnotSegment:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from plotten._arrow import Arrow
 
         color = self.kwargs.get("color", params.get("color", "black"))
@@ -113,7 +115,7 @@ class _GeomAnnotCurve:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from matplotlib.patches import FancyArrowPatch
 
         from plotten._arrow import Arrow
@@ -165,7 +167,7 @@ class _GeomAnnotBracket:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         color = self.kwargs.get("color", params.get("color", "black"))
         linewidth = self.kwargs.get("size", params.get("size", 1))
         direction = self.kwargs.get("direction", "up")

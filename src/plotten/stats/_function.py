@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
 if TYPE_CHECKING:
     from collections.abc import Callable
+
+    import narwhals as nw
+    import narwhals.typing
 
 
 class StatFunction:
@@ -23,10 +26,10 @@ class StatFunction:
         self._n = n
         self._xlim = xlim
 
-    def compute(self, df: Any) -> Any:
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         import narwhals as nw
 
-        frame = nw.from_native(df)
+        frame = cast("nw.DataFrame", nw.from_native(df))
 
         # Determine x range
         if self._xlim is not None:
@@ -38,7 +41,16 @@ class StatFunction:
                     xmin, xmax = col.min(), col.max()
                 else:
                     xmin, xmax = 0.0, 1.0
-            except (KeyError, TypeError):
+            except (KeyError, TypeError) as e:
+                import warnings
+
+                from plotten._validation import PlottenWarning
+
+                warnings.warn(
+                    f"Could not determine x range from data: {e}; defaulting to [0, 1]",
+                    PlottenWarning,
+                    stacklevel=2,
+                )
                 xmin, xmax = 0.0, 1.0
 
         x = np.linspace(xmin, xmax, self._n)

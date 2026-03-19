@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 
@@ -14,10 +15,10 @@ class StatDensity:
     def __init__(self, n_points: int = 200) -> None:
         self._n_points = n_points
 
-    def compute(self, df: Any) -> Any:
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         from scipy.stats import gaussian_kde
 
-        frame = nw.from_native(df)
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_vals = frame.get_column("x").to_list()
         x_arr = np.array(x_vals, dtype=float)
 

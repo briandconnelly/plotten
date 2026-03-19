@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
+    from plotten._types import GeomDrawData, GeomParams
+
 
 class GeomCrossbar:
     """Draw crossbars (box from ymin to ymax with line at y)."""
@@ -17,7 +19,7 @@ class GeomCrossbar:
 
         return StatIdentity()
 
-    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+    def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from matplotlib.patches import Rectangle
 
         width = params.get("width", 0.5)

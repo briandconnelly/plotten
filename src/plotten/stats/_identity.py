@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    import narwhals as nw
+    import narwhals.typing
 
 
 class StatIdentity:
@@ -8,5 +12,7 @@ class StatIdentity:
 
     required_aes: frozenset[str] = frozenset()
 
-    def compute(self, df: Any) -> Any:
-        return df
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        import narwhals as nw
+
+        return cast("nw.typing.Frame", nw.from_native(df))

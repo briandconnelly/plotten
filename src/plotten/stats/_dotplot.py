@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import narwhals as nw
+import narwhals.typing
 import numpy as np
 
 
@@ -16,8 +17,8 @@ class StatDotplot:
     def __init__(self, bins: int = 30) -> None:
         self.bins = bins
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         x_values = frame.get_column("x").to_list()
         xmin, xmax = min(x_values), max(x_values)
 

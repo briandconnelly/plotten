@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import cast
 
 import narwhals as nw
+import narwhals.typing
 
 
 class StatCount:
@@ -10,8 +11,8 @@ class StatCount:
 
     required_aes: frozenset[str] = frozenset({"x"})
 
-    def compute(self, df: Any) -> Any:
-        frame = nw.from_native(df)
+    def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
+        frame = cast("nw.DataFrame", nw.from_native(df))
         result = frame.group_by("x").agg(nw.len().alias("y")).sort("x")
 
         # Add count and prop columns
