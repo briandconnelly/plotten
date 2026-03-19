@@ -6,6 +6,10 @@ dist/
 wheels/
 *.egg-info
 
+# Test / coverage artifacts
+.coverage
+htmlcov/
+
 # Virtual environments
 .venv
 
