@@ -13,35 +13,40 @@ def translate_coord(
     encoding: dict[str, Any],
 ) -> dict[str, Any]:
     """Apply coord transformations to VL encoding. Returns updated encoding."""
+    from plotten.coords._cartesian import CoordCartesian
+    from plotten.coords._equal import CoordEqual, CoordFixed
+    from plotten.coords._flip import CoordFlip
+    from plotten.coords._polar import CoordPolar
+    from plotten.coords._trans import CoordTrans
+
     if coord is None:
         return encoding
 
-    name = type(coord).__name__
     enc = dict(encoding)
 
-    if name == "CoordCartesian":
-        _apply_domain_clip(enc, coord)
-        return enc
-
-    if name == "CoordFlip":
+    if isinstance(coord, CoordFlip):
         _swap_xy(enc)
         _apply_domain_clip(enc, coord)
         return enc
 
-    if name == "CoordPolar":
+    if isinstance(coord, CoordPolar):
         msg = (
             "CoordPolar is not supported by Vega-Lite export. "
             "Use render() or ggsave() for the matplotlib backend instead."
         )
         raise PlottenError(msg)
 
-    if name in ("CoordEqual", "CoordFixed"):
-        warn_unsupported(name, "Aspect ratio constraints are ignored.")
+    if isinstance(coord, CoordTrans):
+        _check_coord_trans(coord)
+        return enc
+
+    if isinstance(coord, (CoordEqual, CoordFixed)):
+        warn_unsupported(type(coord).__name__, "Aspect ratio constraints are ignored.")
         _apply_domain_clip(enc, coord)
         return enc
 
-    if name == "CoordTrans":
-        _check_coord_trans(coord)
+    if isinstance(coord, CoordCartesian):
+        _apply_domain_clip(enc, coord)
         return enc
 
     return enc

@@ -897,3 +897,119 @@ class TestMarkParams:
         )
         spec = to_vegalite(p)
         assert spec["mark"]["color"] == "red"
+
+
+# ===========================================================================
+# Robustness + Edge Cases
+# ===========================================================================
+
+
+class TestRobustness:
+    def test_no_internal_labs_key_in_spec(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            labs=labs(x="X", y="Y"),
+        )
+        spec = to_vegalite(p)
+        assert "_labs" not in spec
+
+    def test_nan_serialized_as_null(self) -> None:
+        df = pl.DataFrame({"x": [1.0, float("nan")], "y": [2.0, 3.0]})
+        p = Plot(
+            data=df,
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+        )
+        spec = to_vegalite(p)
+        assert spec["data"]["values"][1]["x"] is None
+        # Must be JSON-serializable (NaN would crash json.dumps)
+        json.dumps(spec)
+
+    def test_html_escapes_script_closing_tag(self) -> None:
+        df = pl.DataFrame({"x": [1], "y": [1], "label": ["</script><script>"]})
+        p = Plot(
+            data=df,
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+        )
+        html = to_html(p)
+        assert "</script><script>" not in html
+        assert "<\\/script>" in html
+
+    def test_multi_layer_faceted(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()), Layer(geom=GeomLine())),
+            facet=FacetWrap(facets="g"),
+        )
+        spec = to_vegalite(p)
+        assert "spec" in spec
+        assert "layer" in spec["spec"]
+        assert len(spec["spec"]["layer"]) == 2
+
+    def test_needs_precompute_native_stats(self) -> None:
+        from plotten._vegalite._stats import needs_precompute
+        from plotten.stats._bin import StatBin
+        from plotten.stats._smooth import StatSmooth
+
+        assert needs_precompute(None) is False
+        assert needs_precompute(StatIdentity()) is False
+        assert needs_precompute(StatCount()) is False
+        assert needs_precompute(StatBin()) is False
+        assert needs_precompute(StatSmooth()) is False
+
+    def test_needs_precompute_unsupported_stat(self) -> None:
+        from plotten._vegalite._stats import needs_precompute
+        from plotten.stats._ecdf import StatECDF
+
+        assert needs_precompute(StatECDF()) is True
+
+    def test_interaction_maps_to_detail(self) -> None:
+        from plotten._interaction import Interaction
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y", group=Interaction(columns=("g",))),
+            layers=(Layer(geom=GeomLine()),),
+        )
+        spec = to_vegalite(p)
+        assert spec["encoding"]["detail"]["field"] == "g"
+
+    def test_scale_on_unmapped_channel_ignored(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            scales=(ScaleColorDiscrete(values={"a": "red"}),),
+        )
+        spec = to_vegalite(p)
+        assert "color" not in spec["encoding"]
+
+    def test_coord_flip_with_limits(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            coord=CoordFlip(xlim=(0, 5)),
+        )
+        spec = to_vegalite(p)
+        # After flip, original x becomes y, and xlim applies to the new y
+        assert spec["encoding"]["x"]["field"] == "y"
+        assert spec["encoding"]["y"]["field"] == "x"
+
+    def test_hline_style_params_on_mark(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(
+                Layer(geom=GeomPoint()),
+                Layer(geom=GeomHLine(yintercept=3.0, color="red", alpha=0.5)),
+            ),
+        )
+        spec = to_vegalite(p)
+        hline_mark = spec["layer"][1]["mark"]
+        assert hline_mark["color"] == "red"
+        assert hline_mark["opacity"] == 0.5

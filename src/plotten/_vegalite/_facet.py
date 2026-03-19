@@ -13,10 +13,12 @@ def translate_facet(facet: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     if facet is None:
         return {}, {}
 
-    name = type(facet).__name__
-    if name == "FacetWrap":
+    from plotten.facets._grid import FacetGrid
+    from plotten.facets._wrap import FacetWrap
+
+    if isinstance(facet, FacetWrap):
         return _facet_wrap(facet)
-    if name == "FacetGrid":
+    if isinstance(facet, FacetGrid):
         return _facet_grid(facet)
     return {}, {}
 
@@ -29,9 +31,6 @@ def _facet_wrap(facet: Any) -> tuple[dict[str, Any], dict[str, Any]]:
     top: dict[str, Any] = {"facet": facet_spec}
     if facet.ncol is not None:
         top["columns"] = facet.ncol
-    elif facet.nrow is not None:
-        # VL uses columns, not rows — approximate
-        pass
     resolve = _resolve_for_scales(facet.scales)
     return top, resolve
 

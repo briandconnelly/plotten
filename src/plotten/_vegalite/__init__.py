@@ -16,21 +16,33 @@ from plotten._vegalite._stats import translate_stat
 from plotten._vegalite._theme import translate_theme
 
 if TYPE_CHECKING:
+    from plotten._labs import Labs
+    from plotten._layer import Layer
     from plotten._plot import Plot
 
 __all__ = ["to_html", "to_vegalite"]
 
+_LABS_TO_CHANNEL: dict[str, str] = {
+    "x": "x",
+    "y": "y",
+    "color": "color",
+    "fill": "color",
+    "size": "size",
+}
+
 
 def to_vegalite(plot: Plot) -> dict[str, Any]:
     """Convert a plotten Plot to a Vega-Lite v5 specification dict."""
-    spec: dict[str, Any] = {"$schema": "https://vega.github.io/schema/vega-lite/v5.json"}
+    spec: dict[str, Any] = {
+        "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+    }
 
     # Data
     if plot.data is not None:
         spec["data"] = {"values": serialize_data(plot.data)}
 
     # Labs → title
-    _apply_labs(spec, plot.labs)
+    _apply_title(spec, plot.labs)
 
     # Check if any layer maps both color and fill
     has_both = _any_layer_has_color_and_fill(plot)
@@ -46,7 +58,12 @@ def to_vegalite(plot: Plot) -> dict[str, Any]:
         spec["encoding"] = global_encoding
     elif len(plot.layers) == 1:
         layer = plot.layers[0]
-        mark, encoding, transforms = _build_layer(layer, global_encoding, plot, has_both)
+        mark, encoding, transforms = _build_layer(
+            layer,
+            global_encoding,
+            plot,
+            has_both,
+        )
         spec["mark"] = mark
         spec["encoding"] = encoding
         if transforms:
@@ -55,7 +72,12 @@ def to_vegalite(plot: Plot) -> dict[str, Any]:
         # Multi-layer
         vl_layers: list[dict[str, Any]] = []
         for layer in plot.layers:
-            mark, encoding, transforms = _build_layer(layer, global_encoding, plot, has_both)
+            mark, encoding, transforms = _build_layer(
+                layer,
+                global_encoding,
+                plot,
+                has_both,
+            )
             layer_spec: dict[str, Any] = {"mark": mark, "encoding": encoding}
             if transforms:
                 layer_spec["transform"] = transforms
@@ -67,8 +89,6 @@ def to_vegalite(plot: Plot) -> dict[str, Any]:
 
     # Apply axis labels from labs
     _apply_axis_labels(spec, plot.labs)
-    # Clean up internal labs
-    spec.pop("_labs", None)
 
     # Facet
     facet_spec, resolve_spec = translate_facet(plot.facet)
@@ -81,8 +101,8 @@ def to_vegalite(plot: Plot) -> dict[str, Any]:
             inner["encoding"] = spec.pop("encoding")
         if "layer" in spec:
             inner["layer"] = spec.pop("layer")
-            if "encoding" in spec:
-                inner["encoding"] = spec.pop("encoding")
+        if "transform" in spec:
+            inner["transform"] = spec.pop("transform")
         spec.update(facet_spec)
         spec["spec"] = inner
     if resolve_spec:
@@ -99,21 +119,24 @@ def to_vegalite(plot: Plot) -> dict[str, Any]:
 def to_html(plot: Plot) -> str:
     """Convert a plotten Plot to a standalone HTML page with vega-embed."""
     spec = to_vegalite(plot)
-    spec_json = json.dumps(spec, indent=2)
+    # Escape </ sequences to prevent script tag injection
+    spec_json = json.dumps(spec, indent=2).replace("</", "<\\/")
     return _HTML_TEMPLATE.format(spec=spec_json)
 
 
 def _build_layer(
-    layer: Any,
+    layer: Layer,
     global_encoding: dict[str, Any],
-    plot: Any,
+    plot: Plot,
     has_both: bool,
 ) -> tuple[dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
     """Build mark and encoding for a single layer."""
+    from plotten.geoms._refline import GeomHLine, GeomVLine
+    from plotten.geoms._text import GeomLabel, GeomText
+
     geom = layer.geom
     stat = layer.stat if layer.stat is not None else geom.default_stat()
-    geom_name = type(geom).__name__
-    is_text = geom_name in ("GeomText", "GeomLabel")
+    is_text = isinstance(geom, (GeomText, GeomLabel))
 
     # Re-translate global mapping with layer-specific flags (e.g. is_text_mark)
     effective_global = (
@@ -135,23 +158,21 @@ def _build_layer(
     merged = {**effective_global, **layer_encoding}
 
     # Handle HLine/VLine special encoding
-    if geom_name == "GeomHLine":
+    if isinstance(geom, GeomHLine):
         merged["y"] = {"datum": geom._yintercept}
-    elif geom_name == "GeomVLine":
+    elif isinstance(geom, GeomVLine):
         merged["x"] = {"datum": geom._xintercept}
 
     # Mark
     mark = translate_mark(geom, layer.params)
 
     # Stat
-    merged, mark_updates, transforms = translate_stat(stat, geom, merged, mark)
-    if mark_updates:
-        mark.update(mark_updates)
+    merged, transforms = translate_stat(stat, geom, merged)
 
     # Position
     effective_mapping = (
         layer.mapping
-        if any(getattr(layer.mapping, f) for f in ("color", "fill", "group"))
+        if any(getattr(layer.mapping, f) is not None for f in ("color", "fill", "group"))
         else plot.mapping
     )
     merged = translate_position(layer.position, merged, effective_mapping)
@@ -165,26 +186,17 @@ def _build_layer(
     return mark, merged, transforms
 
 
-def _apply_labs(spec: dict[str, Any], labs: Any) -> None:
-    """Apply labs to the VL spec."""
+def _apply_title(spec: dict[str, Any], labs: Labs) -> None:
+    """Apply title/subtitle from labs to the VL spec."""
     if labs.title is not None:
         if labs.subtitle is not None:
             spec["title"] = {"text": labs.title, "subtitle": labs.subtitle}
         else:
             spec["title"] = labs.title
 
-    # Axis labels are applied to encoding later — store on spec for reference
-    spec["_labs"] = {}
-    for attr in ("x", "y", "color", "fill", "size"):
-        val = getattr(labs, attr, None)
-        if val is not None:
-            spec["_labs"][attr] = val
 
-
-def _apply_axis_labels(spec: dict[str, Any], labs: Any) -> None:
+def _apply_axis_labels(spec: dict[str, Any], labs: Labs) -> None:
     """Apply axis title labels from labs to encoding channels."""
-    _LABS_TO_CHANNEL = {"x": "x", "y": "y", "color": "color", "fill": "color", "size": "size"}
-    # Find the encoding dict to modify
     enc = spec.get("encoding")
     if enc is None:
         return
@@ -196,7 +208,7 @@ def _apply_axis_labels(spec: dict[str, Any], labs: Any) -> None:
             enc[channel] = ch
 
 
-def _any_layer_has_color_and_fill(plot: Any) -> bool:
+def _any_layer_has_color_and_fill(plot: Plot) -> bool:
     """Check if any layer or global mapping has both color and fill."""
     for mapping in [plot.mapping, *(layer.mapping for layer in plot.layers)]:
         if mapping.color is not None and mapping.fill is not None:

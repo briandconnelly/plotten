@@ -12,7 +12,8 @@ if TYPE_CHECKING:
     from plotten._aes import Aes
 
 # Map plotten aesthetic names to VL encoding channel names.
-_AES_TO_CHANNEL: dict[str, str] = {
+# Also imported by _scales.py to avoid duplicating the mapping.
+AES_TO_CHANNEL: dict[str, str] = {
     "x": "x",
     "y": "y",
     "color": "color",
@@ -97,7 +98,7 @@ def _resolve_channel(aes_name: str, is_text_mark: bool, has_both_color_fill: boo
         return "stroke"
     if aes_name == "fill" and has_both_color_fill:
         return "fill"
-    return _AES_TO_CHANNEL.get(aes_name)
+    return AES_TO_CHANNEL.get(aes_name)
 
 
 def _iter_aes(mapping: Aes) -> list[tuple[str, Any]]:

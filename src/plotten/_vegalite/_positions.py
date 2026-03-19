@@ -2,59 +2,72 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from plotten._vegalite._unsupported import warn_unsupported
+
+if TYPE_CHECKING:
+    from plotten._aes import Aes
 
 
 def translate_position(
     position: Any,
     encoding: dict[str, Any],
-    mapping: Any,
+    mapping: Aes,
 ) -> dict[str, Any]:
     """Apply position adjustments to VL encoding. Returns updated encoding."""
-    if position is None:
+    from plotten.positions._dodge import PositionDodge
+    from plotten.positions._dodge2 import PositionDodge2
+    from plotten.positions._fill import PositionFill
+    from plotten.positions._identity import PositionIdentity
+    from plotten.positions._jitter import PositionJitter
+    from plotten.positions._jitterdodge import PositionJitterDodge
+    from plotten.positions._nudge import PositionNudge
+    from plotten.positions._stack import PositionStack
+
+    if position is None or isinstance(position, PositionIdentity):
         return encoding
 
-    name = type(position).__name__
     enc = dict(encoding)
 
-    if name == "PositionIdentity":
-        return enc
-
-    if name == "PositionStack":
+    if isinstance(position, PositionStack):
         if "y" in enc:
             y = dict(enc["y"])
             y["stack"] = True
             enc["y"] = y
         return enc
 
-    if name == "PositionFill":
+    if isinstance(position, PositionFill):
         if "y" in enc:
             y = dict(enc["y"])
             y["stack"] = "normalize"
             enc["y"] = y
         return enc
 
-    if name == "PositionDodge" or name == "PositionDodge2":
-        # Use xOffset for dodge grouping
+    if isinstance(position, (PositionDodge, PositionDodge2)):
         group_field = _find_group_field(mapping)
         if group_field:
             enc["xOffset"] = {"field": group_field}
         return enc
 
-    if name in ("PositionJitter", "PositionJitterDodge", "PositionBeeswarm"):
-        warn_unsupported(name, "Position will be ignored in Vega-Lite output.")
+    if isinstance(position, (PositionJitter, PositionJitterDodge)):
+        warn_unsupported(
+            type(position).__name__,
+            "Position will be ignored in Vega-Lite output.",
+        )
         return enc
 
-    if name == "PositionNudge":
-        warn_unsupported(name, "Position will be ignored in Vega-Lite output.")
+    if isinstance(position, PositionNudge):
+        warn_unsupported(
+            "PositionNudge",
+            "Position will be ignored in Vega-Lite output.",
+        )
         return enc
 
     return enc
 
 
-def _find_group_field(mapping: Any) -> str | None:
+def _find_group_field(mapping: Aes) -> str | None:
     """Find the field used for grouping (color, fill, or group)."""
     for attr in ("color", "fill", "group"):
         val = getattr(mapping, attr, None)

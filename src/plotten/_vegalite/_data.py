@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from datetime import date, datetime
 from typing import Any
 
@@ -13,12 +14,12 @@ def serialize_data(df: Any) -> list[dict[str, Any]]:
     frame = nw.from_native(df)
     if hasattr(frame, "collect"):
         frame = frame.collect()
-    # Convert to pandas for reliable dict serialization
-    pdf = frame.to_pandas()
-    records: list[dict[str, Any]] = pdf.to_dict(orient="records")
-    # Ensure datetime columns are ISO 8601 strings
+    records: list[dict[str, Any]] = [dict(row) for row in frame.iter_rows(named=True)]
+    # Sanitize values for JSON compatibility
     for rec in records:
         for key, val in rec.items():
             if isinstance(val, (datetime, date)):
                 rec[key] = val.isoformat()
+            elif isinstance(val, float) and math.isnan(val):
+                rec[key] = None
     return records
