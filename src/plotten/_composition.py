@@ -107,6 +107,7 @@ def plot_grid(
     if ncol is None and nrow is None:
         ncol = min(n, 3)
     if ncol is None:
+        assert nrow is not None
         ncol = math.ceil(n / nrow)
     if nrow is None:
         nrow = math.ceil(n / ncol)
@@ -222,6 +223,8 @@ def render_grid(grid: PlotGrid) -> Any:
         extra = 0.06 if has_panel_titles else 0.0
 
         if has_title and has_subtitle:
+            assert ann.title is not None
+            assert ann.subtitle is not None
             fig.suptitle(ann.title, fontsize=14, fontweight="bold", y=0.98)
             fig.text(
                 0.5,
@@ -235,9 +238,11 @@ def render_grid(grid: PlotGrid) -> Any:
             )
             fig.subplots_adjust(top=0.88 - extra)
         elif has_title:
+            assert ann.title is not None
             fig.suptitle(ann.title, fontsize=14, fontweight="bold")
             fig.subplots_adjust(top=0.93 - extra)
         elif has_subtitle:
+            assert ann.subtitle is not None
             fig.suptitle(ann.subtitle, fontsize=11, color="#555555")
             fig.subplots_adjust(top=0.93 - extra)
 

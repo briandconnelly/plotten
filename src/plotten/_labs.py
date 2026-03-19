@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
-from typing import Self
+from typing import Any, Self
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -21,7 +21,7 @@ class Labs:
         """Merge labels — other's non-None values win."""
         if not isinstance(other, Labs):
             return NotImplemented
-        kwargs: dict[str, object] = {}
+        kwargs: dict[str, Any] = {}
         for f in fields(self):
             other_val = getattr(other, f.name)
             if other_val is not None:

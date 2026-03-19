@@ -58,19 +58,19 @@ def draw_legend(
         case LegendPosition.RIGHT:
             for ax in main_axes:
                 box = ax.get_position()
-                ax.set_position([box.x0, box.y0, box.width * 0.85, box.height])
+                ax.set_position((box.x0, box.y0, box.width * 0.85, box.height))
         case LegendPosition.LEFT:
             for ax in main_axes:
                 box = ax.get_position()
-                ax.set_position([box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height])
+                ax.set_position((box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height))
         case LegendPosition.TOP:
             for ax in main_axes:
                 box = ax.get_position()
-                ax.set_position([box.x0, box.y0, box.width, box.height * 0.85])
+                ax.set_position((box.x0, box.y0, box.width, box.height * 0.85))
         case LegendPosition.BOTTOM:
             for ax in main_axes:
                 box = ax.get_position()
-                ax.set_position([box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85])
+                ax.set_position((box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85))
 
     # Draw each legend group
     for aes_name, title, scale in legend_groups:
@@ -136,7 +136,7 @@ def _draw_discrete_legend(
             x0 = 0.5 - legend_width / 2
             y0 = 0.01
 
-    legend_ax = fig.add_axes([x0, y0, legend_width, total_height])
+    legend_ax = fig.add_axes((x0, y0, legend_width, total_height))
     legend_ax.set_xlim(0, 1)
     legend_ax.set_ylim(0, 1)
     legend_ax.axis("off")
@@ -283,7 +283,7 @@ def _draw_continuous_legend(
     if barheight is not None:
         h = barheight
 
-    cbar_ax = fig.add_axes([x0, y0, w, h])
+    cbar_ax = fig.add_axes((x0, y0, w, h))
 
     # Create gradient
     gradient = np.linspace(0, 1, nbin).reshape(-1, 1)
@@ -302,7 +302,7 @@ def _draw_continuous_legend(
         display_gradient,
         aspect="auto",
         cmap=scale._cmap,
-        extent=[0, 1, 0, 1],
+        extent=(0, 1, 0, 1),
     )
 
     legend_title_size = getattr(theme, "legend_title_size", None) or theme.label_size

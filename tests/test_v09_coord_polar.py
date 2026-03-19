@@ -63,14 +63,14 @@ class TestCoordPolar:
         p = ggplot(df, Aes(x="x", y="y")) + geom_point() + coord_polar(direction=-1)
         fig = render(p)
         ax = fig.axes[0]
-        assert ax.get_theta_direction() == -1
+        assert ax.get_theta_direction() == -1  # type: ignore[attr-defined]
 
     def test_polar_start_offset(self):
         df = pd.DataFrame({"x": range(4), "y": [1, 2, 3, 4]})
         p = ggplot(df, Aes(x="x", y="y")) + geom_point() + coord_polar(start=np.pi / 2)
         fig = render(p)
         ax = fig.axes[0]
-        assert ax.get_theta_offset() == pytest.approx(np.pi / 2)
+        assert ax.get_theta_offset() == pytest.approx(np.pi / 2)  # type: ignore[attr-defined]
 
     def test_plot_addition(self):
         """CoordPolar should be addable to a plot."""

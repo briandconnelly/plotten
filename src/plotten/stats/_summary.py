@@ -21,7 +21,7 @@ _BUILTIN_FUNS: dict[str, Callable[[np.ndarray], float]] = {
 
 
 def _resolve_fun(fun: str | Callable[[np.ndarray], float]) -> Callable[[np.ndarray], float]:
-    if callable(fun):
+    if not isinstance(fun, str):
         return fun
     if fun in _BUILTIN_FUNS:
         return _BUILTIN_FUNS[fun]

@@ -1,9 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    from matplotlib.axes import Axes
+from typing import Any
 
 
 class CoordPolar:
@@ -19,7 +16,7 @@ class CoordPolar:
         self.start = start
         self.direction = direction
 
-    def transform(self, data: Any, ax: Axes) -> Any:
+    def transform(self, data: Any, ax: Any) -> Any:
         """Apply polar coordinate settings to the axes."""
         ax.set_theta_offset(self.start)
         ax.set_theta_direction(self.direction)

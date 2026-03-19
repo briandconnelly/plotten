@@ -72,11 +72,12 @@ class ScaleContinuous(ScaleBase):
         return np.linspace(lo, hi, 6).tolist()
 
     def get_labels(self) -> list[str]:
-        if callable(self._labels):
-            return [self._labels(b) for b in self.get_breaks()]
-        if self._labels is not None:
-            return list(self._labels)
-        return [str(b) for b in self.get_breaks()]
+        labels = self._labels
+        if labels is None:
+            return [str(b) for b in self.get_breaks()]
+        if isinstance(labels, list):
+            return labels.copy()  # type: ignore[return-value]
+        return [labels(b) for b in self.get_breaks()]
 
 
 class ScaleDiscrete(ScaleBase):

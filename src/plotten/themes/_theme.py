@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, fields
-from typing import TYPE_CHECKING, Self
+from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
     from plotten.themes._elements import ElementBlank, ElementLine, ElementRect, ElementText
@@ -90,7 +90,7 @@ class Theme:
         if not isinstance(other, Theme):
             return NotImplemented
 
-        kwargs: dict[str, object] = {}
+        kwargs: dict[str, Any] = {}
         for f in fields(self):
             other_val = getattr(other, f.name)
             if other_val != f.default:

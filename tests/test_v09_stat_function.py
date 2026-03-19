@@ -78,5 +78,5 @@ class TestStatFunction:
         lines = ax.get_lines()
         assert len(lines) >= 1
         xdata = lines[0].get_xdata()
-        assert xdata[0] == pytest.approx(-3.0)
-        assert xdata[-1] == pytest.approx(3.0)
+        assert float(xdata[0]) == pytest.approx(-3.0)  # type: ignore[index]
+        assert float(xdata[-1]) == pytest.approx(3.0)  # type: ignore[index]

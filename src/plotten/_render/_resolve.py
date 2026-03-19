@@ -46,6 +46,24 @@ class ResolvedPlot:
     guides: dict | None = None
 
 
+def _merge_domain(target: ScaleBase, source: ScaleBase) -> None:
+    """Merge domain min/max from source into target scale."""
+    src_min = source._domain_min
+    src_max = source._domain_max
+    tgt_min = target._domain_min
+    tgt_max = target._domain_max
+
+    if src_min is not None and tgt_min is not None:
+        target._domain_min = min(tgt_min, src_min)
+    elif src_min is not None:
+        target._domain_min = src_min
+
+    if src_max is not None and tgt_max is not None:
+        target._domain_max = max(tgt_max, src_max)
+    elif src_max is not None:
+        target._domain_max = src_max
+
+
 def _resolve_layers(
     data: Any,
     plot_mapping: Aes,
@@ -322,20 +340,7 @@ def resolve(plot: Any) -> ResolvedPlot:
                         global_scales[k] = v
                     elif k in ("y",):
                         # Train the global scale with this panel's data
-                        global_scales[k]._domain_min = (
-                            min(global_scales[k]._domain_min, v._domain_min)
-                            if hasattr(v, "_domain_min")
-                            and v._domain_min is not None
-                            and global_scales[k]._domain_min is not None
-                            else global_scales[k]._domain_min or getattr(v, "_domain_min", None)
-                        )
-                        global_scales[k]._domain_max = (
-                            max(global_scales[k]._domain_max, v._domain_max)
-                            if hasattr(v, "_domain_max")
-                            and v._domain_max is not None
-                            and global_scales[k]._domain_max is not None
-                            else global_scales[k]._domain_max or getattr(v, "_domain_max", None)
-                        )
+                        _merge_domain(global_scales[k], v)
                 panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 
         case FacetScales.FREE_Y:
@@ -352,20 +357,7 @@ def resolve(plot: Any) -> ResolvedPlot:
                     if k not in global_scales:
                         global_scales[k] = v
                     elif k in ("x",):
-                        global_scales[k]._domain_min = (
-                            min(global_scales[k]._domain_min, v._domain_min)
-                            if hasattr(v, "_domain_min")
-                            and v._domain_min is not None
-                            and global_scales[k]._domain_min is not None
-                            else global_scales[k]._domain_min or getattr(v, "_domain_min", None)
-                        )
-                        global_scales[k]._domain_max = (
-                            max(global_scales[k]._domain_max, v._domain_max)
-                            if hasattr(v, "_domain_max")
-                            and v._domain_max is not None
-                            and global_scales[k]._domain_max is not None
-                            else global_scales[k]._domain_max or getattr(v, "_domain_max", None)
-                        )
+                        _merge_domain(global_scales[k], v)
                 panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 
     return ResolvedPlot(

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import matplotlib
+import matplotlib.pyplot as plt
 import polars as pl
 
 matplotlib.use("Agg")
@@ -13,20 +14,20 @@ from plotten.coords._equal import CoordEqual, CoordFixed
 
 class TestCoordEqual:
     def test_sets_aspect(self):
-        fig, ax = matplotlib.pyplot.subplots()
+        fig, ax = plt.subplots()
         coord = CoordEqual()
         coord.transform(None, ax)
         # matplotlib may return "equal" or 1.0
         assert ax.get_aspect() in ("equal", 1.0)
-        matplotlib.pyplot.close(fig)
+        plt.close(fig)
 
     def test_with_limits(self):
-        fig, ax = matplotlib.pyplot.subplots()
+        fig, ax = plt.subplots()
         coord = CoordEqual(xlim=(0, 10), ylim=(0, 5))
         coord.transform(None, ax)
         assert ax.get_xlim() == (0, 10)
         assert ax.get_ylim() == (0, 5)
-        matplotlib.pyplot.close(fig)
+        plt.close(fig)
 
     def test_convenience(self):
         c = coord_equal()
@@ -35,11 +36,11 @@ class TestCoordEqual:
 
 class TestCoordFixed:
     def test_sets_aspect_ratio(self):
-        fig, ax = matplotlib.pyplot.subplots()
+        fig, ax = plt.subplots()
         coord = CoordFixed(ratio=2)
         coord.transform(None, ax)
         assert ax.get_aspect() == 2
-        matplotlib.pyplot.close(fig)
+        plt.close(fig)
 
     def test_convenience(self):
         c = coord_fixed(ratio=0.5)

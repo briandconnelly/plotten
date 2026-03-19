@@ -39,7 +39,7 @@ class TestAfterStat:
     def test_frozen(self):
         a = after_stat("density")
         with pytest.raises(AttributeError):
-            a.var = "count"
+            a.var = "count"  # type: ignore[misc]
 
     def test_equality(self):
         assert after_stat("density") == after_stat("density")
@@ -55,7 +55,7 @@ class TestAfterScale:
     def test_frozen(self):
         a = after_scale("fill")
         with pytest.raises(AttributeError):
-            a.var = "color"
+            a.var = "color"  # type: ignore[misc]
 
 
 class TestStage:

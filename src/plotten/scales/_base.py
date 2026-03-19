@@ -22,16 +22,25 @@ class LegendEntry:
 class ScaleBase:
     """Base class for all scales."""
 
+    _domain_min: float | None
+    _domain_max: float | None
+
     def __init__(self, aesthetic: str) -> None:
         self.aesthetic = aesthetic
+        self._domain_min = None
+        self._domain_max = None
 
-    def train(self, values: Any) -> None: ...
+    def train(self, values: Any) -> None:
+        raise NotImplementedError
 
-    def map_data(self, values: Any) -> Any: ...
+    def map_data(self, values: Any) -> Any:
+        raise NotImplementedError
 
-    def get_limits(self) -> tuple[float, float]: ...
+    def get_limits(self) -> tuple[float, float]:
+        raise NotImplementedError
 
-    def get_breaks(self) -> list: ...
+    def get_breaks(self) -> list:
+        raise NotImplementedError
 
     def get_labels(self) -> list[str]:
         return [str(b) for b in self.get_breaks()]

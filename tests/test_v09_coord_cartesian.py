@@ -74,8 +74,8 @@ class TestCoordCartesian:
         fig = render(p)
         ax = fig.axes[0]
         # All 20 data points should be plotted
-        offsets = ax.collections[0].get_offsets()
-        assert len(offsets) == 20
+        n_points = len(ax.collections[0].get_offsets())  # type: ignore[arg-type]
+        assert n_points == 20
 
     def test_replaces_default_coord(self):
         df = pd.DataFrame({"x": [1, 2], "y": [3, 4]})
