@@ -1,9 +1,8 @@
-"""Theme element system for fine-grained plot control."""
+"""Theme element system for fine-grained plot control using theme()."""
 
 import polars as pl
 
 from plotten import (
-    Theme,
     aes,
     element_blank,
     element_line,
@@ -11,6 +10,8 @@ from plotten import (
     geom_point,
     ggplot,
     labs,
+    theme,
+    theme_bw,
 )
 from plotten._composition import plot_grid
 
@@ -21,11 +22,12 @@ df = pl.DataFrame(
     }
 )
 
+# Use theme() convenience function instead of Theme() constructor
 p1 = (
     ggplot(df, aes(x="x", y="y"))
     + geom_point(size=60, color="#2171B5")
     + labs(title="Custom Title Styling")
-    + Theme(
+    + theme(
         plot_title=element_text(size=20, color="#2171B5"),
         panel_grid_major=element_line(color="#DEEBF7", size=1.0),
         panel_grid_minor=element_blank(),
@@ -37,7 +39,8 @@ p2 = (
     ggplot(df, aes(x="x", y="y"))
     + geom_point(size=60, color="#E6550D")
     + labs(title="Suppressed Grid")
-    + Theme(
+    + theme_bw()
+    + theme(
         plot_title=element_text(size=20, color="#E6550D"),
         panel_grid_major=element_blank(),
         panel_grid_minor=element_blank(),

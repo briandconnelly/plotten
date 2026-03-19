@@ -1,16 +1,19 @@
-"""Scatter plot with reference lines and text annotations."""
+"""Scatter plot with annotations using text boxes, curved arrows, and brackets."""
 
 import polars as pl
 
 from plotten import (
     aes,
     annotate,
+    arrow,
     geom_hline,
     geom_point,
     geom_vline,
     ggplot,
     labs,
     scale_color_manual,
+    theme,
+    theme_minimal,
 )
 
 df = pl.DataFrame(
@@ -41,11 +44,53 @@ plot = (
     + geom_point(size=60, alpha=0.8)
     + geom_hline(yintercept=6.5, linestyle="dashed", color="gray", alpha=0.6)
     + geom_vline(xintercept=5.0, linestyle="dashed", color="gray", alpha=0.6)
-    + annotate("text", x=8.5, y=3.5, label="Threshold", color="gray", size=9)
+    # Text box annotation instead of plain text
+    + annotate(
+        "text",
+        x=8.5,
+        y=3.5,
+        label="Threshold",
+        box_fill="#f0f0f0",
+        box_color="#999999",
+        box_pad=0.3,
+        color="gray",
+        size=9,
+    )
+    # Curved arrow pointing to the outlier
+    + annotate(
+        "curve",
+        x=7.5,
+        y=10.5,
+        xend=9,
+        yend=9.7,
+        curvature=-0.3,
+        arrow=arrow(style="closed"),
+        color="#E91E63",
+    )
+    + annotate(
+        "text",
+        x=7.5,
+        y=10.8,
+        label="Outlier",
+        box_fill="#FCE4EC",
+        size=8,
+        color="#E91E63",
+    )
+    # Bracket over cluster B region
+    + annotate(
+        "bracket",
+        xmin=4.5,
+        xmax=9.0,
+        y=3.0,
+        label="Cluster B",
+        color="#00BCD4",
+    )
     + scale_color_manual(values={"A": "#E91E63", "B": "#00BCD4"})
+    + theme_minimal()
+    + theme(title_size=16)
     + labs(
         title="Cluster Analysis",
-        subtitle="Dashed lines show decision boundaries",
+        subtitle="Annotated with curved arrows, text boxes, and brackets",
         x="Feature 1",
         y="Feature 2",
         color="Cluster",

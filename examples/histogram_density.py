@@ -3,7 +3,7 @@
 import numpy as np
 import polars as pl
 
-from plotten import aes, geom_histogram, ggplot, labs, theme_minimal
+from plotten import aes, geom_histogram, ggplot, labs, theme, theme_minimal
 
 rng = np.random.default_rng(42)
 values = np.concatenate([rng.normal(170, 8, 200), rng.normal(180, 10, 150)])
@@ -20,6 +20,7 @@ plot = (
         y="Count",
     )
     + theme_minimal()
+    + theme(title_size=16)
 )
 
 plot.save("examples/output/histogram.png", dpi=200)

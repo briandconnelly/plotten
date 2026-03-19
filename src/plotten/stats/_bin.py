@@ -23,7 +23,6 @@ class StatBin:
         counts, _ = np.histogram(x_values, bins=edges)
         centers = ((edges[:-1] + edges[1:]) / 2).tolist()
 
-        native = nw.to_native(frame)
         counts_list = counts.tolist()
         total = sum(counts_list)
         widths = (edges[1:] - edges[:-1]).tolist()
@@ -40,12 +39,4 @@ class StatBin:
             "width": widths,
         }
 
-        # Build result in same backend as input
-        if "polars" in str(type(native)):
-            import polars as pl
-
-            return pl.DataFrame(result_dict)
-        else:
-            import pandas as pd
-
-            return pd.DataFrame(result_dict)
+        return nw.to_native(nw.from_dict(result_dict, backend=nw.get_native_namespace(frame)))

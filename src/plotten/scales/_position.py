@@ -27,7 +27,7 @@ class ScaleContinuous(ScaleBase):
         self,
         aesthetic: str = "x",
         padding: float = 0.05,
-        breaks: list[float] | None = None,
+        breaks: list[float] | Callable[[tuple[float, float]], list[float]] | None = None,
         limits: tuple[float, float] | None = None,
         labels: list[str] | Callable[[float], str] | None = None,
         expand: tuple[float, float] | None = None,
@@ -35,7 +35,7 @@ class ScaleContinuous(ScaleBase):
     ) -> None:
         from plotten._validation import validate_breaks_labels
 
-        if not callable(labels):
+        if not callable(labels) and not callable(breaks):
             validate_breaks_labels(breaks, labels)
         super().__init__(aesthetic)
         if expand is not None and padding != 0.05:
@@ -73,10 +73,12 @@ class ScaleContinuous(ScaleBase):
         return (lo - pad, hi + pad)
 
     def get_breaks(self) -> list:
-        if self._breaks is not None:
-            return list(self._breaks)
         lo, hi = self.get_limits()
-        return np.linspace(lo, hi, 6).tolist()
+        if self._breaks is None:
+            return np.linspace(lo, hi, 6).tolist()
+        if callable(self._breaks):
+            return list(self._breaks((lo, hi)))  # type: ignore[operator]
+        return list(self._breaks)
 
     def get_labels(self) -> list[str]:
         labels = self._labels

@@ -77,14 +77,16 @@ class MappedContinuousScale(ScaleBase):
         return (lo, hi)
 
     def get_breaks(self) -> list:
-        if self._breaks is not None:
-            return list(self._breaks)
-        import numpy as np
-
-        from plotten._defaults import DEFAULT_CONTINUOUS_BREAK_COUNT
-
         lo, hi = self.get_limits()
-        return np.linspace(lo, hi, DEFAULT_CONTINUOUS_BREAK_COUNT).tolist()
+        if self._breaks is None:
+            import numpy as np
+
+            from plotten._defaults import DEFAULT_CONTINUOUS_BREAK_COUNT
+
+            return np.linspace(lo, hi, DEFAULT_CONTINUOUS_BREAK_COUNT).tolist()
+        if callable(self._breaks):
+            return list(self._breaks((lo, hi)))  # type: ignore[operator]
+        return list(self._breaks)
 
 
 class MappedDiscreteScale(ScaleBase):

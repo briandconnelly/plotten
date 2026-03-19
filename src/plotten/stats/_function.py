@@ -24,16 +24,15 @@ class StatFunction:
         self._xlim = xlim
 
     def compute(self, df: Any) -> Any:
-        import pandas as pd
+        import narwhals as nw
+
+        frame = nw.from_native(df)
 
         # Determine x range
         if self._xlim is not None:
             xmin, xmax = self._xlim
         else:
             try:
-                import narwhals as nw
-
-                frame = nw.from_native(df)
                 if "x" in frame.columns:
                     col = frame.get_column("x")
                     xmin, xmax = col.min(), col.max()
@@ -44,4 +43,5 @@ class StatFunction:
 
         x = np.linspace(xmin, xmax, self._n)
         y = self._fun(x)
-        return pd.DataFrame({"x": x, "y": y})
+        result = {"x": x.tolist(), "y": y.tolist() if hasattr(y, "tolist") else list(y)}
+        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

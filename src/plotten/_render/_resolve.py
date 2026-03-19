@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import copy
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Literal
 
 import narwhals as nw
 
@@ -326,15 +326,26 @@ def _resolve_free_panels(
         panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 
 
+def __get_backend() -> Literal["polars", "pandas"]:
+    """Return the first available dataframe backend name."""
+    try:
+        import polars as _  # noqa: F401
+
+        return "polars"
+    except ImportError:
+        return "pandas"
+
+
 def _apply_expand_limits(scales: dict[str, ScaleBase], expand_limits: tuple) -> None:
     """Train position scales with sentinel values from expand_limits()."""
-    import pandas as pd
-
+    backend = __get_backend()
     for el in expand_limits:
         if el.x and "x" in scales:
-            scales["x"].train(pd.Series(list(el.x)))
+            series = nw.new_series("x", list(el.x), dtype=nw.Float64, backend=backend)
+            scales["x"].train(nw.to_native(series))
         if el.y and "y" in scales:
-            scales["y"].train(pd.Series(list(el.y)))
+            series = nw.new_series("y", list(el.y), dtype=nw.Float64, backend=backend)
+            scales["y"].train(nw.to_native(series))
 
 
 def resolve(plot: Any) -> ResolvedPlot:

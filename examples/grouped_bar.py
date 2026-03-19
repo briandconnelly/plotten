@@ -2,7 +2,18 @@
 
 import polars as pl
 
-from plotten import aes, geom_col, ggplot, labs, position_dodge, scale_fill_manual, theme_minimal
+from plotten import (
+    aes,
+    geom_col,
+    ggplot,
+    guide_legend,
+    guides,
+    labs,
+    position_dodge,
+    scale_fill_manual,
+    theme,
+    theme_minimal,
+)
 
 df = pl.DataFrame(
     {
@@ -24,6 +35,8 @@ plot = (
         fill="Region",
     )
     + theme_minimal()
+    + theme(title_size=16)
+    + guides(fill=guide_legend(ncol=2))
 )
 
 plot.save("examples/output/grouped_bar.png", dpi=200)

@@ -260,19 +260,28 @@ def stat_summary(
 
 def stat_function(fun: Any, n: int = 101, xlim: Any = None, **params: Any) -> Layer:
     """Create a layer that plots y = f(x)."""
-    import pandas as pd
+    import narwhals as nw
 
     from plotten.stats._function import StatFunction
 
     position = params.pop("position", None)
     mapping, params = _extract_aes(params)
+    for _backend in ("polars", "pandas"):
+        try:
+            dummy = nw.to_native(nw.from_dict({"x": [0]}, backend=_backend))
+            break
+        except ImportError:
+            continue
+    else:
+        msg = "Either polars or pandas must be installed"
+        raise ImportError(msg)
     return Layer(
         geom=GeomLine(),
         stat=StatFunction(fun=fun, n=n, xlim=xlim),
         mapping=mapping,
         params=params,
         position=position,
-        data=pd.DataFrame({"x": [0]}),
+        data=dummy,
     )
 
 

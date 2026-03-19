@@ -1,16 +1,17 @@
-"""Controlling axis padding with the expand parameter."""
+"""Controlling axis padding with expand and expand_limits()."""
 
 import polars as pl
 
 from plotten import (
     aes,
+    expand_limits,
     geom_bar,
     geom_point,
     ggplot,
     labs,
     scale_x_continuous,
-    scale_x_discrete,
     scale_y_continuous,
+    theme,
     theme_minimal,
 )
 
@@ -35,6 +36,16 @@ spacious = (
     + theme_minimal()
 )
 
+# expand_limits(): ensure axes include specific values without hard-setting limits
+with_expand = (
+    ggplot(df, aes(x="x", y="y"))
+    + geom_point(size=4)
+    + expand_limits(x=0, y=0)
+    + labs(title="expand_limits(x=0, y=0)", subtitle="Axes always include zero")
+    + theme_minimal()
+    + theme(title_size=12)
+)
+
 # Discrete scale: default expand=(0, 0.6) gives bar-friendly spacing
 categories = pl.DataFrame({"category": ["A", "B", "C", "D"], "value": [30, 50, 20, 45]})
 
@@ -45,13 +56,5 @@ default_discrete = (
     + theme_minimal()
 )
 
-wide_discrete = (
-    ggplot(categories, aes(x="category", y="value"))
-    + geom_bar()
-    + scale_x_discrete(expand=(0, 1.2))
-    + labs(title="Wider Discrete", subtitle="expand=(0, 1.2)")
-    + theme_minimal()
-)
-
-grid = (tight | spacious) / (default_discrete | wide_discrete)
+grid = (tight | spacious) / (with_expand | default_discrete)
 grid.save("examples/output/expand_scales.png", dpi=200)

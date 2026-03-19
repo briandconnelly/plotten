@@ -57,12 +57,4 @@ class StatSummaryBin:
             result["ymin"].append(self._fun_ymin(arr))
             result["ymax"].append(self._fun_ymax(arr))
 
-        native = nw.to_native(frame)
-        if "polars" in str(type(native)):
-            import polars as pl
-
-            return pl.DataFrame(result)
-        else:
-            import pandas as pd
-
-            return pd.DataFrame(result)
+        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

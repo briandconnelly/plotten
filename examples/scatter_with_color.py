@@ -1,8 +1,8 @@
-"""Scatter plot with continuous color mapping and custom labels."""
+"""Scatter plot with continuous color mapping using viridis scale."""
 
 import polars as pl
 
-from plotten import aes, geom_point, ggplot, labs, scale_color_continuous
+from plotten import aes, geom_point, ggplot, labs, scale_color_viridis, theme, theme_minimal
 
 df = pl.DataFrame(
     {
@@ -15,10 +15,12 @@ df = pl.DataFrame(
 plot = (
     ggplot(df, aes(x="engine_size", y="horsepower", color="mpg"))
     + geom_point(size=80, alpha=0.8)
-    + scale_color_continuous(cmap="RdYlGn")
+    + scale_color_viridis(option="plasma")
+    + theme_minimal()
+    + theme(title_size=16)
     + labs(
         title="Engine Size vs Horsepower",
-        subtitle="Color shows fuel efficiency (MPG)",
+        subtitle="Color shows fuel efficiency (MPG) — viridis plasma palette",
         caption="Source: synthetic automotive dataset",
         x="Engine Displacement (L)",
         y="Horsepower",

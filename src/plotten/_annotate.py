@@ -216,7 +216,7 @@ def annotate(
     """
     match geom_type:
         case AnnotationType.TEXT:
-            import polars as pl
+            import narwhals as nw
 
             # Support text box styling
             bbox_props = {}
@@ -231,8 +231,20 @@ def annotate(
                     bbox_props["edgecolor"] = box_color
                 params["bbox"] = bbox_props
 
-            inline_data = pl.DataFrame({"x": [x], "y": [y], "label": [label]})
-            return Layer(geom=GeomText(), mapping=Aes(), params=params, data=inline_data)
+            for _backend in ("polars", "pandas"):
+                try:
+                    inline_data = nw.from_dict(
+                        {"x": [x], "y": [y], "label": [label]}, backend=_backend
+                    )
+                    break
+                except ImportError:
+                    continue
+            else:
+                msg = "Either polars or pandas must be installed"
+                raise ImportError(msg)
+            return Layer(
+                geom=GeomText(), mapping=Aes(), params=params, data=nw.to_native(inline_data)
+            )
 
         case AnnotationType.RECT:
             geom = _GeomAnnotRect(

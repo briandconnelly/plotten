@@ -68,3 +68,21 @@ def theme_void() -> Theme:
         tick_length=0.0,
         tick_size=0,
     )
+
+
+def theme_grey() -> Theme:
+    """Classic ggplot2 default: grey background with white gridlines."""
+    return Theme(
+        background="#e5e5e5",
+        panel_background="#ebebeb",
+        grid_color="#ffffff",
+        grid_line_width=0.8,
+        axis_line_width=0,
+        panel_border_color="#000000",
+        panel_border_width=0.5,
+        strip_background="#d9d9d9",
+    )
+
+
+# American spelling alias
+theme_gray = theme_grey

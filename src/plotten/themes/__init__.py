@@ -3,6 +3,8 @@ from plotten.themes._defaults import (
     theme_classic,
     theme_dark,
     theme_default,
+    theme_gray,
+    theme_grey,
     theme_minimal,
     theme_void,
 )
@@ -16,7 +18,7 @@ from plotten.themes._elements import (
     element_rect,
     element_text,
 )
-from plotten.themes._theme import Theme, theme
+from plotten.themes._theme import Theme, theme, theme_get, theme_set, theme_update
 
 __all__ = [
     "ElementBlank",
@@ -33,6 +35,11 @@ __all__ = [
     "theme_classic",
     "theme_dark",
     "theme_default",
+    "theme_get",
+    "theme_gray",
+    "theme_grey",
     "theme_minimal",
+    "theme_set",
+    "theme_update",
     "theme_void",
 ]

@@ -119,3 +119,30 @@ def theme(**kwargs: Any) -> Theme:
         )
         raise TypeError(msg)
     return Theme(**kwargs)
+
+
+# Module-level global theme
+_global_theme: Theme = Theme()
+
+
+def theme_set(new_theme: Theme) -> Theme:
+    """Set the global default theme, returning the previous one."""
+    global _global_theme
+    old = _global_theme
+    _global_theme = new_theme
+    return old
+
+
+def theme_get() -> Theme:
+    """Return the current global default theme."""
+    return _global_theme
+
+
+def theme_update(**kwargs: Any) -> Theme:
+    """Update the global default theme with the given overrides.
+
+    Returns the updated theme.
+    """
+    global _global_theme
+    _global_theme = _global_theme + theme(**kwargs)
+    return _global_theme

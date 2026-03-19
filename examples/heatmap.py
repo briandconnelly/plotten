@@ -2,7 +2,7 @@
 
 import polars as pl
 
-from plotten import aes, geom_tile, ggplot, labs, scale_color_continuous, theme_minimal
+from plotten import aes, geom_tile, ggplot, labs, scale_fill_viridis, theme, theme_minimal
 
 days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
 hours = ["9am", "10am", "11am", "12pm", "1pm", "2pm", "3pm", "4pm"]
@@ -68,14 +68,16 @@ df = pl.DataFrame(
 plot = (
     ggplot(df, aes(x="day", y="hour", color="activity", label="activity"))
     + geom_tile(text_size=8)
-    + scale_color_continuous(cmap="YlOrRd")
+    + scale_fill_viridis(option="magma")
+    + theme_minimal()
+    + theme(title_size=16, strip_text_size=11)
     + labs(
         title="Weekly Activity Heatmap",
+        subtitle="Using viridis magma palette",
         x="Day",
         y="Hour",
         color="Activity",
     )
-    + theme_minimal()
 )
 
 plot.save("examples/output/heatmap.png", dpi=200)

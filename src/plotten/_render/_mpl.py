@@ -16,7 +16,7 @@ from plotten._render._mpl_labels import apply_axis_labs, apply_title
 from plotten._render._mpl_scales import apply_scales
 from plotten._render._mpl_theme import render_panel
 from plotten._render._resolve import ResolvedPlot, resolve
-from plotten.themes._theme import Theme
+from plotten.themes._theme import Theme, theme_get
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure
@@ -27,7 +27,7 @@ def render_single(plot: Any, resolved: ResolvedPlot, fig: Any, ax: Any) -> None:
     from plotten.coords._flip import CoordFlip
     from plotten.coords._polar import CoordPolar
 
-    theme: Theme = resolved.theme or Theme()
+    theme: Theme = theme_get() + (resolved.theme or Theme())
     is_flipped = isinstance(resolved.coord, CoordFlip)
 
     if is_flipped:
@@ -67,7 +67,7 @@ def render(plot: Any) -> Figure:
     from plotten.coords._polar import CoordPolar
 
     resolved = resolve(plot)
-    theme: Theme = resolved.theme or Theme()
+    theme: Theme = theme_get() + (resolved.theme or Theme())
     is_flipped = isinstance(resolved.coord, CoordFlip)
     is_polar = isinstance(resolved.coord, CoordPolar)
 

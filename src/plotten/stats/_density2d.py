@@ -14,7 +14,6 @@ class StatDensity2d:
     def compute(self, df: Any) -> Any:
         import narwhals as nw
         import numpy as np
-        import pandas as pd
         from scipy.stats import gaussian_kde
 
         frame = nw.from_native(df)
@@ -28,10 +27,9 @@ class StatDensity2d:
         xx, yy = np.meshgrid(xi, yi)
         zz = kde(np.vstack([xx.ravel(), yy.ravel()])).reshape(xx.shape)
 
-        return pd.DataFrame(
-            {
-                "x": xx.ravel(),
-                "y": yy.ravel(),
-                "z": zz.ravel(),
-            }
-        )
+        result = {
+            "x": xx.ravel().tolist(),
+            "y": yy.ravel().tolist(),
+            "z": zz.ravel().tolist(),
+        }
+        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

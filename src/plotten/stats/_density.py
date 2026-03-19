@@ -64,12 +64,4 @@ class StatDensity:
                 "y": density.tolist(),
             }
 
-        # Return in same backend as input
-        if "polars" in str(type(df)):
-            import polars as pl
-
-            return pl.DataFrame(result)
-        else:
-            import pandas as pd
-
-            return pd.DataFrame(result)
+        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

@@ -1,8 +1,8 @@
-"""Faceted scatter plot showing subgroups in separate panels."""
+"""Faceted scatter plot with clean shared edge labels."""
 
 import polars as pl
 
-from plotten import aes, facet_wrap, geom_point, geom_smooth, ggplot, labs
+from plotten import aes, facet_wrap, geom_point, geom_smooth, ggplot, labs, theme, theme_minimal
 
 df = pl.DataFrame(
     {
@@ -33,42 +33,27 @@ df = pl.DataFrame(
             76,
             85,
         ],
-        "subject": [
-            "Math",
-            "Math",
-            "Math",
-            "Math",
-            "Math",
-            "Math",
-            "Math",
-            "Math",
-            "Science",
-            "Science",
-            "Science",
-            "Science",
-            "Science",
-            "Science",
-            "Science",
-            "Science",
-            "English",
-            "English",
-            "English",
-            "English",
-            "English",
-            "English",
-            "English",
-            "English",
-        ],
+        "subject": ["Math"] * 8 + ["Science"] * 8 + ["English"] * 8,
     }
 )
 
+# Smart facet labels: only bottom row gets x-labels, only left column gets y-labels
+# Use theme() to fine-tune the faceted plot appearance
 plot = (
     ggplot(df, aes(x="study_hours", y="score"))
     + geom_point(size=40, alpha=0.7)
     + geom_smooth(method="ols", se=True)
     + facet_wrap("subject", ncol=3)
+    + theme_minimal()
+    + theme(
+        title_size=16,
+        strip_text_size=12,
+        strip_background="#E8EAF6",
+        strip_text_color="#283593",
+    )
     + labs(
         title="Study Hours vs Test Scores",
+        subtitle="Shared axis labels — only edge panels show labels",
         caption="Data: 8 students per subject",
         x="Hours Studied per Day",
         y="Test Score",

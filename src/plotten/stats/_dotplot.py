@@ -39,12 +39,4 @@ class StatDotplot:
 
         result_dict = {"x": result_x, "y": result_y}
 
-        native = nw.to_native(frame)
-        if "polars" in str(type(native)):
-            import polars as pl
-
-            return pl.DataFrame(result_dict)
-        else:
-            import pandas as pd
-
-            return pd.DataFrame(result_dict)
+        return nw.to_native(nw.from_dict(result_dict, backend=nw.get_native_namespace(frame)))

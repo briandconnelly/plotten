@@ -14,7 +14,6 @@ class StatContour:
     def compute(self, df: Any) -> Any:
         import narwhals as nw
         import numpy as np
-        import pandas as pd
         from scipy.interpolate import griddata
 
         frame = nw.from_native(df)
@@ -28,10 +27,9 @@ class StatContour:
         xx, yy = np.meshgrid(xi, yi)
         zz = griddata(np.column_stack([x, y]), z, (xx, yy), method="cubic")
 
-        return pd.DataFrame(
-            {
-                "x": xx.ravel(),
-                "y": yy.ravel(),
-                "z": zz.ravel(),
-            }
-        )
+        result = {
+            "x": xx.ravel().tolist(),
+            "y": yy.ravel().tolist(),
+            "z": zz.ravel().tolist(),
+        }
+        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

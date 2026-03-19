@@ -43,11 +43,4 @@ class StatBin2d:
             "fill": result_fill,
         }
 
-        if "polars" in str(type(df)):
-            import polars as pl
-
-            return pl.DataFrame(result)
-        else:
-            import pandas as pd
-
-            return pd.DataFrame(result)
+        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))
