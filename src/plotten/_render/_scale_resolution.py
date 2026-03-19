@@ -46,7 +46,8 @@ def _train_scales(
 
     for aes_name in data_dict:
         series = frame.get_column(aes_name)
-        if str(series.dtype).startswith(("List", "list", "Object", "object")):
+        dtype = series.dtype
+        if isinstance(dtype, (nw.List, nw.Array, nw.Object)):
             continue
         try:
             if aes_name not in scales:
@@ -70,7 +71,7 @@ def _train_scales(
         if aux_col in data_dict and pos_aes in scales:
             try:
                 aux_series = frame.get_column(aux_col)
-                if not str(aux_series.dtype).startswith(("List", "list", "Object", "object")):
+                if not isinstance(aux_series.dtype, (nw.List, nw.Array, nw.Object)):
                     scales[pos_aes].train(aux_series.to_native())
             except (TypeError, ValueError, KeyError) as e:
                 warnings.warn(

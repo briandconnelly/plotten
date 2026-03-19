@@ -14,15 +14,11 @@ class StatBoxplot:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        y_vals = frame.get_column("y").to_list()
 
-        # Group by x
-        groups: dict[Any, list[float]] = {}
-        for xv, yv in zip(x_vals, y_vals, strict=True):
-            groups.setdefault(xv, []).append(float(yv))
+        # Get unique x values sorted via narwhals
+        unique_x = frame.select(nw.col("x")).unique().sort("x").get_column("x").to_list()
 
-        result: dict[str, list] = {
+        result: dict[str, list[Any]] = {
             "x": [],
             "ymin": [],
             "lower": [],
@@ -32,8 +28,10 @@ class StatBoxplot:
             "outliers_y": [],
         }
 
-        for x_key in sorted(groups):
-            vals = np.array(groups[x_key])
+        for x_key in unique_x:
+            group = frame.filter(nw.col("x") == x_key)
+            vals = np.array(group.get_column("y").to_list(), dtype=float)
+
             q1 = float(np.percentile(vals, 25))
             median = float(np.percentile(vals, 50))
             q3 = float(np.percentile(vals, 75))

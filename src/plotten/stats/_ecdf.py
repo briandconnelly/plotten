@@ -14,15 +14,15 @@ class StatECDF:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        x_arr = np.array(x_vals, dtype=float)
-        sorted_x = np.sort(x_arr)
+
+        # Sort x using narwhals, extract as numpy for precise ECDF computation
+        sorted_frame = frame.select(nw.col("x").cast(nw.Float64)).sort("x")
+        sorted_x = sorted_frame.get_column("x").to_list()
         n = len(sorted_x)
-        y = np.arange(1, n + 1) / n
+        y = (np.arange(1, n + 1) / n).tolist()
 
-        result = {
-            "x": sorted_x.tolist(),
-            "y": y.tolist(),
-        }
-
-        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))
+        result = nw.from_dict(
+            {"x": sorted_x, "y": y},
+            backend=nw.get_native_namespace(frame),
+        )
+        return nw.to_native(result)

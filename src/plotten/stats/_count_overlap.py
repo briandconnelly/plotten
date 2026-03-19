@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from typing import cast
 
 import narwhals as nw
@@ -19,18 +18,5 @@ class StatCountOverlap:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        y_vals = frame.get_column("y").to_list()
-
-        counts = Counter(zip(x_vals, y_vals, strict=True))
-
-        result_x = []
-        result_y = []
-        result_n = []
-        for (x, y), n in sorted(counts.items()):
-            result_x.append(x)
-            result_y.append(y)
-            result_n.append(n)
-
-        result = {"x": result_x, "y": result_y, "n": result_n}
-        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))
+        result = frame.group_by("x", "y").agg(nw.len().alias("n")).sort("x", "y")
+        return nw.to_native(result)

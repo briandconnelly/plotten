@@ -103,21 +103,14 @@ def _resolve_layers(
             _separate_mappings(merged_aes)
         )
 
-        # Resolve interaction mappings: create combined columns
+        # Resolve interaction mappings: create combined columns via narwhals expressions
         for aes_field, inter in interaction_mappings.items():
             cols = inter.columns
-            # Paste column values together with "." separator
-            col_lists = [frame.get_column(c).to_list() for c in cols]
-            combined = [".".join(str(v) for v in vals) for vals in zip(*col_lists, strict=True)]
-            # Add as a new column named after the aesthetic
-            native = nw.to_native(frame)
-            backend = nw.get_native_namespace(native)
-            new_col_data = {aes_field: combined}
-            new_frame = nw.from_dict(new_col_data, backend=backend)
-            frame = cast(
-                "nw.DataFrame",
-                nw.from_native(nw.to_native(frame.with_columns(new_frame.get_column(aes_field)))),
-            )
+            # Build concatenated string expression using narwhals
+            expr = nw.col(cols[0]).cast(nw.String)
+            for c in cols[1:]:
+                expr = expr + nw.lit(".") + nw.col(c).cast(nw.String)
+            frame = frame.with_columns(expr.alias(aes_field))
 
         # Validate that mapped column names exist in the data
         from plotten._validation import validate_mapped_columns

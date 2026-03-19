@@ -33,29 +33,30 @@ class StatSummaryBin:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_values = frame.get_column("x").to_list()
-        y_values = frame.get_column("y").to_list()
 
-        xmin, xmax = min(x_values), max(x_values)
-        edges = np.linspace(xmin, xmax, self.bins + 1)
-        centers = ((edges[:-1] + edges[1:]) / 2).tolist()
+        # Extract as numpy arrays via narwhals Series
+        x_arr = frame.get_column("x").to_numpy()
+        y_arr = frame.get_column("y").to_numpy()
 
-        # Assign y values to bins
-        bin_ys: dict[int, list[float]] = {}
-        for xv, yv in zip(x_values, y_values, strict=True):
-            bin_idx = int(np.searchsorted(edges[1:], xv, side="right"))
-            bin_idx = min(bin_idx, len(centers) - 1)
-            bin_ys.setdefault(bin_idx, []).append(float(yv))
+        x_arr = np.asarray(x_arr, dtype=float)
+        y_arr = np.asarray(y_arr, dtype=float)
+
+        edges = np.linspace(x_arr.min(), x_arr.max(), self.bins + 1)
+        centers = (edges[:-1] + edges[1:]) / 2
+
+        # Assign each observation to a bin
+        bin_indices = np.searchsorted(edges[1:], x_arr, side="right")
+        bin_indices = np.clip(bin_indices, 0, len(centers) - 1)
 
         result: dict[str, list] = {"x": [], "y": [], "ymin": [], "ymax": []}
         for idx in range(len(centers)):
-            vals = bin_ys.get(idx)
-            if not vals:
+            mask = bin_indices == idx
+            if not mask.any():
                 continue
-            arr = np.array(vals)
-            result["x"].append(centers[idx])
-            result["y"].append(self._fun_y(arr))
-            result["ymin"].append(self._fun_ymin(arr))
-            result["ymax"].append(self._fun_ymax(arr))
+            vals = y_arr[mask]
+            result["x"].append(float(centers[idx]))
+            result["y"].append(self._fun_y(vals))
+            result["ymin"].append(self._fun_ymin(vals))
+            result["ymax"].append(self._fun_ymax(vals))
 
         return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

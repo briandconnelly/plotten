@@ -86,17 +86,17 @@ class StatSummary:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        y_vals = frame.get_column("y").to_list()
 
-        groups: dict[Any, list[float]] = {}
-        for xv, yv in zip(x_vals, y_vals, strict=True):
-            groups.setdefault(xv, []).append(float(yv))
+        # Get unique x values sorted via narwhals
+        unique_x = frame.select(nw.col("x")).unique().sort("x").get_column("x").to_list()
 
-        result: dict[str, list] = {"x": [], "y": [], "ymin": [], "ymax": []}
+        result: dict[str, list[Any]] = {"x": [], "y": [], "ymin": [], "ymax": []}
 
-        for x_key in sorted(groups):
-            vals = np.array(groups[x_key])
+        for x_key in unique_x:
+            # Filter group via narwhals expression
+            group = frame.filter(nw.col("x") == x_key)
+            vals = np.array(group.get_column("y").to_list(), dtype=float)
+
             result["x"].append(x_key)
             if self._fun_data is not None:
                 y, ymin, ymax = _normalize_fun_data_result(self._fun_data(vals))

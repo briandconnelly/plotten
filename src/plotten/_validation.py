@@ -97,8 +97,7 @@ def validate_data_type(
     s = nw.from_native(series, series_only=True)
     col_info = f" (column '{column_name}')" if column_name else ""
     if isinstance(scale, ScaleContinuous) and not s.dtype.is_numeric():
-        dtype_str = str(s.dtype).lower()
-        if not any(t in dtype_str for t in ("date", "datetime", "timestamp")):
+        if not s.dtype.is_temporal():
             warnings.warn(
                 f"Continuous scale for '{aesthetic}'{col_info} received "
                 f"non-numeric data (dtype: {s.dtype}). "

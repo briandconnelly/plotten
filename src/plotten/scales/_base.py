@@ -168,8 +168,7 @@ def auto_scale(aesthetic: str, series: Any) -> ScaleBase:
             return ScaleLinetypeDiscrete(aesthetic=aesthetic)
 
     # Detect temporal dtypes before numeric check
-    dtype_str = str(s.dtype).lower()
-    if any(t in dtype_str for t in ("date", "datetime", "timestamp")):
+    if s.dtype.is_temporal():
         return ScaleDateContinuous(aesthetic=aesthetic)
 
     if s.dtype.is_numeric():
