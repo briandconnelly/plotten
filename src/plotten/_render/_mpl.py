@@ -26,20 +26,69 @@ def render_single(plot: Any, resolved: ResolvedPlot, fig: Any, ax: Any) -> None:
 
     panel = resolved.panels[0]
     _render_panel(panel, ax, resolved, theme)
-    _apply_scales(ax, resolved.scales)
+    _apply_scales(ax, resolved.scales, polar=_is_polar(resolved.coord))
     _apply_coord_limits(ax, resolved.coord, is_flipped)
 
     # Apply labs directly to axes
     labs = resolved.labs
     if labs is not None:
-        axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
-        axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
-        if labs.x is not None:
-            ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
-        if labs.y is not None:
-            ax.set_ylabel(labs.y, fontsize=axis_title_y_size)
+        if not _is_polar(resolved.coord):
+            axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
+            axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+            if labs.x is not None:
+                ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
+            if labs.y is not None:
+                ax.set_ylabel(labs.y, fontsize=axis_title_y_size)
         if labs.title is not None:
             ax.set_title(labs.title, fontsize=theme.title_size)
+
+
+def _is_polar(coord: Any) -> bool:
+    from plotten.coords._polar import CoordPolar
+
+    return isinstance(coord, CoordPolar)
+
+
+def _create_axes(coord: Any, **kwargs: Any) -> tuple[Any, Any]:
+    """Create fig/ax, using polar projection if needed."""
+    if _is_polar(coord):
+        return plt.subplots(subplot_kw={"projection": "polar"}, **kwargs)
+    return plt.subplots(**kwargs)
+
+
+def _transform_data_for_polar(data: dict[str, Any], coord: Any, scales: dict) -> dict[str, Any]:
+    """Convert x/y data to theta/r for polar coordinates.
+
+    For discrete theta scales, map category indices to evenly-spaced angles.
+    For continuous theta data, pass values through as-is (matplotlib polar
+    projection treats x as theta in radians natively).
+    When theta="y", swap x and y so matplotlib gets theta in x and r in y.
+    """
+    import numpy as np
+
+    data = dict(data)
+    theta_aes = coord.theta  # "x" or "y"
+
+    theta_vals = data.get(theta_aes)
+    if theta_vals is None:
+        return data
+
+    theta_vals = np.asarray(theta_vals, dtype=float)
+
+    # Discrete: map category indices to evenly-spaced angles around the circle
+    from plotten.scales._position import ScaleDiscrete
+
+    if theta_aes in scales and isinstance(scales[theta_aes], ScaleDiscrete):
+        n = len(scales[theta_aes]._levels)
+        if n > 0:
+            theta_vals = theta_vals * 2 * np.pi / n
+        data[theta_aes] = theta_vals.tolist()
+
+    # When theta="y", polar projection expects theta=x, r=y — swap
+    if theta_aes == "y" and "x" in data and "y" in data:
+        data["x"], data["y"] = data["y"], data["x"]
+
+    return data
 
 
 def render(plot: Any) -> Figure:
@@ -49,6 +98,7 @@ def render(plot: Any) -> Figure:
     resolved = resolve(plot)
     theme: Theme = resolved.theme or Theme()
     is_flipped = isinstance(resolved.coord, CoordFlip)
+    is_polar = _is_polar(resolved.coord)
 
     # If flipped, swap x/y in scales and layer data
     if is_flipped:
@@ -56,11 +106,11 @@ def render(plot: Any) -> Figure:
 
     if resolved.facet is None:
         # Single panel
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = _create_axes(resolved.coord, figsize=(8, 6))
         fig.patch.set_facecolor(theme.background)
         panel = resolved.panels[0]
         _render_panel(panel, ax, resolved, theme)
-        _apply_scales(ax, resolved.scales)
+        _apply_scales(ax, resolved.scales, polar=is_polar)
         _apply_coord_limits(ax, resolved.coord, is_flipped)
         _apply_axis_labs(ax, resolved, theme)
         fig.tight_layout(pad=theme.margin * 10)
@@ -70,7 +120,14 @@ def render(plot: Any) -> Figure:
         # Faceted
         n_panels = len(resolved.panels)
         nrow, ncol = resolved.facet.layout(n_panels)
-        fig, axes = plt.subplots(nrow, ncol, figsize=(4 * ncol, 3.5 * nrow), squeeze=False)
+        subplot_kw = {"projection": "polar"} if is_polar else {}
+        fig, axes = plt.subplots(
+            nrow,
+            ncol,
+            figsize=(4 * ncol, 3.5 * nrow),
+            squeeze=False,
+            subplot_kw=subplot_kw,
+        )
         fig.patch.set_facecolor(theme.background)
 
         free_scales = getattr(resolved.facet, "scales", "fixed")
@@ -83,11 +140,11 @@ def render(plot: Any) -> Figure:
 
             # Scales: use panel-specific if free, else global
             if free_scales == "fixed":
-                _apply_scales(ax, resolved.scales)
+                _apply_scales(ax, resolved.scales, polar=is_polar)
             else:
                 panel_sc = dict(resolved.scales)
                 panel_sc.update(panel.scales)
-                _apply_scales(ax, panel_sc)
+                _apply_scales(ax, panel_sc, polar=is_polar)
 
             _apply_coord_limits(ax, resolved.coord, is_flipped)
 
@@ -177,17 +234,19 @@ def _render_panel(
             ax.yaxis.grid(True, which="minor", color=minor_grid_color, linewidth=minor_grid_width)
     ax.set_axisbelow(True)
 
-    # Spine styling
+    # Spine styling (polar axes have different spine names)
+    is_polar_ax = ax.name == "polar"
     for spine in ax.spines.values():
         spine.set_linewidth(theme.axis_line_width)
 
     # Axis line visibility
-    axis_line_x = getattr(theme, "axis_line_x", True)
-    axis_line_y = getattr(theme, "axis_line_y", True)
-    ax.spines["bottom"].set_visible(axis_line_x)
-    ax.spines["top"].set_visible(axis_line_x)
-    ax.spines["left"].set_visible(axis_line_y)
-    ax.spines["right"].set_visible(axis_line_y)
+    if not is_polar_ax:
+        axis_line_x = getattr(theme, "axis_line_x", True)
+        axis_line_y = getattr(theme, "axis_line_y", True)
+        ax.spines["bottom"].set_visible(axis_line_x)
+        ax.spines["top"].set_visible(axis_line_x)
+        ax.spines["left"].set_visible(axis_line_y)
+        ax.spines["right"].set_visible(axis_line_y)
 
     # Panel border
     panel_border_color = getattr(theme, "panel_border_color", None)
@@ -219,7 +278,10 @@ def _render_panel(
 
     # Draw layers
     for layer in panel.layers:
-        layer.geom.draw(layer.data, ax, layer.params)
+        draw_data = layer.data
+        if _is_polar(resolved.coord):
+            draw_data = _transform_data_for_polar(draw_data, resolved.coord, resolved.scales)
+        layer.geom.draw(draw_data, ax, layer.params)
 
     # Font — per-axis title sizes
     axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
@@ -231,14 +293,14 @@ def _render_panel(
     ax.yaxis.label.set_fontsize(axis_title_y_size)
 
 
-def _apply_scales(ax: Axes, scales: dict) -> None:
+def _apply_scales(ax: Axes, scales: dict, *, polar: bool = False) -> None:
     """Apply scale limits, breaks, and labels to axes."""
     from plotten.scales._log import ScaleLog
     from plotten.scales._position import ScaleContinuous
     from plotten.scales._reverse import ScaleReverse
     from plotten.scales._sqrt import ScaleSqrt
 
-    if "x" in scales:
+    if "x" in scales and not polar:
         x_scale = scales["x"]
         match x_scale:
             case ScaleLog():
@@ -261,6 +323,7 @@ def _apply_scales(ax: Axes, scales: dict) -> None:
             case _:
                 ax.set_xlim(x_scale.get_limits())
         ax.set_xlabel("x")
+        _apply_sec_axis(ax, x_scale, axis="x")
 
     if "y" in scales:
         y_scale = scales["y"]
@@ -284,7 +347,32 @@ def _apply_scales(ax: Axes, scales: dict) -> None:
                 _apply_continuous_scale(ax, y_scale, axis="y")
             case _:
                 ax.set_ylim(y_scale.get_limits())
-        ax.set_ylabel("y")
+        if not polar:
+            ax.set_ylabel("y")
+        _apply_sec_axis(ax, y_scale, axis="y")
+
+
+def _apply_sec_axis(ax: Axes, scale: Any, axis: str) -> None:
+    """Apply a secondary axis if the scale has one configured."""
+    sec = getattr(scale, "_sec_axis", None)
+    if sec is None:
+        return
+    if axis == "y":
+        sec_ax = ax.secondary_yaxis("right", functions=(sec.trans, sec.inverse))
+    else:
+        sec_ax = ax.secondary_xaxis("top", functions=(sec.trans, sec.inverse))
+    if sec.name is not None:
+        sec_ax.set_label(sec.name) if axis == "x" else sec_ax.set_ylabel(sec.name)
+    if sec.breaks is not None:
+        if axis == "y":
+            sec_ax.set_yticks(sec.breaks)
+        else:
+            sec_ax.set_xticks(sec.breaks)
+    if sec.labels is not None:
+        if axis == "y":
+            sec_ax.set_yticklabels(sec.labels)
+        else:
+            sec_ax.set_xticklabels(sec.labels)
 
 
 def _apply_continuous_scale(ax: Axes, scale: Any, axis: str) -> None:
@@ -374,7 +462,7 @@ def _apply_coord_limits(ax: Axes, coord: Any, is_flipped: bool) -> None:
             ax.set_ylim(coord.xlim)
         if coord.ylim is not None:
             ax.set_xlim(coord.ylim)
-    elif coord is not None:
+    elif _is_polar(coord) or coord is not None:
         coord.transform(None, ax)
 
 
@@ -382,6 +470,9 @@ def _apply_axis_labs(ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
     """Apply axis labels from labs. Call before tight_layout."""
     labs = resolved.labs
     if labs is None:
+        return
+    # Polar axes don't use x/y axis labels — they overlap with angle/radius ticks
+    if _is_polar(resolved.coord):
         return
 
     axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
@@ -401,6 +492,7 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
     if labs is None:
         return
 
+    polar = _is_polar(resolved.coord)
     title_color = getattr(theme, "title_color", "#000000")
     title_size = theme.title_size
     title_family = theme.font_family
@@ -425,7 +517,12 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
     has_title = labs.title is not None and not isinstance(theme.plot_title, ElementBlank)
     has_subtitle = labs.subtitle is not None and not isinstance(theme.plot_subtitle, ElementBlank)
 
+    # Polar axes need more top margin since tick labels extend above the circle
+    top_both = 0.78 if polar else 0.88
+    top_single = 0.84 if polar else 0.93
+
     if has_title and has_subtitle:
+        sub_y = 0.915 if not polar else 0.88
         fig.suptitle(
             labs.title,
             fontsize=title_size,
@@ -435,7 +532,7 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
         )
         fig.text(
             0.5,
-            0.915,
+            sub_y,
             labs.subtitle,
             ha="center",
             va="top",
@@ -444,7 +541,7 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
             color=subtitle_color,
             transform=fig.transFigure,
         )
-        fig.subplots_adjust(top=0.88)
+        fig.subplots_adjust(top=top_both)
     elif has_title:
         fig.suptitle(
             labs.title,
@@ -452,7 +549,7 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
             fontfamily=title_family,
             color=title_color,
         )
-        fig.subplots_adjust(top=0.93)
+        fig.subplots_adjust(top=top_single)
     elif has_subtitle:
         fig.suptitle(
             labs.subtitle,
@@ -460,7 +557,7 @@ def _apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
             fontfamily=theme.font_family,
             color=subtitle_color,
         )
-        fig.subplots_adjust(top=0.93)
+        fig.subplots_adjust(top=top_single)
 
     if labs.caption is not None and not isinstance(theme.plot_caption, ElementBlank):
         cur_bottom = fig.subplotpars.bottom

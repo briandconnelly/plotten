@@ -61,6 +61,7 @@ from plotten.scales._position import (
     scale_y_discrete,
 )
 from plotten.scales._reverse import ScaleReverse, scale_x_reverse, scale_y_reverse
+from plotten.scales._sec_axis import SecAxis, dup_axis, sec_axis
 from plotten.scales._shape import (
     ScaleShapeDiscrete,
     scale_shape_discrete,
@@ -96,7 +97,9 @@ __all__ = [
     "ScaleSizeContinuous",
     "ScaleSizeDiscrete",
     "ScaleSqrt",
+    "SecAxis",
     "auto_scale",
+    "dup_axis",
     "label_comma",
     "label_dollar",
     "label_number",
@@ -140,4 +143,5 @@ __all__ = [
     "scale_y_log10",
     "scale_y_reverse",
     "scale_y_sqrt",
+    "sec_axis",
 ]

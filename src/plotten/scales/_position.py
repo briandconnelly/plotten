@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from plotten.scales._sec_axis import SecAxis
+
 import narwhals as nw
 import numpy as np
 
@@ -21,16 +23,23 @@ class ScaleContinuous(ScaleBase):
         breaks: list[float] | None = None,
         limits: tuple[float, float] | None = None,
         labels: list[str] | Callable[[float], str] | None = None,
+        expand: tuple[float, float] | None = None,
+        sec_axis: SecAxis | None = None,
     ) -> None:
         from plotten._validation import validate_breaks_labels
 
         if not callable(labels):
             validate_breaks_labels(breaks, labels)
         super().__init__(aesthetic)
+        if expand is not None and padding != 0.05:
+            msg = "Cannot specify both 'padding' (non-default) and 'expand'"
+            raise ValueError(msg)
+        self._expand = expand if expand is not None else (padding, 0)
         self._padding = padding
         self._breaks = breaks
         self._limits = limits
         self._labels = labels
+        self._sec_axis = sec_axis
         self._domain_min: float | None = None
         self._domain_max: float | None = None
 
@@ -52,7 +61,8 @@ class ScaleContinuous(ScaleBase):
         lo = self._domain_min if self._domain_min is not None else 0.0
         hi = self._domain_max if self._domain_max is not None else 1.0
         span = hi - lo
-        pad = span * self._padding if span > 0 else 0.5
+        mult, add = self._expand
+        pad = span * mult + add if span > 0 else 0.5
         return (lo - pad, hi + pad)
 
     def get_breaks(self) -> list:
@@ -76,10 +86,12 @@ class ScaleDiscrete(ScaleBase):
         self,
         aesthetic: str = "x",
         labels: dict[str, str] | list[str] | None = None,
+        expand: tuple[float, float] | None = None,
     ) -> None:
         super().__init__(aesthetic)
         self._levels: list = []
         self._manual_labels = labels
+        self._expand = expand if expand is not None else (0, 0.6)
 
     def train(self, values: Any) -> None:
         s = nw.from_native(values, series_only=True)
@@ -95,7 +107,12 @@ class ScaleDiscrete(ScaleBase):
 
     def get_limits(self) -> tuple[float, float]:
         n = len(self._levels)
-        return (-0.5, n - 0.5) if n > 0 else (-0.5, 0.5)
+        if n == 0:
+            return (-0.5, 0.5)
+        mult, add = self._expand
+        lo = -mult * (n - 1) - add
+        hi = (n - 1) + mult * (n - 1) + add
+        return (lo, hi)
 
     def get_breaks(self) -> list:
         return list(range(len(self._levels)))

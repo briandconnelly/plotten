@@ -269,7 +269,10 @@ def _render_node(node: Any, fig: Any, gs_slot: Any, leaf_axes: list) -> None:
     from plotten._render._resolve import resolve
 
     if isinstance(node, Plot):
-        ax = fig.add_subplot(gs_slot)
+        from plotten.coords._polar import CoordPolar
+
+        polar_kw = {"projection": "polar"} if isinstance(node.coord, CoordPolar) else {}
+        ax = fig.add_subplot(gs_slot, **polar_kw)
         resolved = resolve(node)
         render_single(node, resolved, fig, ax)
         leaf_axes.append(ax)

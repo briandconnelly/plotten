@@ -8,6 +8,7 @@ from plotten.geoms._area import GeomArea
 from plotten.geoms._bar import GeomBar
 from plotten.geoms._boxplot import GeomBoxplot
 from plotten.geoms._col import GeomCol
+from plotten.geoms._contour import GeomContour, GeomContourFilled
 from plotten.geoms._crossbar import GeomCrossbar
 from plotten.geoms._density import GeomDensity
 from plotten.geoms._errorbar import GeomErrorbar
@@ -19,6 +20,7 @@ from plotten.geoms._path import GeomPath
 from plotten.geoms._point import GeomPoint
 from plotten.geoms._pointrange import GeomPointrange
 from plotten.geoms._polygon import GeomPolygon
+from plotten.geoms._raster import GeomRaster
 from plotten.geoms._rect import GeomRect
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
 from plotten.geoms._ribbon import GeomRibbon
@@ -361,12 +363,111 @@ def stat_summary(
     )
 
 
+def stat_function(fun: Any, n: int = 101, xlim: Any = None, **params: Any) -> Layer:
+    """Create a layer that plots y = f(x)."""
+    import pandas as pd
+
+    from plotten.stats._function import StatFunction
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomLine(),
+        stat=StatFunction(fun=fun, n=n, xlim=xlim),
+        mapping=mapping,
+        params=params,
+        position=position,
+        data=pd.DataFrame({"x": [0]}),
+    )
+
+
+def geom_contour(**params: Any) -> Layer:
+    """Create a contour line layer."""
+    from plotten.stats._contour import StatContour
+
+    bins = params.pop("bins", 10)
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomContour(),
+        stat=StatContour(bins=bins),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def geom_contour_filled(**params: Any) -> Layer:
+    """Create a filled contour layer."""
+    from plotten.stats._contour import StatContour
+
+    bins = params.pop("bins", 10)
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomContourFilled(),
+        stat=StatContour(bins=bins),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def geom_raster(**params: Any) -> Layer:
+    """Create a raster layer."""
+    from plotten.stats._identity import StatIdentity
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomRaster(),
+        stat=StatIdentity(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def stat_density_2d(**params: Any) -> Layer:
+    """Create a 2D density contour layer."""
+    from plotten.stats._density2d import StatDensity2d
+
+    n = params.pop("n", 100)
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomContour(),
+        stat=StatDensity2d(n=n),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def stat_density_2d_filled(**params: Any) -> Layer:
+    """Create a filled 2D density contour layer."""
+    from plotten.stats._density2d import StatDensity2d
+
+    n = params.pop("n", 100)
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomContourFilled(),
+        stat=StatDensity2d(n=n),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 __all__ = [
     "GeomAbLine",
     "GeomArea",
     "GeomBar",
     "GeomBoxplot",
     "GeomCol",
+    "GeomContour",
+    "GeomContourFilled",
     "GeomCrossbar",
     "GeomDensity",
     "GeomErrorbar",
@@ -380,6 +481,7 @@ __all__ = [
     "GeomPoint",
     "GeomPointrange",
     "GeomPolygon",
+    "GeomRaster",
     "GeomRect",
     "GeomRibbon",
     "GeomRug",
@@ -397,6 +499,8 @@ __all__ = [
     "geom_bin2d",
     "geom_boxplot",
     "geom_col",
+    "geom_contour",
+    "geom_contour_filled",
     "geom_crossbar",
     "geom_density",
     "geom_errorbar",
@@ -413,6 +517,7 @@ __all__ = [
     "geom_polygon",
     "geom_qq",
     "geom_qq_line",
+    "geom_raster",
     "geom_rect",
     "geom_ribbon",
     "geom_rug",
@@ -423,6 +528,9 @@ __all__ = [
     "geom_tile",
     "geom_violin",
     "geom_vline",
+    "stat_density_2d",
+    "stat_density_2d_filled",
     "stat_ecdf",
+    "stat_function",
     "stat_summary",
 ]

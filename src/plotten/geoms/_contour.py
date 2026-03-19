@@ -1,0 +1,60 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
+
+import numpy as np
+
+if TYPE_CHECKING:
+    from matplotlib.axes import Axes
+
+
+class GeomContour:
+    """Draw contour lines from gridded x, y, z data."""
+
+    required_aes: frozenset[str] = frozenset({"x", "y", "z"})
+    supports_group_splitting: bool = False
+
+    def default_stat(self) -> Any:
+        from plotten.stats._contour import StatContour
+
+        return StatContour()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+        x = np.asarray(data["x"], dtype=float)
+        y = np.asarray(data["y"], dtype=float)
+        z = np.asarray(data["z"], dtype=float)
+
+        xi = np.sort(np.unique(x))
+        yi = np.sort(np.unique(y))
+        zz = z.reshape(len(yi), len(xi))
+
+        levels = params.get("bins", 10)
+        colors = params.get("color")
+        linewidths = params.get("linewidth", 0.5)
+        ax.contour(xi, yi, zz, levels=levels, colors=colors, linewidths=linewidths)
+
+
+class GeomContourFilled:
+    """Draw filled contours from gridded x, y, z data."""
+
+    required_aes: frozenset[str] = frozenset({"x", "y", "z"})
+    supports_group_splitting: bool = False
+
+    def default_stat(self) -> Any:
+        from plotten.stats._contour import StatContour
+
+        return StatContour()
+
+    def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
+        x = np.asarray(data["x"], dtype=float)
+        y = np.asarray(data["y"], dtype=float)
+        z = np.asarray(data["z"], dtype=float)
+
+        xi = np.sort(np.unique(x))
+        yi = np.sort(np.unique(y))
+        zz = z.reshape(len(yi), len(xi))
+
+        levels = params.get("bins", 10)
+        alpha = params.get("alpha", 1.0)
+        cmap = params.get("cmap", "viridis")
+        ax.contourf(xi, yi, zz, levels=levels, alpha=alpha, cmap=cmap)

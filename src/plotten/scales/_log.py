@@ -9,7 +9,7 @@ class ScaleLog(ScaleContinuous):
     """Logarithmic scale for position aesthetics."""
 
     def __init__(self, aesthetic: str = "x", base: int = 10) -> None:
-        super().__init__(aesthetic, padding=0.0)
+        super().__init__(aesthetic, expand=(0, 0))
         self._base = base
 
     def get_limits(self) -> tuple[float, float]:

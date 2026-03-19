@@ -58,8 +58,9 @@ class Plot:
             case _:
                 # Support new coord types
                 from plotten.coords._equal import CoordEqual, CoordFixed
+                from plotten.coords._polar import CoordPolar
 
-                if isinstance(other, CoordEqual | CoordFixed):
+                if isinstance(other, CoordEqual | CoordFixed | CoordPolar):
                     return self._replace(coord=other)
                 return NotImplemented
 

@@ -27,6 +27,7 @@ class Aes:
     yend: str | AfterStat | AfterScale | None = None
     xmin: str | AfterStat | AfterScale | None = None
     xmax: str | AfterStat | AfterScale | None = None
+    z: str | AfterStat | AfterScale | None = None
 
     def __or__(self, other: Aes) -> Self:
         """Merge aesthetics. other's non-None fields win."""

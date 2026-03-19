@@ -1,9 +1,12 @@
 from plotten.stats._bin import StatBin
 from plotten.stats._bin2d import StatBin2d
 from plotten.stats._boxplot import StatBoxplot
+from plotten.stats._contour import StatContour
 from plotten.stats._count import StatCount
 from plotten.stats._density import StatDensity
+from plotten.stats._density2d import StatDensity2d
 from plotten.stats._ecdf import StatECDF
+from plotten.stats._function import StatFunction
 from plotten.stats._identity import StatIdentity
 from plotten.stats._qq import StatQQ, StatQQLine
 from plotten.stats._smooth import StatSmooth
@@ -14,9 +17,12 @@ __all__ = [
     "StatBin",
     "StatBin2d",
     "StatBoxplot",
+    "StatContour",
     "StatCount",
     "StatDensity",
+    "StatDensity2d",
     "StatECDF",
+    "StatFunction",
     "StatIdentity",
     "StatQQ",
     "StatQQLine",
