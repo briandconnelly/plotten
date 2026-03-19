@@ -52,29 +52,8 @@ def draw_legend(
     if not legend_groups:
         return
 
-    # Shrink main axes to make room for legend (not needed for tuple positions)
-    if not isinstance(pos, tuple):
-        match pos:
-            case LegendPosition.RIGHT:
-                for ax in main_axes:
-                    box = ax.get_position()
-                    ax.set_position((box.x0, box.y0, box.width * 0.85, box.height))
-            case LegendPosition.LEFT:
-                for ax in main_axes:
-                    box = ax.get_position()
-                    ax.set_position(
-                        (box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height)
-                    )
-            case LegendPosition.TOP:
-                for ax in main_axes:
-                    box = ax.get_position()
-                    ax.set_position((box.x0, box.y0, box.width, box.height * 0.85))
-            case LegendPosition.BOTTOM:
-                for ax in main_axes:
-                    box = ax.get_position()
-                    ax.set_position(
-                        (box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85)
-                    )
+    # Space for legends is handled by constrained_layout rect adjustment
+    # in _mpl._apply_legend(). No manual axes shrinking needed.
 
     # Draw each legend group
     for aes_name, title, scale in legend_groups:

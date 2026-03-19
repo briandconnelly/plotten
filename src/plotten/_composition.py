@@ -244,84 +244,90 @@ def render_grid(grid: PlotGrid) -> Any:
     leaves = _flatten_leaves(grid)
     n_leaves = max(len(leaves), 1)
 
-    # Create figure
-    fig = plt.figure(figsize=(6 * min(n_leaves, 3), 5 * max(1, (n_leaves + 2) // 3)))
+    ann = grid.annotation
+    has_title = ann is not None and ann.title is not None
+    has_subtitle = ann is not None and ann.subtitle is not None
+    has_caption = ann is not None and ann.caption is not None
 
-    # Create top-level gridspec
-    gs = GridSpec(1, 1, figure=fig)[0]
+    # Determine vertical regions
+    regions: list[str] = []
+    ratios: list[float] = []
+
+    if has_title or has_subtitle:
+        header_h = 0.09 if (has_title and has_subtitle) else 0.06
+        regions.append("header")
+        ratios.append(header_h)
+
+    regions.append("main")
+    ratios.append(1.0)
+
+    if has_caption:
+        regions.append("caption")
+        ratios.append(0.04)
+
+    # Create figure with constrained_layout
+    fig = plt.figure(
+        figsize=(6 * min(n_leaves, 3), 5 * max(1, (n_leaves + 2) // 3)),
+        layout="constrained",
+    )
+
+    if len(regions) == 1:
+        main_fig = fig
+    else:
+        subfigs_raw = fig.subfigures(len(regions), 1, height_ratios=ratios)
+        subfigs = list(subfigs_raw.flat) if hasattr(subfigs_raw, "flat") else [subfigs_raw]
+        main_fig = subfigs[regions.index("main")]
+
+        # Render header
+        if "header" in regions:
+            header_subfig = subfigs[regions.index("header")]
+            if has_title and has_subtitle and ann is not None:
+                header_subfig.suptitle(ann.title, fontsize=14, fontweight="bold", y=0.95, va="top")
+                header_subfig.text(
+                    0.5,
+                    0.25,
+                    ann.subtitle,
+                    ha="center",
+                    va="top",
+                    fontsize=11,
+                    color="#555555",
+                )
+            elif has_title and ann is not None:
+                header_subfig.suptitle(ann.title, fontsize=14, fontweight="bold")
+            elif has_subtitle and ann is not None:
+                header_subfig.suptitle(ann.subtitle, fontsize=11, color="#555555")
+
+        # Render caption
+        if "caption" in regions and ann is not None and ann.caption is not None:
+            caption_subfig = subfigs[regions.index("caption")]
+            caption_subfig.text(0.99, 0.5, ann.caption, ha="right", va="center", fontsize=9)
+
+    # Create top-level gridspec in the main region
+    gs = GridSpec(1, 1, figure=main_fig)[0]
 
     # Track leaf axes for tagging
     leaf_axes: list[Any] = []
 
-    _render_node(grid, fig, gs, leaf_axes, draw_legend=not grid.collect_legends)
-
-    fig.tight_layout()
+    _render_node(grid, main_fig, gs, leaf_axes, draw_legend=not grid.collect_legends)
 
     # Draw shared legend if collect_legends is enabled
     if grid.collect_legends:
         _draw_shared_legend(fig, leaves)
 
-    # Apply annotation after tight_layout so we can adjust top properly
-    ann = grid.annotation
-    if ann is not None:
-        has_title = ann.title is not None
-        has_subtitle = ann.subtitle is not None
-
-        # Check if any leaf plots have their own titles
-        has_panel_titles = any(
-            getattr(p, "labs", None) is not None and getattr(p.labs, "title", None) is not None
-            for p in leaves
-        )
-        # Need more room when panel titles exist below the grid annotation
-        extra = 0.06 if has_panel_titles else 0.0
-
-        if has_title and has_subtitle:
-            title = ann.title
-            subtitle = ann.subtitle
-            if title is None or subtitle is None:
-                return fig  # unreachable; satisfies type checker
-            fig.suptitle(title, fontsize=14, fontweight="bold", y=0.98)
-            fig.text(
-                0.5,
-                0.915,
-                subtitle,
-                ha="center",
+    # Apply tags
+    if ann is not None and ann.tag_levels is not None:
+        for i, ax in enumerate(leaf_axes):
+            tag = _tag_label(i, ann.tag_levels)
+            ax.text(
+                0.02,
+                0.98,
+                tag,
+                transform=ax.transAxes,
+                fontsize=12,
+                fontweight="bold",
                 va="top",
-                fontsize=11,
-                color="#555555",
-                transform=fig.transFigure,
+                ha="left",
             )
-            fig.subplots_adjust(top=0.88 - extra)
-        elif has_title:
-            title = ann.title
-            if title is None:
-                return fig  # unreachable; satisfies type checker
-            fig.suptitle(title, fontsize=14, fontweight="bold")
-            fig.subplots_adjust(top=0.93 - extra)
-        elif has_subtitle:
-            subtitle = ann.subtitle
-            if subtitle is None:
-                return fig  # unreachable; satisfies type checker
-            fig.suptitle(subtitle, fontsize=11, color="#555555")
-            fig.subplots_adjust(top=0.93 - extra)
-
-        if ann.caption is not None:
-            cur_bottom = fig.subplotpars.bottom
-            fig.subplots_adjust(bottom=cur_bottom + 0.03)
-            fig.text(0.99, 0.005, ann.caption, ha="right", va="bottom", fontsize=9)
-        if ann.tag_levels is not None:
-            for i, ax in enumerate(leaf_axes):
-                tag = _tag_label(i, ann.tag_levels)
-                ax.text(
-                    0.02,
-                    0.98,
-                    tag,
-                    transform=ax.transAxes,
-                    fontsize=12,
-                    fontweight="bold",
-                    va="top",
-                    ha="left",
-                )
 
     return fig
 
@@ -358,10 +364,10 @@ def _draw_shared_legend(fig: Any, leaves: list[Any]) -> None:
         return
 
     theme: Theme = theme_get()
-    # Shrink all axes to make room for legend on the right
-    for ax in fig.get_axes():
-        box = ax.get_position()
-        ax.set_position((box.x0, box.y0, box.width * 0.85, box.height))
+    # Make room for legend via constrained_layout rect
+    engine = fig.get_layout_engine()
+    if engine is not None:
+        engine.set(rect=[0, 0, 0.85, 1])
 
     from plotten._enums import LegendPosition
 
