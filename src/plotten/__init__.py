@@ -32,6 +32,7 @@ from plotten._interaction import Interaction, interaction
 from plotten._labs import Labs, labs
 from plotten._plot import Plot, ggplot
 from plotten._validation import PlottenError, PlottenWarning
+from plotten._vegalite import to_html, to_vegalite
 from plotten._watermark import Watermark, watermark
 from plotten.coords import (
     CoordCartesian,
@@ -507,5 +508,7 @@ __all__ = [
     "theme_tufte",
     "theme_update",
     "theme_void",
+    "to_html",
+    "to_vegalite",
     "watermark",
 ]
