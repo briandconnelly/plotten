@@ -5,31 +5,34 @@ from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
     from plotten._computed import AfterScale, AfterStat
+    from plotten._interaction import Interaction
+
+AesValue = "str | AfterStat | AfterScale | Interaction | None"
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Aes:
     """Aesthetic mapping specification."""
 
-    x: str | AfterStat | AfterScale | None = None
-    y: str | AfterStat | AfterScale | None = None
-    color: str | AfterStat | AfterScale | None = None
-    fill: str | AfterStat | AfterScale | None = None
-    size: str | AfterStat | AfterScale | None = None
-    alpha: str | AfterStat | AfterScale | None = None
-    linetype: str | AfterStat | AfterScale | None = None
-    shape: str | AfterStat | AfterScale | None = None
-    label: str | AfterStat | AfterScale | None = None
-    ymin: str | AfterStat | AfterScale | None = None
-    ymax: str | AfterStat | AfterScale | None = None
-    group: str | AfterStat | AfterScale | None = None
-    xend: str | AfterStat | AfterScale | None = None
-    yend: str | AfterStat | AfterScale | None = None
-    xmin: str | AfterStat | AfterScale | None = None
-    xmax: str | AfterStat | AfterScale | None = None
-    z: str | AfterStat | AfterScale | None = None
-    angle: str | AfterStat | AfterScale | None = None
-    radius: str | AfterStat | AfterScale | None = None
+    x: str | AfterStat | AfterScale | Interaction | None = None
+    y: str | AfterStat | AfterScale | Interaction | None = None
+    color: str | AfterStat | AfterScale | Interaction | None = None
+    fill: str | AfterStat | AfterScale | Interaction | None = None
+    size: str | AfterStat | AfterScale | Interaction | None = None
+    alpha: str | AfterStat | AfterScale | Interaction | None = None
+    linetype: str | AfterStat | AfterScale | Interaction | None = None
+    shape: str | AfterStat | AfterScale | Interaction | None = None
+    label: str | AfterStat | AfterScale | Interaction | None = None
+    ymin: str | AfterStat | AfterScale | Interaction | None = None
+    ymax: str | AfterStat | AfterScale | Interaction | None = None
+    group: str | AfterStat | AfterScale | Interaction | None = None
+    xend: str | AfterStat | AfterScale | Interaction | None = None
+    yend: str | AfterStat | AfterScale | Interaction | None = None
+    xmin: str | AfterStat | AfterScale | Interaction | None = None
+    xmax: str | AfterStat | AfterScale | Interaction | None = None
+    z: str | AfterStat | AfterScale | Interaction | None = None
+    angle: str | AfterStat | AfterScale | Interaction | None = None
+    radius: str | AfterStat | AfterScale | Interaction | None = None
 
     def __or__(self, other: Aes) -> Self:
         """Merge aesthetics. other's non-None fields win."""
@@ -45,6 +48,6 @@ class Aes:
         )
 
 
-def aes(**kwargs: str) -> Aes:
+def aes(**kwargs: str | AfterStat | AfterScale | Interaction) -> Aes:
     """Convenience constructor for Aes."""
     return Aes(**kwargs)

@@ -15,6 +15,8 @@ from plotten.geoms._density import GeomDensity
 from plotten.geoms._density_ridges import GeomDensityRidges
 from plotten.geoms._dotplot import GeomDotplot
 from plotten.geoms._errorbar import GeomErrorbar
+from plotten.geoms._errorbarh import GeomErrorbarH
+from plotten.geoms._freqpoly import GeomFreqpoly
 from plotten.geoms._hex import GeomHex
 from plotten.geoms._histogram import GeomHistogram
 from plotten.geoms._line import GeomLine
@@ -75,6 +77,7 @@ geom_area = _make_geom_factory(GeomArea, "Create a filled area layer.")
 geom_ribbon = _make_geom_factory(GeomRibbon, "Create a ribbon (filled band) layer.")
 geom_tile = _make_geom_factory(GeomTile, "Create a tile (heatmap) layer.")
 geom_errorbar = _make_geom_factory(GeomErrorbar, "Create an errorbar layer.")
+geom_errorbarh = _make_geom_factory(GeomErrorbarH, "Create a horizontal errorbar layer.")
 geom_col = _make_geom_factory(GeomCol, "Create a column (pre-counted bar) layer.")
 geom_violin = _make_geom_factory(GeomViolin, "Create a violin plot layer.")
 geom_segment = _make_geom_factory(GeomSegment, "Create a segment layer.")
@@ -92,6 +95,21 @@ geom_spoke = _make_geom_factory(GeomSpoke, "Create a spoke (radial segment) laye
 
 
 # --- Non-standard factories (hand-written) ---
+def geom_freqpoly(bins: int = 30, **params: Any) -> Layer:
+    """Create a frequency polygon layer (line through bin midpoints)."""
+    from plotten.stats._bin import StatBin
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomFreqpoly(),
+        stat=StatBin(bins=bins),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     """Create a histogram layer."""
     from plotten.stats._bin import StatBin
@@ -243,6 +261,7 @@ def stat_summary(
     fun_y: str = "mean",
     fun_ymin: str = "mean_se_lower",
     fun_ymax: str = "mean_se_upper",
+    fun_data: str | Any = None,
     **params: Any,
 ) -> Layer:
     """Create a summary layer (point + error bars)."""
@@ -252,7 +271,7 @@ def stat_summary(
     mapping, params = _extract_aes(params)
     return Layer(
         geom=GeomSummary(),
-        stat=StatSummary(fun_y=fun_y, fun_ymin=fun_ymin, fun_ymax=fun_ymax),
+        stat=StatSummary(fun_y=fun_y, fun_ymin=fun_ymin, fun_ymax=fun_ymax, fun_data=fun_data),
         mapping=mapping,
         params=params,
         position=position,
@@ -416,6 +435,27 @@ def stat_density_2d_filled(**params: Any) -> Layer:
     )
 
 
+def stat_cor(
+    method: str = "pearson",
+    label_x: float = 0.1,
+    label_y: float = 0.9,
+    digits: int = 2,
+    **params: Any,
+) -> Layer:
+    """Overlay correlation coefficient and p-value text."""
+    from plotten.stats._cor import StatCor
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomText(),
+        stat=StatCor(method=method, label_x=label_x, label_y=label_y, digits=digits),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 def stat_poly_eq(
     degree: int = 1, label_x: float = 0.05, label_y: float = 0.95, **params: Any
 ) -> Layer:
@@ -491,6 +531,8 @@ __all__ = [
     "GeomDensityRidges",
     "GeomDotplot",
     "GeomErrorbar",
+    "GeomErrorbarH",
+    "GeomFreqpoly",
     "GeomHLine",
     "GeomHex",
     "GeomHistogram",
@@ -529,6 +571,8 @@ __all__ = [
     "geom_density_ridges",
     "geom_dotplot",
     "geom_errorbar",
+    "geom_errorbarh",
+    "geom_freqpoly",
     "geom_hex",
     "geom_histogram",
     "geom_hline",
@@ -554,6 +598,7 @@ __all__ = [
     "geom_tile",
     "geom_violin",
     "geom_vline",
+    "stat_cor",
     "stat_density_2d",
     "stat_density_2d_filled",
     "stat_ecdf",

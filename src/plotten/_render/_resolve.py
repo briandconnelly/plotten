@@ -88,13 +88,15 @@ def _merge_domain(target: ScaleBase, source: ScaleBase) -> None:
 
 def _separate_mappings(
     merged_aes: Aes,
-) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
-    """Separate merged aesthetics into normal, after_stat, and after_scale mappings."""
+) -> tuple[dict[str, str], dict[str, str], dict[str, str], dict[str, Any]]:
+    """Separate merged aesthetics into normal, after_stat, after_scale, and interaction mappings."""
     from plotten._computed import AfterScale, AfterStat
+    from plotten._interaction import Interaction
 
     normal: dict[str, str] = {}
     after_stat: dict[str, str] = {}
     after_scale: dict[str, str] = {}
+    interactions: dict[str, Any] = {}
 
     for aes_field in merged_aes.__dataclass_fields__:
         val = getattr(merged_aes, aes_field)
@@ -104,10 +106,12 @@ def _separate_mappings(
             after_stat[aes_field] = val.var
         elif isinstance(val, AfterScale):
             after_scale[aes_field] = val.var
+        elif isinstance(val, Interaction):
+            interactions[aes_field] = val
         else:
             normal[aes_field] = val
 
-    return normal, after_stat, after_scale
+    return normal, after_stat, after_scale, interactions
 
 
 _AUX_TO_POSITION = {"ymin": "y", "ymax": "y", "xmin": "x", "xmax": "x"}
@@ -186,7 +190,24 @@ def _resolve_layers(
             continue
 
         frame = nw.from_native(raw_data)
-        normal_mappings, after_stat_mappings, after_scale_mappings = _separate_mappings(merged_aes)
+        normal_mappings, after_stat_mappings, after_scale_mappings, interaction_mappings = (
+            _separate_mappings(merged_aes)
+        )
+
+        # Resolve interaction mappings: create combined columns
+        for aes_field, inter in interaction_mappings.items():
+            cols = inter.columns
+            # Paste column values together with "." separator
+            col_lists = [frame.get_column(c).to_list() for c in cols]
+            combined = [".".join(str(v) for v in vals) for vals in zip(*col_lists, strict=True)]
+            # Add as a new column named after the aesthetic
+            native = nw.to_native(frame)
+            backend = nw.get_native_namespace(native)
+            new_col_data = {aes_field: combined}
+            new_frame = nw.from_dict(new_col_data, backend=backend)
+            frame = nw.from_native(
+                nw.to_native(frame.with_columns(new_frame.get_column(aes_field)))
+            )
 
         # Rename columns based on aesthetic mapping
         rename_exprs = {

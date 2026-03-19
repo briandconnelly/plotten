@@ -1,0 +1,158 @@
+"""Tests for Phase 2A of v0.14.0: position_jitterdodge."""
+
+from __future__ import annotations
+
+import matplotlib
+import matplotlib.pyplot as plt
+
+matplotlib.use("Agg")
+
+import polars as pl
+
+import plotten
+from plotten._render._mpl import render
+from plotten.positions._jitterdodge import PositionJitterDodge
+
+
+class TestPositionJitterDodge:
+    def test_basic_construction(self):
+        pos = PositionJitterDodge()
+        assert pos.dodge_width == 0.75
+        assert pos.jitter_width == 0.1
+        assert pos.jitter_height == 0.0
+        assert pos.seed is None
+
+    def test_custom_params(self):
+        pos = PositionJitterDodge(dodge_width=0.5, jitter_width=0.2, jitter_height=0.1, seed=42)
+        assert pos.dodge_width == 0.5
+        assert pos.jitter_width == 0.2
+        assert pos.jitter_height == 0.1
+        assert pos.seed == 42
+
+    def test_no_x_returns_unchanged(self):
+        pos = PositionJitterDodge()
+        data = {"y": [1.0, 2.0, 3.0]}
+        result = pos.adjust(data, {})
+        assert result == data
+
+    def test_no_group_key_applies_jitter_only(self):
+        pos = PositionJitterDodge(jitter_width=0.1, seed=42)
+        data = {"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]}
+        result = pos.adjust(data, {})
+        # x should be jittered (slightly different)
+        for orig, adjusted in zip(data["x"], result["x"], strict=True):
+            assert abs(adjusted - orig) <= 0.05  # jitter_width / 2
+        # y should be unchanged (jitter_height=0)
+        assert result["y"] == data["y"]
+
+    def test_dodge_with_groups(self):
+        pos = PositionJitterDodge(dodge_width=0.75, jitter_width=0.0, seed=42)
+        data = {
+            "x": [1.0, 1.0, 2.0, 2.0],
+            "y": [10.0, 20.0, 30.0, 40.0],
+            "fill": ["A", "B", "A", "B"],
+        }
+        params: dict = {}
+        result = pos.adjust(data, params)
+
+        # With 2 groups and dodge_width=0.75, group_width=0.375
+        # Group A (idx 0): offset = (0 - 0.5) * 0.375 = -0.1875
+        # Group B (idx 1): offset = (1 - 0.5) * 0.375 = 0.1875
+        assert result["x"][0] < 1.0  # A dodged left
+        assert result["x"][1] > 1.0  # B dodged right
+        assert result["x"][2] < 2.0  # A dodged left
+        assert result["x"][3] > 2.0  # B dodged right
+
+    def test_dodge_and_jitter_combined(self):
+        pos = PositionJitterDodge(dodge_width=0.75, jitter_width=0.1, jitter_height=0.05, seed=42)
+        data = {
+            "x": [1.0, 1.0, 1.0, 1.0],
+            "y": [10.0, 20.0, 30.0, 40.0],
+            "color": ["A", "A", "B", "B"],
+        }
+        result = pos.adjust(data, {})
+
+        # All x values should be modified (dodge + jitter)
+        for orig, adjusted in zip(data["x"], result["x"], strict=True):
+            assert orig != adjusted
+
+        # y values should be jittered
+        for orig, adjusted in zip(data["y"], result["y"], strict=True):
+            assert abs(adjusted - orig) <= 0.025  # jitter_height / 2
+
+    def test_seed_reproducibility(self):
+        pos1 = PositionJitterDodge(jitter_width=0.1, seed=123)
+        pos2 = PositionJitterDodge(jitter_width=0.1, seed=123)
+        data = {"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]}
+        result1 = pos1.adjust(data, {})
+        result2 = pos2.adjust(data, {})
+        assert result1["x"] == result2["x"]
+
+    def test_single_group_jitter_only(self):
+        pos = PositionJitterDodge(jitter_width=0.1, seed=42)
+        data = {
+            "x": [1.0, 2.0, 3.0],
+            "y": [4.0, 5.0, 6.0],
+            "fill": ["A", "A", "A"],
+        }
+        result = pos.adjust(data, {})
+        # Single group: only jitter, no dodge
+        for orig, adjusted in zip(data["x"], result["x"], strict=True):
+            assert abs(adjusted - orig) <= 0.05
+
+    def test_group_key_detection_order(self):
+        """fill is checked before color."""
+        pos = PositionJitterDodge(dodge_width=0.75, jitter_width=0.0, seed=42)
+        data = {
+            "x": [1.0, 1.0],
+            "y": [10.0, 20.0],
+            "fill": ["A", "B"],
+            "color": ["X", "X"],
+        }
+        result = pos.adjust(data, {})
+        # Should dodge by fill (2 groups), not color (1 group)
+        assert result["x"][0] != result["x"][1]
+
+    def test_params_width_set(self):
+        pos = PositionJitterDodge(dodge_width=0.75, jitter_width=0.0)
+        data = {
+            "x": [1.0, 1.0],
+            "y": [10.0, 20.0],
+            "fill": ["A", "B"],
+        }
+        params: dict = {}
+        pos.adjust(data, params)
+        assert "width" in params
+
+
+class TestPositionJitterdodgeFactory:
+    def test_returns_position_jitterdodge(self):
+        pos = plotten.position_jitterdodge()
+        assert isinstance(pos, PositionJitterDodge)
+
+    def test_factory_params(self):
+        pos = plotten.position_jitterdodge(
+            dodge_width=0.5, jitter_width=0.2, jitter_height=0.1, seed=42
+        )
+        assert pos.dodge_width == 0.5
+        assert pos.jitter_width == 0.2
+        assert pos.jitter_height == 0.1
+        assert pos.seed == 42
+
+    def test_end_to_end_render(self):
+        """Ensure position_jitterdodge works in a full plot render."""
+        df = pl.DataFrame(
+            {
+                "category": ["A", "A", "B", "B", "A", "A", "B", "B"],
+                "group": ["X", "Y", "X", "Y", "X", "Y", "X", "Y"],
+                "value": [1.0, 2.0, 3.0, 4.0, 1.5, 2.5, 3.5, 4.5],
+            }
+        )
+        p = (
+            plotten.ggplot(df, plotten.aes(x="category", y="value", fill="group"))
+            + plotten.geom_point(position=plotten.position_jitterdodge(seed=42))
+            + plotten.scale_x_discrete()
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)

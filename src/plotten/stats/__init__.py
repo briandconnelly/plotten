@@ -2,6 +2,7 @@ from plotten.stats._bin import StatBin
 from plotten.stats._bin2d import StatBin2d
 from plotten.stats._boxplot import StatBoxplot
 from plotten.stats._contour import StatContour
+from plotten.stats._cor import StatCor
 from plotten.stats._count import StatCount
 from plotten.stats._count_overlap import StatCountOverlap
 from plotten.stats._density import StatDensity
@@ -24,6 +25,7 @@ __all__ = [
     "StatBin2d",
     "StatBoxplot",
     "StatContour",
+    "StatCor",
     "StatCount",
     "StatCountOverlap",
     "StatDensity",

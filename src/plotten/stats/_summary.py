@@ -19,6 +19,21 @@ _BUILTIN_FUNS: dict[str, Callable[[np.ndarray], float]] = {
     "mean_sd_upper": lambda v: float(np.mean(v) + np.std(v, ddof=1)),
 }
 
+FunDataResult = dict[str, float] | tuple[float, float, float]
+
+_BUILTIN_FUN_DATA: dict[str, Callable[[np.ndarray], FunDataResult]] = {
+    "median_hilow": lambda v: {
+        "y": float(np.median(v)),
+        "ymin": float(np.percentile(v, 25)),
+        "ymax": float(np.percentile(v, 75)),
+    },
+    "mean_range": lambda v: {
+        "y": float(np.mean(v)),
+        "ymin": float(np.min(v)),
+        "ymax": float(np.max(v)),
+    },
+}
+
 
 def _resolve_fun(fun: str | Callable[[np.ndarray], float]) -> Callable[[np.ndarray], float]:
     if not isinstance(fun, str):
@@ -27,6 +42,24 @@ def _resolve_fun(fun: str | Callable[[np.ndarray], float]) -> Callable[[np.ndarr
         return _BUILTIN_FUNS[fun]
     msg = f"Unknown summary function: {fun!r}"
     raise ValueError(msg)
+
+
+def _resolve_fun_data(
+    fun_data: str | Callable[[np.ndarray], FunDataResult],
+) -> Callable[[np.ndarray], FunDataResult]:
+    if not isinstance(fun_data, str):
+        return fun_data
+    if fun_data in _BUILTIN_FUN_DATA:
+        return _BUILTIN_FUN_DATA[fun_data]
+    msg = f"Unknown fun_data function: {fun_data!r}"
+    raise ValueError(msg)
+
+
+def _normalize_fun_data_result(result: FunDataResult) -> tuple[float, float, float]:
+    """Convert a fun_data result to (y, ymin, ymax) tuple."""
+    if isinstance(result, dict):
+        return result["y"], result["ymin"], result["ymax"]
+    return result
 
 
 class StatSummary:
@@ -39,10 +72,15 @@ class StatSummary:
         fun_y: str | Callable = "mean",
         fun_ymin: str | Callable = "mean_se_lower",
         fun_ymax: str | Callable = "mean_se_upper",
+        fun_data: str | Callable | None = None,
     ) -> None:
-        self._fun_y = _resolve_fun(fun_y)
-        self._fun_ymin = _resolve_fun(fun_ymin)
-        self._fun_ymax = _resolve_fun(fun_ymax)
+        self._fun_data: Callable[[np.ndarray], FunDataResult] | None = None
+        if fun_data is not None:
+            self._fun_data = _resolve_fun_data(fun_data)
+        else:
+            self._fun_y = _resolve_fun(fun_y)
+            self._fun_ymin = _resolve_fun(fun_ymin)
+            self._fun_ymax = _resolve_fun(fun_ymax)
 
     def compute(self, df: Any) -> Any:
         frame = nw.from_native(df)
@@ -58,8 +96,14 @@ class StatSummary:
         for x_key in sorted(groups):
             vals = np.array(groups[x_key])
             result["x"].append(x_key)
-            result["y"].append(self._fun_y(vals))
-            result["ymin"].append(self._fun_ymin(vals))
-            result["ymax"].append(self._fun_ymax(vals))
+            if self._fun_data is not None:
+                y, ymin, ymax = _normalize_fun_data_result(self._fun_data(vals))
+                result["y"].append(y)
+                result["ymin"].append(ymin)
+                result["ymax"].append(ymax)
+            else:
+                result["y"].append(self._fun_y(vals))
+                result["ymin"].append(self._fun_ymin(vals))
+                result["ymax"].append(self._fun_ymax(vals))
 
         return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))
