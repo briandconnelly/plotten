@@ -8,64 +8,52 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
-def apply_scales(ax: Axes, scales: dict, *, polar: bool = False) -> None:
-    """Apply scale limits, breaks, and labels to axes."""
+def _apply_axis_scale(ax: Axes, scale: Any, axis: str, *, polar: bool) -> None:
+    """Apply a single axis scale (limits, breaks, labels, secondary axis)."""
     from plotten.scales._date import ScaleDateContinuous
     from plotten.scales._log import ScaleLog
     from plotten.scales._position import ScaleContinuous, ScaleDiscrete
     from plotten.scales._reverse import ScaleReverse
     from plotten.scales._sqrt import ScaleSqrt
 
+    set_scale = ax.set_xscale if axis == "x" else ax.set_yscale
+    set_lim = ax.set_xlim if axis == "x" else ax.set_ylim
+    set_ticks = ax.set_xticks if axis == "x" else ax.set_yticks
+    set_ticklabels = ax.set_xticklabels if axis == "x" else ax.set_yticklabels
+
+    match scale:
+        case ScaleLog():
+            set_scale("log", base=scale._base)
+        case ScaleSqrt():
+            import numpy as _np
+
+            set_scale("function", functions=(_np.sqrt, _np.square))
+            _apply_continuous_scale(ax, scale, axis=axis)
+        case _ if isinstance(scale, ScaleDateContinuous):
+            _apply_date_scale(ax, scale, axis=axis)
+        case ScaleReverse():
+            _apply_continuous_scale(ax, scale, axis=axis)
+        case ScaleDiscrete():
+            set_lim(scale.get_limits())
+            set_ticks(scale.get_breaks())
+            set_ticklabels(scale.get_labels())
+        case ScaleContinuous() if scale._breaks is not None or callable(scale._labels):
+            _apply_continuous_scale(ax, scale, axis=axis)
+        case _:
+            set_lim(scale.get_limits())
+
+    if not polar:
+        set_label = ax.set_xlabel if axis == "x" else ax.set_ylabel
+        set_label(axis)
+    _apply_sec_axis(ax, scale, axis=axis)
+
+
+def apply_scales(ax: Axes, scales: dict, *, polar: bool = False) -> None:
+    """Apply scale limits, breaks, and labels to axes."""
     if "x" in scales and not polar:
-        x_scale = scales["x"]
-        match x_scale:
-            case ScaleLog():
-                ax.set_xscale("log", base=x_scale._base)
-            case ScaleSqrt():
-                import numpy as _np
-
-                ax.set_xscale("function", functions=(_np.sqrt, _np.square))
-                _apply_continuous_scale(ax, x_scale, axis="x")
-            case _ if isinstance(x_scale, ScaleDateContinuous):
-                _apply_date_scale(ax, x_scale, axis="x")
-            case ScaleReverse():
-                _apply_continuous_scale(ax, x_scale, axis="x")
-            case ScaleDiscrete():
-                ax.set_xlim(x_scale.get_limits())
-                ax.set_xticks(x_scale.get_breaks())
-                ax.set_xticklabels(x_scale.get_labels())
-            case ScaleContinuous() if x_scale._breaks is not None or callable(x_scale._labels):
-                _apply_continuous_scale(ax, x_scale, axis="x")
-            case _:
-                ax.set_xlim(x_scale.get_limits())
-        ax.set_xlabel("x")
-        _apply_sec_axis(ax, x_scale, axis="x")
-
+        _apply_axis_scale(ax, scales["x"], "x", polar=polar)
     if "y" in scales:
-        y_scale = scales["y"]
-        match y_scale:
-            case ScaleLog():
-                ax.set_yscale("log", base=y_scale._base)
-            case ScaleSqrt():
-                import numpy as _np
-
-                ax.set_yscale("function", functions=(_np.sqrt, _np.square))
-                _apply_continuous_scale(ax, y_scale, axis="y")
-            case _ if isinstance(y_scale, ScaleDateContinuous):
-                _apply_date_scale(ax, y_scale, axis="y")
-            case ScaleReverse():
-                _apply_continuous_scale(ax, y_scale, axis="y")
-            case ScaleDiscrete():
-                ax.set_ylim(y_scale.get_limits())
-                ax.set_yticks(y_scale.get_breaks())
-                ax.set_yticklabels(y_scale.get_labels())
-            case ScaleContinuous() if y_scale._breaks is not None or callable(y_scale._labels):
-                _apply_continuous_scale(ax, y_scale, axis="y")
-            case _:
-                ax.set_ylim(y_scale.get_limits())
-        if not polar:
-            ax.set_ylabel("y")
-        _apply_sec_axis(ax, y_scale, axis="y")
+        _apply_axis_scale(ax, scales["y"], "y", polar=polar)
 
 
 def _apply_sec_axis(ax: Axes, scale: Any, axis: str) -> None:

@@ -86,6 +86,84 @@ def _merge_domain(target: ScaleBase, source: ScaleBase) -> None:
         target._domain_max = src_max
 
 
+def _separate_mappings(
+    merged_aes: Aes,
+) -> tuple[dict[str, str], dict[str, str], dict[str, str]]:
+    """Separate merged aesthetics into normal, after_stat, and after_scale mappings."""
+    from plotten._computed import AfterScale, AfterStat
+
+    normal: dict[str, str] = {}
+    after_stat: dict[str, str] = {}
+    after_scale: dict[str, str] = {}
+
+    for aes_field in merged_aes.__dataclass_fields__:
+        val = getattr(merged_aes, aes_field)
+        if val is None:
+            continue
+        if isinstance(val, AfterStat):
+            after_stat[aes_field] = val.var
+        elif isinstance(val, AfterScale):
+            after_scale[aes_field] = val.var
+        else:
+            normal[aes_field] = val
+
+    return normal, after_stat, after_scale
+
+
+_AUX_TO_POSITION = {"ymin": "y", "ymax": "y", "xmin": "x", "xmax": "x"}
+
+
+def _train_scales(frame: Any, data_dict: dict[str, Any], scales: dict[str, ScaleBase]) -> None:
+    """Infer and train scales from computed data. Mutates *scales* in-place."""
+    for aes_name in data_dict:
+        series = frame.get_column(aes_name)
+        if str(series.dtype).startswith(("List", "list", "Object", "object")):
+            continue
+        try:
+            if aes_name not in scales:
+                native_series = series.to_native()
+                scales[aes_name] = auto_scale(aes_name, native_series)
+            scales[aes_name].train(series.to_native())
+        except (TypeError, ValueError):
+            continue
+
+    # Widen position scales with auxiliary columns (ymin/ymax → y, xmin/xmax → x)
+    for aux_col, pos_aes in _AUX_TO_POSITION.items():
+        if aux_col in data_dict and pos_aes in scales:
+            try:
+                aux_series = frame.get_column(aux_col)
+                if not str(aux_series.dtype).startswith(("List", "list", "Object", "object")):
+                    scales[pos_aes].train(aux_series.to_native())
+            except (TypeError, ValueError, KeyError):
+                continue
+
+
+def _map_aesthetics(
+    frame: Any,
+    data_dict: dict[str, Any],
+    scales: dict[str, ScaleBase],
+    after_scale_mappings: dict[str, str],
+) -> None:
+    """Map non-position aesthetics through scales. Mutates *data_dict* in-place."""
+    from plotten.scales._position import ScaleDiscrete
+
+    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
+        if aes_name in data_dict and aes_name in scales:
+            scale = scales[aes_name]
+            native_series = frame.get_column(aes_name).to_native()
+            data_dict[aes_name] = scale.map_data(native_series)
+
+    # Map x/y through discrete scales for position adjustment
+    for pos in ("x", "y"):
+        if pos in data_dict and pos in scales and isinstance(scales[pos], ScaleDiscrete):
+            data_dict[pos] = scales[pos].map_data(frame.get_column(pos).to_native())
+
+    # Apply after_scale mappings
+    for aes_field, var_name in after_scale_mappings.items():
+        if var_name in data_dict:
+            data_dict[aes_field] = data_dict[var_name]
+
+
 def _resolve_layers(
     data: Any,
     plot_mapping: Aes,
@@ -96,10 +174,7 @@ def _resolve_layers(
     resolved_layers: list[ResolvedLayer] = []
 
     for layer in layers:
-        # 1. Merge global aes with per-layer aes
         merged_aes: Aes = plot_mapping | layer.mapping
-
-        # 2. Get data (layer override or passed-in data)
         raw_data = layer.data if layer.data is not None else data
 
         # Data-less layers (e.g. reference line geoms)
@@ -111,42 +186,22 @@ def _resolve_layers(
             continue
 
         frame = nw.from_native(raw_data)
+        normal_mappings, after_stat_mappings, after_scale_mappings = _separate_mappings(merged_aes)
 
-        # 2a. Separate AfterStat/AfterScale mappings from normal string mappings
-        from plotten._computed import AfterScale, AfterStat
-
-        normal_mappings: dict[str, str] = {}
-        after_stat_mappings: dict[str, str] = {}
-        after_scale_mappings: dict[str, str] = {}
-
-        for aes_field in merged_aes.__dataclass_fields__:
-            val = getattr(merged_aes, aes_field)
-            if val is None:
-                continue
-            if isinstance(val, AfterStat):
-                after_stat_mappings[aes_field] = val.var
-            elif isinstance(val, AfterScale):
-                after_scale_mappings[aes_field] = val.var
-            else:
-                normal_mappings[aes_field] = val
-
-        # 3. Rename columns based on aesthetic mapping (only normal string mappings)
-        rename_exprs = {}
-        for aes_field, col_name in normal_mappings.items():
-            if col_name in frame.columns and col_name != aes_field:
-                rename_exprs[col_name] = aes_field
-
+        # Rename columns based on aesthetic mapping
+        rename_exprs = {
+            col_name: aes_field
+            for aes_field, col_name in normal_mappings.items()
+            if col_name in frame.columns and col_name != aes_field
+        }
         if rename_exprs:
             frame = frame.rename(rename_exprs)
 
-        # 4. Run stat
+        # Run stat
         stat = layer.stat
         if stat is None:
             stat = layer.geom.default_stat()
 
-        # 3b. Validate required aesthetics
-        # When a non-identity stat is used, validate against the stat's requirements
-        # since the stat will produce the geom's other required aesthetics.
         from plotten._validation import validate_required_aes
         from plotten.stats._identity import StatIdentity
 
@@ -154,79 +209,27 @@ def _resolve_layers(
             validate_required_aes(layer.geom, merged_aes, frame.columns)
         else:
             validate_required_aes(stat, merged_aes, frame.columns)
-        native_data = nw.to_native(frame)
-        computed = stat.compute(native_data)
-        frame = nw.from_native(computed)
+        frame = nw.from_native(stat.compute(nw.to_native(frame)))
 
-        # 4a. Apply after_stat mappings: rename stat output column → aes field
+        # Apply after_stat mappings
         if after_stat_mappings:
             for aes_field, var_name in after_stat_mappings.items():
                 if var_name in frame.columns and var_name != aes_field:
-                    # Drop existing column if it would conflict
                     if aes_field in frame.columns:
                         frame = frame.drop(aes_field)
                     frame = frame.rename({var_name: aes_field})
 
-        # 5. Build data dict for the geom
-        data_dict: dict[str, Any] = {}
-        for col in frame.columns:
-            series = frame.get_column(col)
-            data_dict[col] = series.to_list()
+        # Build data dict
+        data_dict: dict[str, Any] = {col: frame.get_column(col).to_list() for col in frame.columns}
 
-        # 6. Infer and train scales (skip list-type columns like outliers_y, y_grid)
-        for aes_name, _values_list in data_dict.items():
-            series = frame.get_column(aes_name)
-            if str(series.dtype).startswith(("List", "list", "Object", "object")):
-                continue
-            try:
-                if aes_name not in scales:
-                    native_series = series.to_native()
-                    scales[aes_name] = auto_scale(aes_name, native_series)
-                scales[aes_name].train(series.to_native())
-            except (TypeError, ValueError):
-                continue
+        _train_scales(frame, data_dict, scales)
+        _map_aesthetics(frame, data_dict, scales, after_scale_mappings)
 
-        # 6b. Widen position scales with auxiliary columns (ymin/ymax → y, xmin/xmax → x)
-        _AUX_TO_POSITION = {"ymin": "y", "ymax": "y", "xmin": "x", "xmax": "x"}
-        for aux_col, pos_aes in _AUX_TO_POSITION.items():
-            if aux_col in data_dict and pos_aes in scales:
-                try:
-                    aux_series = frame.get_column(aux_col)
-                    if not str(aux_series.dtype).startswith(("List", "list", "Object", "object")):
-                        scales[pos_aes].train(aux_series.to_native())
-                except (TypeError, ValueError, KeyError):
-                    continue
-
-        # 7. Map aesthetics through scales
-        for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
-            if aes_name in data_dict and aes_name in scales:
-                scale = scales[aes_name]
-                native_series = frame.get_column(aes_name).to_native()
-                data_dict[aes_name] = scale.map_data(native_series)
-
-        # 7b. Map x/y through discrete scales for position adjustment
-        if "x" in data_dict and "x" in scales:
-            from plotten.scales._position import ScaleDiscrete as _SD
-
-            if isinstance(scales["x"], _SD):
-                data_dict["x"] = scales["x"].map_data(frame.get_column("x").to_native())
-        if "y" in data_dict and "y" in scales:
-            from plotten.scales._position import ScaleDiscrete as _SD2
-
-            if isinstance(scales["y"], _SD2):
-                data_dict["y"] = scales["y"].map_data(frame.get_column("y").to_native())
-
-        # 7a. Apply after_scale mappings
-        if after_scale_mappings:
-            for aes_field, var_name in after_scale_mappings.items():
-                if var_name in data_dict:
-                    data_dict[aes_field] = data_dict[var_name]
-
-        # 8. Apply position adjustment (after scale mapping)
+        # Position adjustment
         if layer.position is not None:
             data_dict = layer.position.adjust(data_dict, layer.params)
 
-        # 9. Group splitting for line-like geoms
+        # Group splitting for line-like geoms
         if getattr(layer.geom, "supports_group_splitting", False):
             group_key = _detect_group_key(data_dict)
             if group_key is not None:
@@ -239,7 +242,7 @@ def _resolve_layers(
                             position=layer.position,
                         )
                     )
-                continue  # skip the default append
+                continue
 
         resolved_layers.append(
             ResolvedLayer(
@@ -281,11 +284,45 @@ def _split_by_group(data_dict: dict[str, Any], group_key: str) -> list[dict[str,
     return result
 
 
+def _resolve_free_panels(
+    panel_data: list,
+    plot: Any,
+    explicit_scales: dict[str, ScaleBase],
+    free_axes: frozenset[str],
+    global_scales: dict[str, ScaleBase],
+    panels: list[ResolvedPanel],
+) -> None:
+    """Resolve panels with free scales, promoting shared scales to global."""
+    all_position_free = "x" in free_axes and "y" in free_axes
+
+    for label, subset in panel_data:
+        panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
+        layers, panel_scales = _resolve_layers(subset, plot.mapping, plot.layers, panel_scales)
+
+        if all_position_free:
+            # Only promote color/fill to global (first-wins, no domain merge)
+            for k in ("color", "fill"):
+                if k in panel_scales and k not in global_scales:
+                    global_scales[k] = panel_scales[k]
+        else:
+            # Promote everything non-free; merge domains for shared position scales
+            for k, v in panel_scales.items():
+                if k in free_axes:
+                    continue
+                if k not in global_scales:
+                    global_scales[k] = v
+                elif k in ("x", "y"):
+                    _merge_domain(global_scales[k], v)
+
+        panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
+
+
 def resolve(plot: Any) -> ResolvedPlot:
     """Walk a Plot spec and produce a ResolvedPlot."""
     from plotten._plot import Plot
 
-    assert isinstance(plot, Plot)
+    if not isinstance(plot, Plot):
+        raise TypeError(f"Expected Plot, got {type(plot).__name__}")
 
     # Collect explicit scales keyed by aesthetic
     explicit_scales: dict[str, ScaleBase] = {}
@@ -324,54 +361,15 @@ def resolve(plot: Any) -> ResolvedPlot:
                 )
                 panels.append(ResolvedPanel(label=label, layers=layers, scales={}))
 
-        case FacetScales.FREE:
-            # Each panel gets fully independent scales; color/fill also go to global
-            # for the legend.
-            for label, subset in panel_data:
-                panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
-                layers, panel_scales = _resolve_layers(
-                    subset, plot.mapping, plot.layers, panel_scales
-                )
-                # Promote color/fill scales to global so the legend can use them
-                for k in ("color", "fill"):
-                    if k in panel_scales and k not in global_scales:
-                        global_scales[k] = panel_scales[k]
-                panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
-
-        case FacetScales.FREE_X:
-            # y (and color/fill) are shared; x is per-panel
-            for label, subset in panel_data:
-                panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
-                layers, panel_scales = _resolve_layers(
-                    subset, plot.mapping, plot.layers, panel_scales
-                )
-                # Merge shared axes into global
-                for k, v in panel_scales.items():
-                    if k == "x":
-                        continue  # x is free
-                    if k not in global_scales:
-                        global_scales[k] = v
-                    elif k == "y":
-                        # Train the global scale with this panel's data
-                        _merge_domain(global_scales[k], v)
-                panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
-
-        case FacetScales.FREE_Y:
-            # x (and color/fill) are shared; y is per-panel
-            for label, subset in panel_data:
-                panel_scales = {k: copy.deepcopy(v) for k, v in explicit_scales.items()}
-                layers, panel_scales = _resolve_layers(
-                    subset, plot.mapping, plot.layers, panel_scales
-                )
-                # Merge shared axes into global
-                for k, v in panel_scales.items():
-                    if k == "y":
-                        continue  # y is free
-                    if k not in global_scales:
-                        global_scales[k] = v
-                    elif k == "x":
-                        _merge_domain(global_scales[k], v)
-                panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
+        case FacetScales.FREE | FacetScales.FREE_X | FacetScales.FREE_Y:
+            free_axes: frozenset[str] = {
+                FacetScales.FREE: frozenset(("x", "y")),
+                FacetScales.FREE_X: frozenset(("x",)),
+                FacetScales.FREE_Y: frozenset(("y",)),
+            }[free_scales]
+            _resolve_free_panels(
+                panel_data, plot, explicit_scales, free_axes, global_scales, panels
+            )
 
     return ResolvedPlot(
         panels=panels,

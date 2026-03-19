@@ -29,10 +29,10 @@ def render_panel(
     # Grid — element overrides take precedence
     from plotten.themes._elements import ElementBlank, ElementLine
 
-    grid_major_x = getattr(theme, "grid_major_x", True)
-    grid_major_y = getattr(theme, "grid_major_y", True)
-    grid_minor_x = getattr(theme, "grid_minor_x", False)
-    grid_minor_y = getattr(theme, "grid_minor_y", False)
+    grid_major_x = theme.grid_major_x
+    grid_major_y = theme.grid_major_y
+    grid_minor_x = theme.grid_minor_x
+    grid_minor_y = theme.grid_minor_y
 
     # Element overrides for grid
     if isinstance(theme.panel_grid_major, ElementBlank):
@@ -79,16 +79,16 @@ def render_panel(
 
     # Axis line visibility
     if not is_polar_ax:
-        axis_line_x = getattr(theme, "axis_line_x", True)
-        axis_line_y = getattr(theme, "axis_line_y", True)
+        axis_line_x = theme.axis_line_x
+        axis_line_y = theme.axis_line_y
         ax.spines["bottom"].set_visible(axis_line_x)
         ax.spines["top"].set_visible(axis_line_x)
         ax.spines["left"].set_visible(axis_line_y)
         ax.spines["right"].set_visible(axis_line_y)
 
     # Panel border
-    panel_border_color = getattr(theme, "panel_border_color", None)
-    panel_border_width = getattr(theme, "panel_border_width", 1.0)
+    panel_border_color = theme.panel_border_color
+    panel_border_width = theme.panel_border_width
     if panel_border_color is not None:
         for spine in ax.spines.values():
             spine.set_visible(True)
@@ -96,10 +96,10 @@ def render_panel(
             spine.set_linewidth(panel_border_width)
 
     # Tick styling — per-axis sizes and rotation
-    axis_text_x_size = getattr(theme, "axis_text_x_size", None) or theme.tick_size
-    axis_text_y_size = getattr(theme, "axis_text_y_size", None) or theme.tick_size
-    axis_text_x_rotation = getattr(theme, "axis_text_x_rotation", 0)
-    axis_text_y_rotation = getattr(theme, "axis_text_y_rotation", 0)
+    axis_text_x_size = theme.axis_text_x_size or theme.tick_size
+    axis_text_y_size = theme.axis_text_y_size or theme.tick_size
+    axis_text_x_rotation = theme.axis_text_x_rotation
+    axis_text_y_rotation = theme.axis_text_y_rotation
 
     ax.tick_params(
         axis="x",
@@ -123,8 +123,8 @@ def render_panel(
         layer.geom.draw(draw_data, ax, layer.params)
 
     # Font — per-axis title sizes
-    axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
-    axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+    axis_title_x_size = theme.axis_title_x_size or theme.label_size
+    axis_title_y_size = theme.axis_title_y_size or theme.label_size
 
     ax.xaxis.label.set_fontfamily(theme.font_family)
     ax.yaxis.label.set_fontfamily(theme.font_family)

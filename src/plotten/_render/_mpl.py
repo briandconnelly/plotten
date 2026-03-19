@@ -42,8 +42,8 @@ def render_single(plot: Any, resolved: ResolvedPlot, fig: Any, ax: Any) -> None:
     labs = resolved.labs
     if labs is not None:
         if not isinstance(resolved.coord, CoordPolar):
-            axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
-            axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+            axis_title_x_size = theme.axis_title_x_size or theme.label_size
+            axis_title_y_size = theme.axis_title_y_size or theme.label_size
             if labs.x is not None:
                 ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
             if labs.y is not None:
@@ -120,9 +120,9 @@ def render(plot: Any) -> Figure:
             _apply_coord_limits(ax, resolved.coord, is_flipped)
 
             # Panel strip title
-            strip_bg = getattr(theme, "strip_background", "#d9d9d9")
-            strip_text_size = getattr(theme, "strip_text_size", None) or theme.label_size
-            strip_text_color = getattr(theme, "strip_text_color", "#000000")
+            strip_bg = theme.strip_background
+            strip_text_size = theme.strip_text_size or theme.label_size
+            strip_text_color = theme.strip_text_color
             ax.set_title(
                 panel.label,
                 fontsize=strip_text_size,
@@ -140,7 +140,7 @@ def render(plot: Any) -> Figure:
         fig.tight_layout(pad=theme.margin * 10)
         apply_title(fig, resolved, theme)
 
-        visible_axes = [axes[r][c] for idx in range(n_panels) for r, c in [divmod(idx, ncol)]]
+        visible_axes = [axes[idx // ncol][idx % ncol] for idx in range(n_panels)]
         draw_legend(fig, visible_axes, resolved.scales, resolved.labs, theme, resolved.guides)
 
     return fig

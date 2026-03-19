@@ -36,8 +36,8 @@ def apply_axis_labs(ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
     if isinstance(resolved.coord, CoordPolar):
         return
 
-    axis_title_x_size = getattr(theme, "axis_title_x_size", None) or theme.label_size
-    axis_title_y_size = getattr(theme, "axis_title_y_size", None) or theme.label_size
+    axis_title_x_size = theme.axis_title_x_size or theme.label_size
+    axis_title_y_size = theme.axis_title_y_size or theme.label_size
 
     if labs.x is not None:
         ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
@@ -55,11 +55,11 @@ def apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
         return
 
     polar = isinstance(resolved.coord, CoordPolar)
-    title_color = getattr(theme, "title_color", "#000000")
+    title_color = theme.title_color
     title_size = theme.title_size
     title_family = theme.font_family
-    subtitle_size = getattr(theme, "subtitle_size", None) or theme.label_size
-    subtitle_color = getattr(theme, "subtitle_color", "#555555")
+    subtitle_size = theme.subtitle_size or theme.label_size
+    subtitle_color = theme.subtitle_color
 
     # Apply element overrides
     if isinstance(theme.plot_title, ElementText):
@@ -84,11 +84,13 @@ def apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
     top_single = TOP_SINGLE_POLAR if polar else TOP_SINGLE_NORMAL
 
     if has_title and has_subtitle:
-        assert labs.title is not None
-        assert labs.subtitle is not None
+        title = labs.title
+        subtitle = labs.subtitle
+        if title is None or subtitle is None:
+            return  # unreachable; satisfies type checker
         sub_y = SUBTITLE_Y_POLAR if polar else SUBTITLE_Y_NORMAL
         fig.suptitle(
-            labs.title,
+            title,
             fontsize=title_size,
             fontfamily=title_family,
             color=title_color,
@@ -97,7 +99,7 @@ def apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
         fig.text(
             0.5,
             sub_y,
-            labs.subtitle,
+            subtitle,
             ha="center",
             va="top",
             fontsize=subtitle_size,
@@ -107,18 +109,22 @@ def apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
         )
         fig.subplots_adjust(top=top_both)
     elif has_title:
-        assert labs.title is not None
+        title = labs.title
+        if title is None:
+            return  # unreachable; satisfies type checker
         fig.suptitle(
-            labs.title,
+            title,
             fontsize=title_size,
             fontfamily=title_family,
             color=title_color,
         )
         fig.subplots_adjust(top=top_single)
     elif has_subtitle:
-        assert labs.subtitle is not None
+        subtitle = labs.subtitle
+        if subtitle is None:
+            return  # unreachable; satisfies type checker
         fig.suptitle(
-            labs.subtitle,
+            subtitle,
             fontsize=subtitle_size,
             fontfamily=theme.font_family,
             color=subtitle_color,

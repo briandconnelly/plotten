@@ -107,6 +107,83 @@ def _apply_guide_overrides(
     return entries
 
 
+def _draw_legend_entry(
+    legend_ax: Axes, entry: Any, y: float, step: float, legend_text_size: float, font_family: str
+) -> None:
+    """Draw a single legend entry (swatch + label) at position *y*."""
+    if entry.shape is not None:
+        legend_ax.scatter(
+            [0.12],
+            [y],
+            marker=entry.shape,
+            s=30,
+            c=entry.color or "black",
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif entry.linetype is not None:
+        legend_ax.plot(
+            [0.03, 0.2],
+            [y, y],
+            linestyle=entry.linetype,
+            color=entry.color or "black",
+            linewidth=1.5,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif entry.size is not None and entry.color is None and entry.fill is None:
+        legend_ax.scatter(
+            [0.12],
+            [y],
+            s=entry.size * 5,
+            c="black",
+            alpha=entry.alpha if entry.alpha is not None else 1.0,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif entry.alpha is not None and entry.color is None and entry.fill is None:
+        rect = Rectangle(
+            (0.05, y - step * 0.3),
+            0.15,
+            step * 0.6,
+            facecolor="black",
+            alpha=entry.alpha,
+            edgecolor="none",
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
+    elif entry.fill is not None:
+        rect = Rectangle(
+            (0.05, y - step * 0.3),
+            0.15,
+            step * 0.6,
+            facecolor=entry.fill,
+            edgecolor="none",
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
+    else:
+        rect = Rectangle(
+            (0.05, y - step * 0.3),
+            0.15,
+            step * 0.6,
+            facecolor=entry.color or "#cccccc",
+            edgecolor="none",
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
+
+    legend_ax.text(
+        0.25,
+        y,
+        entry.label,
+        fontsize=legend_text_size,
+        fontfamily=font_family,
+        verticalalignment="center",
+        transform=legend_ax.transAxes,
+    )
+
+
 def _draw_discrete_legend(
     fig: Figure,
     entries: list,
@@ -142,17 +219,16 @@ def _draw_discrete_legend(
     legend_ax.axis("off")
 
     # Legend background
-    legend_bg = getattr(theme, "legend_background", None)
+    legend_bg = theme.legend_background
     if legend_bg is not None:
         legend_ax.set_facecolor(legend_bg)
         legend_ax.patch.set_visible(True)
     else:
         legend_ax.patch.set_visible(False)
 
-    legend_title_size = getattr(theme, "legend_title_size", None) or theme.label_size
-    legend_text_size = getattr(theme, "legend_text_size", None) or theme.tick_size
+    legend_title_size = theme.legend_title_size or theme.label_size
+    legend_text_size = theme.legend_text_size or theme.tick_size
 
-    # Title
     legend_ax.text(
         0.05,
         0.95,
@@ -164,89 +240,12 @@ def _draw_discrete_legend(
         transform=legend_ax.transAxes,
     )
 
-    # Entries (top to bottom)
     y_start = 1.0 - title_height / total_height
     step = entry_height / total_height
 
     for i, entry in enumerate(entries):
         y = y_start - (i + 0.5) * step
-        if entry.shape is not None:
-            # Shape marker legend
-            legend_ax.scatter(
-                [0.12],
-                [y],
-                marker=entry.shape,
-                s=30,
-                c=entry.color or "black",
-                transform=legend_ax.transAxes,
-                clip_on=False,
-            )
-        elif entry.linetype is not None:
-            # Linetype legend
-            legend_ax.plot(
-                [0.03, 0.2],
-                [y, y],
-                linestyle=entry.linetype,
-                color=entry.color or "black",
-                linewidth=1.5,
-                transform=legend_ax.transAxes,
-                clip_on=False,
-            )
-        elif entry.size is not None and entry.color is None and entry.fill is None:
-            # Size-only legend (dot scaled by size)
-            legend_ax.scatter(
-                [0.12],
-                [y],
-                s=entry.size * 5,
-                c="black",
-                alpha=entry.alpha if entry.alpha is not None else 1.0,
-                transform=legend_ax.transAxes,
-                clip_on=False,
-            )
-        elif entry.alpha is not None and entry.color is None and entry.fill is None:
-            # Alpha-only legend
-            rect = Rectangle(
-                (0.05, y - step * 0.3),
-                0.15,
-                step * 0.6,
-                facecolor="black",
-                alpha=entry.alpha,
-                edgecolor="none",
-                transform=legend_ax.transAxes,
-            )
-            legend_ax.add_patch(rect)
-        elif entry.fill is not None:
-            # Fill rectangle
-            rect = Rectangle(
-                (0.05, y - step * 0.3),
-                0.15,
-                step * 0.6,
-                facecolor=entry.fill,
-                edgecolor="none",
-                transform=legend_ax.transAxes,
-            )
-            legend_ax.add_patch(rect)
-        else:
-            # Colored rectangle (default)
-            rect = Rectangle(
-                (0.05, y - step * 0.3),
-                0.15,
-                step * 0.6,
-                facecolor=entry.color or "#cccccc",
-                edgecolor="none",
-                transform=legend_ax.transAxes,
-            )
-            legend_ax.add_patch(rect)
-        # Label
-        legend_ax.text(
-            0.25,
-            y,
-            entry.label,
-            fontsize=legend_text_size,
-            fontfamily=theme.font_family,
-            verticalalignment="center",
-            transform=legend_ax.transAxes,
-        )
+        _draw_legend_entry(legend_ax, entry, y, step, legend_text_size, theme.font_family)
 
 
 def _draw_continuous_legend(
@@ -305,8 +304,8 @@ def _draw_continuous_legend(
         extent=(0, 1, 0, 1),
     )
 
-    legend_title_size = getattr(theme, "legend_title_size", None) or theme.label_size
-    legend_text_size = getattr(theme, "legend_text_size", None) or theme.tick_size
+    legend_title_size = theme.legend_title_size or theme.label_size
+    legend_text_size = theme.legend_text_size or theme.tick_size
 
     # Tick labels
     lo, hi = scale.get_limits()
