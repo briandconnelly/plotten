@@ -22,7 +22,14 @@ if TYPE_CHECKING:
     from matplotlib.figure import Figure
 
 
-def render_single(plot: Any, resolved: ResolvedPlot, fig: Any, ax: Any) -> None:
+def render_single(
+    plot: Any,
+    resolved: ResolvedPlot,
+    fig: Any,
+    ax: Any,
+    *,
+    draw_legend: bool = True,
+) -> None:
     """Render a single-panel resolved plot onto an existing fig/ax pair."""
     from plotten.coords._flip import CoordFlip
     from plotten.coords._polar import CoordPolar
@@ -84,6 +91,13 @@ def render(plot: Any) -> Figure:
         apply_scales(ax, resolved.scales, polar=is_polar)
         _apply_coord_limits(ax, resolved.coord, is_flipped)
         apply_axis_labs(ax, resolved, theme)
+
+        # Render insets
+        for inset in plot._insets:
+            inset_ax = fig.add_axes([inset.left, inset.bottom, inset.width, inset.height])
+            inset_resolved = resolve(inset.plot)
+            render_single(inset.plot, inset_resolved, fig, inset_ax)
+
         fig.tight_layout(pad=theme.margin * 10)
         apply_title(fig, resolved, theme)
         draw_legend(fig, [ax], resolved.scales, resolved.labs, theme, resolved.guides)
@@ -123,13 +137,36 @@ def render(plot: Any) -> Figure:
             strip_bg = theme.strip_background
             strip_text_size = theme.strip_text_size or theme.label_size
             strip_text_color = theme.strip_text_color
-            ax.set_title(
-                panel.label,
-                fontsize=strip_text_size,
-                color=strip_text_color,
-                pad=DEFAULT_STRIP_PAD,
-                bbox={"facecolor": strip_bg, "edgecolor": "none", "pad": DEFAULT_STRIP_BOX_PAD},
-            )
+            strip_position = getattr(resolved.facet, "strip_position", "top")
+            if strip_position == "bottom":
+                ax.set_title("")
+                ax.text(
+                    0.5,
+                    -0.15,
+                    panel.label,
+                    transform=ax.transAxes,
+                    ha="center",
+                    va="top",
+                    fontsize=strip_text_size,
+                    color=strip_text_color,
+                    bbox={
+                        "facecolor": strip_bg,
+                        "edgecolor": "none",
+                        "pad": DEFAULT_STRIP_BOX_PAD,
+                    },
+                )
+            else:
+                ax.set_title(
+                    panel.label,
+                    fontsize=strip_text_size,
+                    color=strip_text_color,
+                    pad=DEFAULT_STRIP_PAD,
+                    bbox={
+                        "facecolor": strip_bg,
+                        "edgecolor": "none",
+                        "pad": DEFAULT_STRIP_BOX_PAD,
+                    },
+                )
 
         # Hide empty axes
         for idx in range(n_panels, nrow * ncol):

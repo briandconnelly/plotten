@@ -6,6 +6,38 @@ from typing import Any
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class InsetElement:
+    """A plot to be rendered as an inset within another plot."""
+
+    plot: Any
+    left: float = 0.6
+    bottom: float = 0.6
+    width: float = 0.35
+    height: float = 0.35
+
+
+def inset_element(
+    plot: Any,
+    left: float = 0.6,
+    bottom: float = 0.6,
+    width: float = 0.35,
+    height: float = 0.35,
+) -> InsetElement:
+    """Create an inset plot element.
+
+    Parameters
+    ----------
+    plot : Plot
+        The plot to embed as an inset.
+    left, bottom : float
+        Position of the inset's lower-left corner in axes-fraction coordinates (0-1).
+    width, height : float
+        Size of the inset in axes-fraction coordinates (0-1).
+    """
+    return InsetElement(plot=plot, left=left, bottom=bottom, width=width, height=height)
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class PlotAnnotation:
     """Shared annotation for a plot grid."""
 
@@ -23,6 +55,7 @@ class PlotGrid:
     direction: str = "h"  # "h" or "v"
     widths: tuple[float, ...] | None = None
     annotation: PlotAnnotation | None = None
+    collect_legends: bool = False
 
     def _replace(self, **kwargs: Any) -> PlotGrid:
         from dataclasses import fields as dc_fields
@@ -96,8 +129,16 @@ def plot_grid(
     nrow: int | None = None,
     widths: list[float] | None = None,
     heights: list[float] | None = None,
+    guides: str | None = None,
 ) -> PlotGrid:
-    """Arrange plots into a grid."""
+    """Arrange plots into a grid.
+
+    Parameters
+    ----------
+    guides : str | None
+        If ``"collect"``, per-plot legends are suppressed and a single shared
+        legend is drawn on the right side of the figure.
+    """
     import math
 
     n = len(plots)
@@ -113,6 +154,8 @@ def plot_grid(
     else:
         ncol = min(n, 3)
         nrow = math.ceil(n / ncol)
+
+    do_collect = guides == "collect"
 
     # Build rows of HStacks, then VStack them
     rows: list[PlotGrid] = []
@@ -132,9 +175,13 @@ def plot_grid(
             rows.append(PlotGrid(plots=tuple(row_plots), direction="h", widths=row_widths))
 
     if len(rows) == 1:
-        return rows[0]
+        result = rows[0]
+    else:
+        result = PlotGrid(plots=tuple(rows), direction="v")
 
-    return PlotGrid(plots=tuple(rows), direction="v")
+    if do_collect:
+        result = result._replace(collect_legends=True)
+    return result
 
 
 def _flatten_leaves(node: Any) -> list[Any]:
@@ -206,9 +253,13 @@ def render_grid(grid: PlotGrid) -> Any:
     # Track leaf axes for tagging
     leaf_axes: list[Any] = []
 
-    _render_node(grid, fig, gs, leaf_axes)
+    _render_node(grid, fig, gs, leaf_axes, draw_legend=not grid.collect_legends)
 
     fig.tight_layout()
+
+    # Draw shared legend if collect_legends is enabled
+    if grid.collect_legends:
+        _draw_shared_legend(fig, leaves)
 
     # Apply annotation after tight_layout so we can adjust top properly
     ann = grid.annotation
@@ -275,7 +326,56 @@ def render_grid(grid: PlotGrid) -> Any:
     return fig
 
 
-def _render_node(node: Any, fig: Any, gs_slot: Any, leaf_axes: list) -> None:
+def _draw_shared_legend(fig: Any, leaves: list[Any]) -> None:
+    """Collect unique legend entries from all leaf plots and draw a shared legend."""
+    from plotten._render._legend import _draw_discrete_legend
+    from plotten._render._resolve import resolve
+    from plotten.themes._theme import Theme, theme_get
+
+    # Collect unique legend entries across all leaves
+    seen_labels: set[str] = set()
+    all_entries: list[Any] = []
+    shared_title = ""
+
+    for leaf in leaves:
+        resolved = resolve(leaf)
+        for aes_name in ("color", "fill", "shape", "linetype", "size", "alpha"):
+            if aes_name in resolved.scales:
+                scale = resolved.scales[aes_name]
+                entries = scale.legend_entries()
+                if entries:
+                    if not shared_title:
+                        labs = resolved.labs
+                        shared_title = (
+                            getattr(labs, aes_name, None) if labs is not None else None
+                        ) or aes_name
+                    for entry in entries:
+                        if entry.label not in seen_labels:
+                            seen_labels.add(entry.label)
+                            all_entries.append(entry)
+
+    if not all_entries:
+        return
+
+    theme: Theme = theme_get()
+    # Shrink all axes to make room for legend on the right
+    for ax in fig.get_axes():
+        box = ax.get_position()
+        ax.set_position((box.x0, box.y0, box.width * 0.85, box.height))
+
+    from plotten._enums import LegendPosition
+
+    _draw_discrete_legend(fig, all_entries, shared_title, LegendPosition.RIGHT, theme)
+
+
+def _render_node(
+    node: Any,
+    fig: Any,
+    gs_slot: Any,
+    leaf_axes: list,
+    *,
+    draw_legend: bool = True,
+) -> None:
     """Recursively render a PlotGrid tree into gridspec slots."""
     from plotten._plot import Plot
     from plotten._render._mpl import render_single
@@ -287,7 +387,7 @@ def _render_node(node: Any, fig: Any, gs_slot: Any, leaf_axes: list) -> None:
         polar_kw = {"projection": "polar"} if isinstance(node.coord, CoordPolar) else {}
         ax = fig.add_subplot(gs_slot, **polar_kw)
         resolved = resolve(node)
-        render_single(node, resolved, fig, ax)
+        render_single(node, resolved, fig, ax, draw_legend=draw_legend)
         leaf_axes.append(ax)
         return
 
@@ -305,8 +405,8 @@ def _render_node(node: Any, fig: Any, gs_slot: Any, leaf_axes: list) -> None:
                 ratios = [1.0] * n
             sub_gs = gs_slot.subgridspec(1, n, width_ratios=ratios)
             for i, child in enumerate(node.plots):
-                _render_node(child, fig, sub_gs[0, i], leaf_axes)
+                _render_node(child, fig, sub_gs[0, i], leaf_axes, draw_legend=draw_legend)
         else:  # "v"
             sub_gs = gs_slot.subgridspec(n, 1)
             for i, child in enumerate(node.plots):
-                _render_node(child, fig, sub_gs[i, 0], leaf_axes)
+                _render_node(child, fig, sub_gs[i, 0], leaf_axes, draw_legend=draw_legend)

@@ -25,11 +25,10 @@ def draw_legend(
     guides: dict[str, Any] | None = None,
 ) -> None:
     """Draw legends for color/fill scales."""
-    match theme.legend_position:
-        case LegendPosition.NONE:
-            return
-        case _:
-            pos = theme.legend_position
+    position = theme.legend_position
+    if isinstance(position, str) and position == LegendPosition.NONE:
+        return
+    pos = position
 
     guides = guides or {}
 
@@ -53,24 +52,29 @@ def draw_legend(
     if not legend_groups:
         return
 
-    # Shrink main axes to make room for legend
-    match pos:
-        case LegendPosition.RIGHT:
-            for ax in main_axes:
-                box = ax.get_position()
-                ax.set_position((box.x0, box.y0, box.width * 0.85, box.height))
-        case LegendPosition.LEFT:
-            for ax in main_axes:
-                box = ax.get_position()
-                ax.set_position((box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height))
-        case LegendPosition.TOP:
-            for ax in main_axes:
-                box = ax.get_position()
-                ax.set_position((box.x0, box.y0, box.width, box.height * 0.85))
-        case LegendPosition.BOTTOM:
-            for ax in main_axes:
-                box = ax.get_position()
-                ax.set_position((box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85))
+    # Shrink main axes to make room for legend (not needed for tuple positions)
+    if not isinstance(pos, tuple):
+        match pos:
+            case LegendPosition.RIGHT:
+                for ax in main_axes:
+                    box = ax.get_position()
+                    ax.set_position((box.x0, box.y0, box.width * 0.85, box.height))
+            case LegendPosition.LEFT:
+                for ax in main_axes:
+                    box = ax.get_position()
+                    ax.set_position(
+                        (box.x0 + box.width * 0.15, box.y0, box.width * 0.85, box.height)
+                    )
+            case LegendPosition.TOP:
+                for ax in main_axes:
+                    box = ax.get_position()
+                    ax.set_position((box.x0, box.y0, box.width, box.height * 0.85))
+            case LegendPosition.BOTTOM:
+                for ax in main_axes:
+                    box = ax.get_position()
+                    ax.set_position(
+                        (box.x0, box.y0 + box.height * 0.15, box.width, box.height * 0.85)
+                    )
 
     # Draw each legend group
     for aes_name, title, scale in legend_groups:
@@ -256,7 +260,7 @@ def _draw_discrete_legend(
     fig: Figure,
     entries: list,
     title: str,
-    position: str,
+    position: str | tuple[float, float],
     theme: Theme,
     guide_spec: Any = None,
 ) -> None:
@@ -273,19 +277,22 @@ def _draw_discrete_legend(
     total_height = title_height + nrow_legend * entry_height + 0.02
     legend_width = 0.12 * ncol
 
-    match position:
-        case LegendPosition.RIGHT:
-            x0 = 0.88
-            y0 = max(0.5 - total_height / 2, 0.05)
-        case LegendPosition.LEFT:
-            x0 = 0.01
-            y0 = max(0.5 - total_height / 2, 0.05)
-        case LegendPosition.TOP:
-            x0 = 0.5 - legend_width / 2
-            y0 = 0.88
-        case _:  # bottom
-            x0 = 0.5 - legend_width / 2
-            y0 = 0.01
+    if isinstance(position, tuple):
+        lx, ly = position
+        x0 = lx
+        y0 = max(ly - total_height, 0.0)
+    elif position == LegendPosition.RIGHT:
+        x0 = 0.88
+        y0 = max(0.5 - total_height / 2, 0.05)
+    elif position == LegendPosition.LEFT:
+        x0 = 0.01
+        y0 = max(0.5 - total_height / 2, 0.05)
+    elif position == LegendPosition.TOP:
+        x0 = 0.5 - legend_width / 2
+        y0 = 0.88
+    else:  # bottom
+        x0 = 0.5 - legend_width / 2
+        y0 = 0.01
 
     legend_ax = fig.add_axes((x0, y0, legend_width, total_height))
     legend_ax.set_xlim(0, 1)
@@ -344,7 +351,7 @@ def _draw_continuous_legend(
     entries: list,
     title: str,
     scale: ScaleColorContinuous,
-    position: str,
+    position: str | tuple[float, float],
     theme: Theme,
     guide_spec: Any = None,
 ) -> None:
@@ -358,15 +365,17 @@ def _draw_continuous_legend(
         barwidth = getattr(guide_spec, "barwidth", None)
         barheight = getattr(guide_spec, "barheight", None)
 
-    match position:
-        case LegendPosition.RIGHT:
-            x0, y0, w, h = 0.89, 0.15, 0.03, 0.6
-        case LegendPosition.LEFT:
-            x0, y0, w, h = 0.02, 0.15, 0.03, 0.6
-        case LegendPosition.TOP:
-            x0, y0, w, h = 0.2, 0.92, 0.5, 0.03
-        case _:  # bottom
-            x0, y0, w, h = 0.2, 0.02, 0.5, 0.03
+    if isinstance(position, tuple):
+        lx, ly = position
+        x0, y0, w, h = lx, max(ly - 0.6, 0.0), 0.03, 0.6
+    elif position == LegendPosition.RIGHT:
+        x0, y0, w, h = 0.89, 0.15, 0.03, 0.6
+    elif position == LegendPosition.LEFT:
+        x0, y0, w, h = 0.02, 0.15, 0.03, 0.6
+    elif position == LegendPosition.TOP:
+        x0, y0, w, h = 0.2, 0.92, 0.5, 0.03
+    else:  # bottom
+        x0, y0, w, h = 0.2, 0.02, 0.5, 0.03
 
     if barwidth is not None:
         w = barwidth

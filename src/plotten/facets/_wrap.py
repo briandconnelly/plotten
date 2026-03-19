@@ -2,9 +2,12 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
 
 
 @dataclass(frozen=True, slots=True)
@@ -15,6 +18,9 @@ class FacetWrap:
     nrow: int | None = None
     ncol: int | None = None
     scales: str = "fixed"
+    labeller: Callable[[str], str] | None = None
+    drop: bool = True
+    strip_position: str = "top"
 
     def facet_data(self, data: Any) -> list[tuple[str, Any]]:
         """Split data by faceting column. Returns (label, native_df) pairs."""
@@ -23,7 +29,8 @@ class FacetWrap:
         result = []
         for level in levels:
             subset = frame.filter(nw.col(self.facets) == level)
-            result.append((str(level), nw.to_native(subset)))
+            label = self.labeller(str(level)) if self.labeller else str(level)
+            result.append((label, nw.to_native(subset)))
         return result
 
     def layout(self, n_panels: int) -> tuple[int, int]:
@@ -46,6 +53,17 @@ def facet_wrap(
     nrow: int | None = None,
     ncol: int | None = None,
     scales: str = "fixed",
+    labeller: Callable[[str], str] | None = None,
+    drop: bool = True,
+    strip_position: str = "top",
 ) -> FacetWrap:
     """Create a FacetWrap specification."""
-    return FacetWrap(facets=facets, nrow=nrow, ncol=ncol, scales=scales)
+    return FacetWrap(
+        facets=facets,
+        nrow=nrow,
+        ncol=ncol,
+        scales=scales,
+        labeller=labeller,
+        drop=drop,
+        strip_position=strip_position,
+    )

@@ -29,7 +29,7 @@ class Theme:
 
     # Spacing
     margin: float = 0.1
-    legend_position: str = "right"
+    legend_position: str | tuple[float, float] = "right"
 
     # Per-axis text sizing
     axis_title_x_size: float | None = None

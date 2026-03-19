@@ -29,6 +29,7 @@ class Plot:
     facet: Any = None
     guides: dict | None = None
     _expand_limits: tuple = ()
+    _insets: tuple = ()
 
     def _replace(self, **kwargs: Any) -> Self:
         """Return a copy with given fields replaced."""
@@ -62,10 +63,15 @@ class Plot:
                 return self._replace(guides={**existing, **other})
             case _:
                 # Support new coord types
+                from plotten._composition import InsetElement
                 from plotten.coords._equal import CoordEqual, CoordFixed
                 from plotten.coords._polar import CoordPolar
 
-                if isinstance(other, CoordEqual | CoordFixed | CoordPolar):
+                if isinstance(other, InsetElement):
+                    return self._replace(_insets=(*self._insets, other))
+                from plotten.coords._trans import CoordTrans
+
+                if isinstance(other, CoordEqual | CoordFixed | CoordPolar | CoordTrans):
                     return self._replace(coord=other)
                 return NotImplemented
 

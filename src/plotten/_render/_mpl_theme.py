@@ -18,8 +18,6 @@ def render_panel(
     theme: Theme,
 ) -> None:
     """Draw layers and apply theme to a single axes."""
-    from plotten.coords._polar import CoordPolar
-
     # Background
     if theme.panel_background != "none":
         ax.set_facecolor(theme.panel_background)
@@ -118,8 +116,8 @@ def render_panel(
     coord = resolved.coord
     for layer in panel.layers:
         draw_data = layer.data
-        if isinstance(coord, CoordPolar):
-            draw_data = coord.transform_data(draw_data, resolved.scales)
+        if hasattr(coord, "transform_data"):
+            draw_data = coord.transform_data(draw_data, resolved.scales)  # type: ignore[union-attr]
         layer.geom.draw(draw_data, ax, layer.params)
 
     # Font — per-axis title sizes

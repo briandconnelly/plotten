@@ -3,7 +3,14 @@
 from plotten._aes import Aes, aes
 from plotten._annotate import annotate
 from plotten._arrow import Arrow, arrow
-from plotten._composition import PlotAnnotation, PlotGrid, plot_annotation, plot_grid
+from plotten._composition import (
+    InsetElement,
+    PlotAnnotation,
+    PlotGrid,
+    inset_element,
+    plot_annotation,
+    plot_grid,
+)
 from plotten._computed import AfterScale, AfterStat, after_scale, after_stat, stage
 from plotten._enums import (
     AnnotationType,
@@ -30,13 +37,23 @@ from plotten.coords import (
     CoordFixed,
     CoordFlip,
     CoordPolar,
+    CoordTrans,
     coord_cartesian,
     coord_equal,
     coord_fixed,
     coord_flip,
     coord_polar,
+    coord_trans,
 )
-from plotten.facets import FacetGrid, FacetWrap, facet_grid, facet_wrap
+from plotten.facets import (
+    FacetGrid,
+    FacetWrap,
+    facet_grid,
+    facet_wrap,
+    label_value,
+    labeller_both,
+    labeller_wrap,
+)
 from plotten.geoms import (
     geom_abline,
     geom_area,
@@ -223,6 +240,7 @@ __all__ = [
     "CoordFixed",
     "CoordFlip",
     "CoordPolar",
+    "CoordTrans",
     "ElementBlank",
     "ElementLine",
     "ElementRect",
@@ -233,6 +251,7 @@ __all__ = [
     "FacetWrap",
     "GuideColorbar",
     "GuideLegend",
+    "InsetElement",
     "Labs",
     "LegendEntry",
     "LegendPosition",
@@ -281,6 +300,7 @@ __all__ = [
     "coord_fixed",
     "coord_flip",
     "coord_polar",
+    "coord_trans",
     "dup_axis",
     "element_blank",
     "element_line",
@@ -334,11 +354,15 @@ __all__ = [
     "guide_colorbar",
     "guide_legend",
     "guides",
+    "inset_element",
     "label_comma",
     "label_dollar",
     "label_number",
     "label_percent",
     "label_scientific",
+    "label_value",
+    "labeller_both",
+    "labeller_wrap",
     "labs",
     "plot_annotation",
     "plot_grid",
