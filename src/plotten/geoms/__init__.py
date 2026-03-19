@@ -10,7 +10,9 @@ from plotten.geoms._boxplot import GeomBoxplot
 from plotten.geoms._col import GeomCol
 from plotten.geoms._contour import GeomContour, GeomContourFilled
 from plotten.geoms._crossbar import GeomCrossbar
+from plotten.geoms._curve import GeomCurve
 from plotten.geoms._density import GeomDensity
+from plotten.geoms._dotplot import GeomDotplot
 from plotten.geoms._errorbar import GeomErrorbar
 from plotten.geoms._hex import GeomHex
 from plotten.geoms._histogram import GeomHistogram
@@ -27,6 +29,7 @@ from plotten.geoms._ribbon import GeomRibbon
 from plotten.geoms._rug import GeomRug
 from plotten.geoms._segment import GeomSegment
 from plotten.geoms._smooth import GeomSmooth
+from plotten.geoms._spoke import GeomSpoke
 from plotten.geoms._step import GeomStep
 from plotten.geoms._summary import GeomSummary
 from plotten.geoms._text import GeomLabel, GeomText
@@ -83,6 +86,8 @@ geom_crossbar = _make_geom_factory(GeomCrossbar, "Create a crossbar layer.")
 geom_pointrange = _make_geom_factory(GeomPointrange, "Create a pointrange layer.")
 geom_linerange = _make_geom_factory(GeomLinerange, "Create a linerange layer.")
 geom_hex = _make_geom_factory(GeomHex, "Create a hexagonal binning layer.")
+geom_curve = _make_geom_factory(GeomCurve, "Create a curved line segment layer.")
+geom_spoke = _make_geom_factory(GeomSpoke, "Create a spoke (radial segment) layer.")
 
 
 # --- Non-standard factories (hand-written) ---
@@ -334,6 +339,42 @@ def stat_density_2d(**params: Any) -> Layer:
     )
 
 
+def geom_dotplot(bins: int = 30, **params: Any) -> Layer:
+    """Create a dotplot layer (stacked dots replacing histograms)."""
+    from plotten.stats._dotplot import StatDotplot
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomDotplot(),
+        stat=StatDotplot(bins=bins),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def stat_summary_bin(
+    bins: int = 30,
+    fun_y: str = "mean",
+    fun_ymin: str = "mean_se_lower",
+    fun_ymax: str = "mean_se_upper",
+    **params: Any,
+) -> Layer:
+    """Create a binned summary layer (point + error bars)."""
+    from plotten.stats._summary_bin import StatSummaryBin
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomSummary(),
+        stat=StatSummaryBin(bins=bins, fun_y=fun_y, fun_ymin=fun_ymin, fun_ymax=fun_ymax),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 def stat_density_2d_filled(**params: Any) -> Layer:
     """Create a filled 2D density contour layer."""
     from plotten.stats._density2d import StatDensity2d
@@ -359,7 +400,9 @@ __all__ = [
     "GeomContour",
     "GeomContourFilled",
     "GeomCrossbar",
+    "GeomCurve",
     "GeomDensity",
+    "GeomDotplot",
     "GeomErrorbar",
     "GeomHLine",
     "GeomHex",
@@ -377,6 +420,7 @@ __all__ = [
     "GeomRug",
     "GeomSegment",
     "GeomSmooth",
+    "GeomSpoke",
     "GeomStep",
     "GeomSummary",
     "GeomText",
@@ -392,7 +436,9 @@ __all__ = [
     "geom_contour",
     "geom_contour_filled",
     "geom_crossbar",
+    "geom_curve",
     "geom_density",
+    "geom_dotplot",
     "geom_errorbar",
     "geom_hex",
     "geom_histogram",
@@ -413,6 +459,7 @@ __all__ = [
     "geom_rug",
     "geom_segment",
     "geom_smooth",
+    "geom_spoke",
     "geom_step",
     "geom_text",
     "geom_tile",
@@ -423,4 +470,5 @@ __all__ = [
     "stat_ecdf",
     "stat_function",
     "stat_summary",
+    "stat_summary_bin",
 ]

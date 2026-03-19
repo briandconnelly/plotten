@@ -16,7 +16,7 @@ from plotten.themes._elements import (
     element_rect,
     element_text,
 )
-from plotten.themes._theme import Theme
+from plotten.themes._theme import Theme, theme
 
 __all__ = [
     "ElementBlank",
@@ -28,6 +28,7 @@ __all__ = [
     "element_line",
     "element_rect",
     "element_text",
+    "theme",
     "theme_bw",
     "theme_classic",
     "theme_dark",

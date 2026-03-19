@@ -214,7 +214,16 @@ def _resolve_layers(
         # Apply after_stat mappings
         if after_stat_mappings:
             for aes_field, var_name in after_stat_mappings.items():
-                if var_name in frame.columns and var_name != aes_field:
+                if var_name not in frame.columns:
+                    from plotten._validation import PlottenError
+
+                    available = sorted(frame.columns)
+                    raise PlottenError(
+                        f"after_stat('{var_name}') references a column that "
+                        f"does not exist in the stat output. "
+                        f"Available computed columns: {available}"
+                    )
+                if var_name != aes_field:
                     if aes_field in frame.columns:
                         frame = frame.drop(aes_field)
                     frame = frame.rename({var_name: aes_field})
@@ -317,6 +326,17 @@ def _resolve_free_panels(
         panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 
 
+def _apply_expand_limits(scales: dict[str, ScaleBase], expand_limits: tuple) -> None:
+    """Train position scales with sentinel values from expand_limits()."""
+    import pandas as pd
+
+    for el in expand_limits:
+        if el.x and "x" in scales:
+            scales["x"].train(pd.Series(list(el.x)))
+        if el.y and "y" in scales:
+            scales["y"].train(pd.Series(list(el.y)))
+
+
 def resolve(plot: Any) -> ResolvedPlot:
     """Walk a Plot spec and produce a ResolvedPlot."""
     from plotten._plot import Plot
@@ -335,6 +355,7 @@ def resolve(plot: Any) -> ResolvedPlot:
         # Single panel
         scales = dict(explicit_scales)
         layers, scales = _resolve_layers(plot.data, plot.mapping, plot.layers, scales)
+        _apply_expand_limits(scales, getattr(plot, "_expand_limits", ()))
         panel = ResolvedPanel(label="", layers=layers, scales={})
         return ResolvedPlot(
             panels=[panel],
@@ -370,6 +391,8 @@ def resolve(plot: Any) -> ResolvedPlot:
             _resolve_free_panels(
                 panel_data, plot, explicit_scales, free_axes, global_scales, panels
             )
+
+    _apply_expand_limits(global_scales, getattr(plot, "_expand_limits", ()))
 
     return ResolvedPlot(
         panels=panels,

@@ -2,6 +2,7 @@
 
 from plotten._aes import Aes, aes
 from plotten._annotate import annotate
+from plotten._arrow import Arrow, arrow
 from plotten._composition import PlotAnnotation, PlotGrid, plot_annotation, plot_grid
 from plotten._computed import AfterScale, AfterStat, after_scale, after_stat, stage
 from plotten._enums import (
@@ -11,6 +12,7 @@ from plotten._enums import (
     SizeUnit,
     SmoothMethod,
 )
+from plotten._expand_limits import ExpandLimits, expand_limits
 from plotten._guides import (
     GuideColorbar,
     GuideLegend,
@@ -44,7 +46,9 @@ from plotten.geoms import (
     geom_contour,
     geom_contour_filled,
     geom_crossbar,
+    geom_curve,
     geom_density,
+    geom_dotplot,
     geom_errorbar,
     geom_hex,
     geom_histogram,
@@ -65,6 +69,7 @@ from plotten.geoms import (
     geom_rug,
     geom_segment,
     geom_smooth,
+    geom_spoke,
     geom_step,
     geom_text,
     geom_tile,
@@ -75,6 +80,7 @@ from plotten.geoms import (
     stat_ecdf,
     stat_function,
     stat_summary,
+    stat_summary_bin,
 )
 from plotten.positions import (
     PositionDodge,
@@ -127,6 +133,7 @@ from plotten.scales import (
     scale_color_gradient,
     scale_color_gradient2,
     scale_color_manual,
+    scale_color_viridis,
     scale_fill_brewer,
     scale_fill_continuous,
     scale_fill_discrete,
@@ -134,6 +141,7 @@ from plotten.scales import (
     scale_fill_gradient,
     scale_fill_gradient2,
     scale_fill_manual,
+    scale_fill_viridis,
     scale_linetype_discrete,
     scale_linetype_manual,
     scale_shape_discrete,
@@ -167,6 +175,7 @@ from plotten.themes import (
     element_line,
     element_rect,
     element_text,
+    theme,
     theme_bw,
     theme_classic,
     theme_dark,
@@ -180,6 +189,7 @@ __all__ = [
     "AfterScale",
     "AfterStat",
     "AnnotationType",
+    "Arrow",
     "CoordCartesian",
     "CoordEqual",
     "CoordFixed",
@@ -189,6 +199,7 @@ __all__ = [
     "ElementLine",
     "ElementRect",
     "ElementText",
+    "ExpandLimits",
     "FacetGrid",
     "FacetScales",
     "FacetWrap",
@@ -233,6 +244,7 @@ __all__ = [
     "after_scale",
     "after_stat",
     "annotate",
+    "arrow",
     "coord_cartesian",
     "coord_equal",
     "coord_fixed",
@@ -243,6 +255,7 @@ __all__ = [
     "element_line",
     "element_rect",
     "element_text",
+    "expand_limits",
     "facet_grid",
     "facet_wrap",
     "geom_abline",
@@ -254,7 +267,9 @@ __all__ = [
     "geom_contour",
     "geom_contour_filled",
     "geom_crossbar",
+    "geom_curve",
     "geom_density",
+    "geom_dotplot",
     "geom_errorbar",
     "geom_hex",
     "geom_histogram",
@@ -275,6 +290,7 @@ __all__ = [
     "geom_rug",
     "geom_segment",
     "geom_smooth",
+    "geom_spoke",
     "geom_step",
     "geom_text",
     "geom_tile",
@@ -308,6 +324,7 @@ __all__ = [
     "scale_color_gradient",
     "scale_color_gradient2",
     "scale_color_manual",
+    "scale_color_viridis",
     "scale_fill_brewer",
     "scale_fill_continuous",
     "scale_fill_discrete",
@@ -315,6 +332,7 @@ __all__ = [
     "scale_fill_gradient",
     "scale_fill_gradient2",
     "scale_fill_manual",
+    "scale_fill_viridis",
     "scale_linetype_discrete",
     "scale_linetype_manual",
     "scale_shape_discrete",
@@ -343,6 +361,8 @@ __all__ = [
     "stat_ecdf",
     "stat_function",
     "stat_summary",
+    "stat_summary_bin",
+    "theme",
     "theme_bw",
     "theme_classic",
     "theme_dark",

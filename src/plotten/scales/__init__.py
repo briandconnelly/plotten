@@ -75,6 +75,7 @@ from plotten.scales._size import (
     scale_size_manual,
 )
 from plotten.scales._sqrt import ScaleSqrt, scale_x_sqrt, scale_y_sqrt
+from plotten.scales._viridis import scale_color_viridis, scale_fill_viridis
 
 __all__ = [
     "LegendEntry",
@@ -115,6 +116,7 @@ __all__ = [
     "scale_color_gradient",
     "scale_color_gradient2",
     "scale_color_manual",
+    "scale_color_viridis",
     "scale_fill_brewer",
     "scale_fill_continuous",
     "scale_fill_discrete",
@@ -122,6 +124,7 @@ __all__ = [
     "scale_fill_gradient",
     "scale_fill_gradient2",
     "scale_fill_manual",
+    "scale_fill_viridis",
     "scale_linetype_discrete",
     "scale_linetype_manual",
     "scale_shape_discrete",

@@ -20,6 +20,8 @@ class AnnotationType(StrEnum):
     TEXT = "text"
     RECT = "rect"
     SEGMENT = "segment"
+    CURVE = "curve"
+    BRACKET = "bracket"
 
 
 class SmoothMethod(StrEnum):

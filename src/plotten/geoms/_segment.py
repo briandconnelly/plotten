@@ -54,12 +54,18 @@ class GeomSegment:
                 lw = sizes[i] if isinstance(sizes, list) else (sizes or default_linewidth)
 
                 if arrow:
+                    from plotten._arrow import Arrow
+
+                    if isinstance(arrow, Arrow):
+                        arrowstyle = arrow.to_arrowstyle()
+                    else:
+                        arrowstyle = "->"
                     ax.annotate(
                         "",
                         xy=(xends[i], yends[i]),
                         xytext=(xs[i], ys[i]),
                         arrowprops={
-                            "arrowstyle": "->",
+                            "arrowstyle": arrowstyle,
                             "color": c,
                             "alpha": a,
                             "linestyle": ls,

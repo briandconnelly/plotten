@@ -2,7 +2,7 @@
 
 import polars as pl
 
-from plotten import geom_point, geom_segment, ggplot, labs
+from plotten import arrow, geom_point, geom_segment, ggplot, labs
 
 # Network-style plot with arrows
 nodes = pl.DataFrame(
@@ -23,7 +23,9 @@ edges = pl.DataFrame(
 
 plot = (
     ggplot()
-    + geom_segment(data=edges, x="x", y="y", xend="xend", yend="yend", arrow=True, size=1.2)
+    + geom_segment(
+        data=edges, x="x", y="y", xend="xend", yend="yend", arrow=arrow(style="closed"), size=1.2
+    )
     + geom_point(data=nodes, x="x", y="y", size=120, color="steelblue", alpha=0.9)
     + labs(title="Network Graph with Arrows", x="", y="")
 )

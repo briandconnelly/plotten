@@ -98,3 +98,24 @@ class Theme:
             else:
                 kwargs[f.name] = getattr(self, f.name)
         return type(self)(**kwargs)
+
+
+def theme(**kwargs: Any) -> Theme:
+    """Create a partial theme for incremental overrides.
+
+    Validates that all keyword arguments are valid Theme fields,
+    then returns a Theme instance suitable for composition via ``+``.
+
+    Usage::
+
+        ggplot(...) + theme_minimal() + theme(title_size=20, axis_text_x_rotation=45)
+    """
+    valid_fields = {f.name for f in fields(Theme)}
+    invalid = set(kwargs) - valid_fields
+    if invalid:
+        msg = (
+            f"Unknown theme properties: {sorted(invalid)}. "
+            f"Valid properties: {sorted(valid_fields)}"
+        )
+        raise TypeError(msg)
+    return Theme(**kwargs)

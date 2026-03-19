@@ -22,9 +22,14 @@ class GeomText:
         fontsize = params.get("size", 10)
         ha = params.get("ha", "center")
         va = params.get("va", "center")
+        bbox = params.get("bbox")
+
+        kwargs: dict[str, Any] = {"color": color, "fontsize": fontsize, "ha": ha, "va": va}
+        if bbox is not None:
+            kwargs["bbox"] = bbox
 
         for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
-            ax.text(x, y, str(label), color=color, fontsize=fontsize, ha=ha, va=va)
+            ax.text(x, y, str(label), **kwargs)
 
 
 class GeomLabel:

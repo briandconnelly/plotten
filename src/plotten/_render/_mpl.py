@@ -136,7 +136,7 @@ def render(plot: Any) -> Figure:
             r, c = divmod(idx, ncol)
             axes[r][c].set_visible(False)
 
-        apply_axis_labs(axes[0][0], resolved, theme)
+        _apply_facet_axis_labs(axes, resolved, theme, n_panels, nrow, ncol)
         fig.tight_layout(pad=theme.margin * 10)
         apply_title(fig, resolved, theme)
 
@@ -144,6 +144,43 @@ def render(plot: Any) -> Figure:
         draw_legend(fig, visible_axes, resolved.scales, resolved.labs, theme, resolved.guides)
 
     return fig
+
+
+def _apply_facet_axis_labs(
+    axes: Any,
+    resolved: ResolvedPlot,
+    theme: Theme,
+    n_panels: int,
+    nrow: int,
+    ncol: int,
+) -> None:
+    """Apply shared edge labels for faceted plots.
+
+    Bottom-row panels get x-labels, left-column panels get y-labels,
+    interior panels suppress labels and tick text.
+    """
+    labs_obj = resolved.labs
+    axis_title_x_size = theme.axis_title_x_size or theme.label_size
+    axis_title_y_size = theme.axis_title_y_size or theme.label_size
+
+    for idx in range(n_panels):
+        r, c = divmod(idx, ncol)
+        ax = axes[r][c]
+
+        # Bottom row (or last row with panels) gets x label
+        is_bottom = (r == nrow - 1) or (idx + ncol >= n_panels)
+        if is_bottom and labs_obj and labs_obj.x:
+            ax.set_xlabel(labs_obj.x, fontsize=axis_title_x_size)
+        elif not is_bottom:
+            ax.set_xlabel("")
+            ax.tick_params(axis="x", labelbottom=False)
+
+        # Left column gets y label
+        if c == 0 and labs_obj and labs_obj.y:
+            ax.set_ylabel(labs_obj.y, fontsize=axis_title_y_size)
+        elif c != 0:
+            ax.set_ylabel("")
+            ax.tick_params(axis="y", labelleft=False)
 
 
 def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:

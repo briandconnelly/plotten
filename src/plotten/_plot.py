@@ -28,6 +28,7 @@ class Plot:
     labs: Labs = field(default_factory=Labs)
     facet: Any = None
     guides: dict | None = None
+    _expand_limits: tuple = ()
 
     def _replace(self, **kwargs: Any) -> Self:
         """Return a copy with given fields replaced."""
@@ -38,6 +39,8 @@ class Plot:
         return type(self)(**vals)
 
     def __add__(self, other: Any) -> Plot:
+        from plotten._expand_limits import ExpandLimits
+
         match other:
             case Layer():
                 return self._replace(layers=(*self.layers, other))
@@ -51,6 +54,8 @@ class Plot:
                 return self._replace(coord=other)
             case FacetWrap() | FacetGrid():
                 return self._replace(facet=other)
+            case ExpandLimits():
+                return self._replace(_expand_limits=(*self._expand_limits, other))
             case dict():
                 # Guides dict
                 existing = self.guides or {}

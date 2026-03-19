@@ -184,6 +184,74 @@ def _draw_legend_entry(
     )
 
 
+def _draw_legend_entry_at(
+    legend_ax: Axes,
+    entry: Any,
+    x_offset: float,
+    col_width: float,
+    y: float,
+    step: float,
+    legend_text_size: float,
+    font_family: str,
+) -> None:
+    """Draw a legend entry at a specific column offset for multi-column layout."""
+    swatch_x = x_offset + 0.05 * col_width
+    swatch_cx = x_offset + 0.12 * col_width
+    swatch_w = 0.15 * col_width
+    text_x = x_offset + 0.25 * col_width
+
+    if entry.shape is not None:
+        legend_ax.scatter(
+            [swatch_cx],
+            [y],
+            marker=entry.shape,
+            s=30,
+            c=entry.color or "black",
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif entry.linetype is not None:
+        legend_ax.plot(
+            [swatch_x, swatch_x + swatch_w],
+            [y, y],
+            linestyle=entry.linetype,
+            color=entry.color or "black",
+            linewidth=1.5,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif entry.fill is not None:
+        rect = Rectangle(
+            (swatch_x, y - step * 0.3),
+            swatch_w,
+            step * 0.6,
+            facecolor=entry.fill,
+            edgecolor="none",
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
+    else:
+        rect = Rectangle(
+            (swatch_x, y - step * 0.3),
+            swatch_w,
+            step * 0.6,
+            facecolor=entry.color or "#cccccc",
+            edgecolor="none",
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
+
+    legend_ax.text(
+        text_x,
+        y,
+        entry.label,
+        fontsize=legend_text_size,
+        fontfamily=font_family,
+        verticalalignment="center",
+        transform=legend_ax.transAxes,
+    )
+
+
 def _draw_discrete_legend(
     fig: Figure,
     entries: list,
@@ -193,11 +261,17 @@ def _draw_discrete_legend(
     guide_spec: Any = None,
 ) -> None:
     """Draw a discrete legend with colored rectangles and text labels."""
+    # Determine number of columns from guide spec
+    ncol = 1
+    if guide_spec is not None:
+        ncol = getattr(guide_spec, "ncol", None) or 1
+
     n_entries = len(entries)
+    nrow_legend = -(-n_entries // ncol)  # ceiling division
     entry_height = 0.03
     title_height = 0.04
-    total_height = title_height + n_entries * entry_height + 0.02
-    legend_width = 0.12
+    total_height = title_height + nrow_legend * entry_height + 0.02
+    legend_width = 0.12 * ncol
 
     match position:
         case LegendPosition.RIGHT:
@@ -242,10 +316,27 @@ def _draw_discrete_legend(
 
     y_start = 1.0 - title_height / total_height
     step = entry_height / total_height
+    col_width = 1.0 / ncol
 
     for i, entry in enumerate(entries):
-        y = y_start - (i + 0.5) * step
-        _draw_legend_entry(legend_ax, entry, y, step, legend_text_size, theme.font_family)
+        row_idx = i // ncol
+        col_idx = i % ncol
+        y = y_start - (row_idx + 0.5) * step
+        if ncol > 1:
+            # Offset x positions for multi-column layout
+            x_offset = col_idx * col_width
+            _draw_legend_entry_at(
+                legend_ax,
+                entry,
+                x_offset,
+                col_width,
+                y,
+                step,
+                legend_text_size,
+                theme.font_family,
+            )
+        else:
+            _draw_legend_entry(legend_ax, entry, y, step, legend_text_size, theme.font_family)
 
 
 def _draw_continuous_legend(

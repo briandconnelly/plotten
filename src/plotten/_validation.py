@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import difflib
 import warnings
 from typing import Any
 
@@ -8,6 +9,16 @@ class PlottenError(Exception):
     """Custom exception with helpful messages for plotten users."""
 
     pass
+
+
+def _suggest_columns(missing: set[str] | frozenset[str], data_columns: list[str]) -> str:
+    """Suggest similar column names for missing aesthetics."""
+    suggestions: list[str] = []
+    for m in sorted(missing):
+        matches = difflib.get_close_matches(m, data_columns, n=2, cutoff=0.6)
+        if matches:
+            suggestions.append(f"  '{m}' — did you mean {matches}?")
+    return "\n" + "\n".join(suggestions) if suggestions else ""
 
 
 def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -> None:
@@ -30,10 +41,11 @@ def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -
         friendly = geom_name.replace("Geom", "geom_").lower()
         if friendly.startswith("_"):
             friendly = friendly[1:]
+        hint = _suggest_columns(missing, data_columns)
         raise PlottenError(
             f"{friendly} requires aesthetics {required}, "
             f"but {missing} {'is' if len(missing) == 1 else 'are'} "
-            f"not mapped or present in data"
+            f"not mapped or present in data{hint}"
         )
 
 

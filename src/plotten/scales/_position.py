@@ -13,6 +13,13 @@ import numpy as np
 from plotten.scales._base import ScaleBase
 
 
+def _smart_format(value: float) -> str:
+    """Format a number nicely: integers without decimals, others with ``:.6g``."""
+    if isinstance(value, float) and value == int(value):
+        return str(int(value))
+    return f"{value:.6g}"
+
+
 class ScaleContinuous(ScaleBase):
     """Linear scale for numeric position aesthetics."""
 
@@ -74,7 +81,7 @@ class ScaleContinuous(ScaleBase):
     def get_labels(self) -> list[str]:
         labels = self._labels
         if labels is None:
-            return [str(b) for b in self.get_breaks()]
+            return [_smart_format(b) for b in self.get_breaks()]
         if isinstance(labels, list):
             return labels.copy()  # type: ignore[return-value]
         return [labels(b) for b in self.get_breaks()]
