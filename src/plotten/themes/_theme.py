@@ -32,7 +32,7 @@ class Theme:
     margin: float = 0.1
     legend_position: str | tuple[float, float] = "right"
 
-    # Per-axis text sizing
+    # Per-axis text sizing (scalar shortcuts)
     axis_title_x_size: float | None = None
     axis_title_y_size: float | None = None
     axis_text_x_size: float | None = None
@@ -59,13 +59,13 @@ class Theme:
     legend_title_size: float | None = None
     legend_text_size: float | None = None
 
-    # Grid per-axis control
+    # Grid per-axis control (boolean shortcuts)
     grid_major_x: bool = True
     grid_major_y: bool = True
     grid_minor_x: bool = False
     grid_minor_y: bool = False
 
-    # Axis line visibility
+    # Axis line visibility (boolean shortcuts)
     axis_line_x: bool = True
     axis_line_y: bool = True
 
@@ -81,6 +81,55 @@ class Theme:
     strip_text: ElementText | ElementBlank | None = None
     legend_title_element: ElementText | ElementBlank | None = None
     legend_text_element: ElementText | ElementBlank | None = None
+
+    # Per-axis element overrides (ggplot2: axis.title.x, axis.title.y, etc.)
+    axis_title_x: ElementText | ElementBlank | None = None
+    axis_title_y: ElementText | ElementBlank | None = None
+    axis_text_x: ElementText | ElementBlank | None = None
+    axis_text_y: ElementText | ElementBlank | None = None
+
+    # Axis ticks element (ggplot2: axis.ticks, axis.ticks.x, axis.ticks.y)
+    axis_ticks: ElementLine | ElementBlank | None = None
+    axis_ticks_x: ElementLine | ElementBlank | None = None
+    axis_ticks_y: ElementLine | ElementBlank | None = None
+    axis_ticks_length_x: float | None = None
+    axis_ticks_length_y: float | None = None
+
+    # Axis line element (ggplot2: axis.line)
+    axis_line_element: ElementLine | ElementBlank | None = None
+
+    # Per-axis grid elements (ggplot2: panel.grid.major.x, etc.)
+    panel_grid_major_x: ElementLine | ElementBlank | None = None
+    panel_grid_major_y: ElementLine | ElementBlank | None = None
+    panel_grid_minor_x: ElementLine | ElementBlank | None = None
+    panel_grid_minor_y: ElementLine | ElementBlank | None = None
+
+    # Panel spacing for facets (ggplot2: panel.spacing)
+    panel_spacing: float = 0.08
+    panel_spacing_x: float | None = None
+    panel_spacing_y: float | None = None
+
+    # Strip per-axis (ggplot2: strip.text.x, strip.text.y, etc.)
+    strip_text_x: ElementText | ElementBlank | None = None
+    strip_text_y: ElementText | ElementBlank | None = None
+    strip_background_x: str | None = None
+    strip_background_y: str | None = None
+    strip_placement: str = "outside"
+
+    # Legend key (ggplot2: legend.key, legend.key.size, etc.)
+    legend_key: ElementRect | ElementBlank | None = None
+    legend_key_size: float = 20.0
+    legend_key_width: float | None = None
+    legend_key_height: float | None = None
+    legend_spacing: float = 4.0
+    legend_margin: float = 8.0
+
+    # Plot-level (ggplot2: plot.background, plot.margin)
+    plot_background: ElementRect | ElementBlank | None = None
+    plot_margin: tuple[float, float, float, float] | None = None
+
+    # Aspect ratio (ggplot2: aspect.ratio)
+    aspect_ratio: float | None = None
 
     def __add__(self, other: Theme) -> Self:
         """Layer *other* on top of *self*.

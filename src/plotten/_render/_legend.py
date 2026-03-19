@@ -69,9 +69,9 @@ def draw_legend(
             entries = _apply_guide_overrides(entries, guide_spec)
 
         if isinstance(scale, ScaleColorContinuous):
-            _draw_continuous_legend(fig, entries, title, scale, pos, theme, guide_spec)
+            _draw_continuous_legend(fig, entries, title, scale, pos, theme, guide_spec, main_axes)
         else:
-            _draw_discrete_legend(fig, entries, title, pos, theme, guide_spec)
+            _draw_discrete_legend(fig, entries, title, pos, theme, guide_spec, main_axes)
 
 
 def _apply_guide_overrides(
@@ -99,14 +99,17 @@ def _draw_legend_entry(
     legend_text_size: float,
     font_family: str,
     text_kw: dict[str, Any] | None = None,
+    *,
+    key_size: float = 20.0,
 ) -> None:
     """Draw a single legend entry (swatch + label) at position *y*."""
+    marker_s = 30 * (key_size / 20.0)
     if entry.shape is not None:
         legend_ax.scatter(
             [0.12],
             [y],
             marker=entry.shape,
-            s=30,
+            s=marker_s,
             c=entry.color or "black",
             transform=legend_ax.transAxes,
             clip_on=False,
@@ -189,19 +192,22 @@ def _draw_legend_entry_at(
     legend_text_size: float,
     font_family: str,
     text_kw: dict[str, Any] | None = None,
+    *,
+    key_size: float = 20.0,
 ) -> None:
     """Draw a legend entry at a specific column offset for multi-column layout."""
     swatch_x = x_offset + 0.05 * col_width
     swatch_cx = x_offset + 0.12 * col_width
     swatch_w = 0.15 * col_width
     text_x = x_offset + 0.25 * col_width
+    marker_s = 30 * (key_size / 20.0)
 
     if entry.shape is not None:
         legend_ax.scatter(
             [swatch_cx],
             [y],
             marker=entry.shape,
-            s=30,
+            s=marker_s,
             c=entry.color or "black",
             transform=legend_ax.transAxes,
             clip_on=False,
@@ -260,6 +266,7 @@ def _draw_discrete_legend(
     position: str | tuple[float, float],
     theme: Theme,
     guide_spec: Any = None,
+    main_axes: list[Axes] | None = None,
 ) -> None:
     """Draw a discrete legend with colored rectangles and text labels."""
     # Determine number of columns from guide spec
@@ -269,15 +276,25 @@ def _draw_discrete_legend(
 
     n_entries = len(entries)
     nrow_legend = -(-n_entries // ncol)  # ceiling division
-    entry_height = 0.03
+    # Scale entry height by legend_spacing (default 4.0 → 0.03)
+    entry_height = 0.03 * (theme.legend_spacing / 4.0)
     title_height = 0.04
-    total_height = title_height + nrow_legend * entry_height + 0.02
+    # Legend margin adds padding (default 8.0 → 0.02)
+    margin_pad = 0.02 * (theme.legend_margin / 8.0)
+    total_height = title_height + nrow_legend * entry_height + margin_pad
     legend_width = 0.12 * ncol
 
     if isinstance(position, tuple):
+        # Tuple coords are axes-relative (like ggplot2's c(x, y))
         lx, ly = position
-        x0 = lx
-        y0 = max(ly - total_height, 0.0)
+        if main_axes:
+            # Convert axes-relative to figure-relative
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x0 + lx * ax_bbox.width
+            y0 = ax_bbox.y0 + ly * ax_bbox.height - total_height
+        else:
+            x0 = lx
+            y0 = max(ly - total_height, 0.0)
     elif position == LegendPosition.RIGHT:
         x0 = 0.88
         y0 = max(0.5 - total_height / 2, 0.05)
@@ -303,6 +320,8 @@ def _draw_discrete_legend(
         legend_ax.patch.set_visible(True)
     else:
         legend_ax.patch.set_visible(False)
+
+    # Legend key background is available via theme.legend_key for future use
 
     legend_title_size = theme.legend_title_size or theme.label_size
     legend_text_size = theme.legend_text_size or theme.tick_size
@@ -366,6 +385,7 @@ def _draw_discrete_legend(
                 effective_text_size,
                 effective_text_family,
                 text_kw=entry_text_kw or None,
+                key_size=theme.legend_key_size,
             )
         else:
             _draw_legend_entry(
@@ -376,6 +396,7 @@ def _draw_discrete_legend(
                 effective_text_size,
                 effective_text_family,
                 text_kw=entry_text_kw or None,
+                key_size=theme.legend_key_size,
             )
 
 
@@ -387,6 +408,7 @@ def _draw_continuous_legend(
     position: str | tuple[float, float],
     theme: Theme,
     guide_spec: Any = None,
+    main_axes: list[Axes] | None = None,
 ) -> None:
     """Draw a continuous colorbar legend."""
     # Determine dimensions from guide spec or defaults
@@ -400,7 +422,13 @@ def _draw_continuous_legend(
 
     if isinstance(position, tuple):
         lx, ly = position
-        x0, y0, w, h = lx, max(ly - 0.6, 0.0), 0.03, 0.6
+        if main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x0 + lx * ax_bbox.width
+            y0 = ax_bbox.y0 + ly * ax_bbox.height - 0.6
+            w, h = 0.03, 0.6
+        else:
+            x0, y0, w, h = lx, max(ly - 0.6, 0.0), 0.03, 0.6
     elif position == LegendPosition.RIGHT:
         x0, y0, w, h = 0.89, 0.15, 0.03, 0.6
     elif position == LegendPosition.LEFT:

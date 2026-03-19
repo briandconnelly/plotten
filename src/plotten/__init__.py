@@ -1,5 +1,9 @@
 """plotten — a grammar-of-graphics plotting library for Python."""
 
+from importlib.metadata import version
+
+__version__ = version("plotten")
+
 from plotten._aes import Aes, aes
 from plotten._annotate import annotate
 from plotten._arrow import Arrow, arrow
@@ -249,6 +253,7 @@ from plotten.themes import (
     theme_get,
     theme_gray,
     theme_grey,
+    theme_linedraw,
     theme_minimal,
     theme_seaborn,
     theme_set,
@@ -327,6 +332,7 @@ __all__ = [
     "SmoothMethod",
     "Theme",
     "Watermark",
+    "__version__",
     "aes",
     "after_scale",
     "after_stat",
@@ -502,6 +508,7 @@ __all__ = [
     "theme_get",
     "theme_gray",
     "theme_grey",
+    "theme_linedraw",
     "theme_minimal",
     "theme_seaborn",
     "theme_set",

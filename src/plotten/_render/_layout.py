@@ -50,11 +50,30 @@ def create_figure(
         has_caption = False
 
     # Compute figsize
-    figsize = _compute_figsize(resolved)
+    figsize = _compute_figsize(resolved, theme)
 
     fig = plt.figure(figsize=figsize, layout="constrained")
-    fig.get_layout_engine().set(h_pad=0.08, w_pad=0.08)  # type: ignore[union-attr]
+    h_pad = theme.panel_spacing_y if theme.panel_spacing_y is not None else theme.panel_spacing
+    w_pad = theme.panel_spacing_x if theme.panel_spacing_x is not None else theme.panel_spacing
+    fig.get_layout_engine().set(h_pad=h_pad, w_pad=w_pad)  # type: ignore[union-attr]
     fig.patch.set_facecolor(theme.background)
+
+    # Plot margin via constrained_layout rect
+    if theme.plot_margin is not None:
+        top, right, bottom, left = theme.plot_margin
+        engine = fig.get_layout_engine()
+        if engine is not None:
+            engine.set(rect=(left, bottom, 1.0 - left - right, 1.0 - top - bottom))  # type: ignore[arg-type]
+
+    # Plot background element
+    from plotten.themes._elements import ElementRect
+
+    if isinstance(theme.plot_background, ElementRect):
+        if theme.plot_background.fill is not None:
+            fig.patch.set_facecolor(theme.plot_background.fill)
+        if theme.plot_background.color is not None:
+            fig.patch.set_edgecolor(theme.plot_background.color)
+            fig.patch.set_linewidth(theme.plot_background.size or 1.0)
 
     # Determine layout structure
     regions: list[str] = []
@@ -93,13 +112,19 @@ def create_figure(
     return fig, main_subfig, caption_subfig
 
 
-def _compute_figsize(resolved: ResolvedPlot) -> tuple[float, float]:
+def _compute_figsize(resolved: ResolvedPlot, theme: Theme | None = None) -> tuple[float, float]:
     """Compute figure size based on whether the plot is faceted."""
     if resolved.facet is not None:
         n_panels = len(resolved.panels)
         nrow, ncol = resolved.facet.layout(n_panels)
-        return (DEFAULT_FACET_CELL_WIDTH * ncol, DEFAULT_FACET_CELL_HEIGHT * nrow)
-    return DEFAULT_FIGSIZE
+        w, h = DEFAULT_FACET_CELL_WIDTH * ncol, DEFAULT_FACET_CELL_HEIGHT * nrow
+    else:
+        w, h = DEFAULT_FIGSIZE
+
+    # Apply aspect ratio if set
+    if theme is not None and theme.aspect_ratio is not None:
+        h = w * theme.aspect_ratio
+    return (w, h)
 
 
 def _render_header(
@@ -232,6 +257,19 @@ def apply_facet_decorations(
     )
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
+    # Per-axis strip overrides
+    strip_bg_x = theme.strip_background_x or strip_bg
+    strip_kw_x = (
+        text_props(
+            theme.strip_text_x,
+            theme,
+            default_size=theme.strip_text_size or theme.label_size,
+            default_color=theme.strip_text_color,
+        )
+        if theme.strip_text_x is not None
+        else strip_kw
+    )
+
     # Track which grid cells are occupied by panels
     occupied: set[tuple[int, int]] = set()
 
@@ -240,10 +278,16 @@ def apply_facet_decorations(
         occupied.add((r, c))
         ax = axes[r][c]
 
-        # Strip label kwargs — copy so pop doesn't affect subsequent iterations
-        skw = dict(strip_kw)
+        # Strip label kwargs — use per-axis overrides for x (top/bottom) strips
+        skw = dict(strip_kw_x)
         skw.pop("ha", None)
         skw.pop("va", None)
+        effective_strip_bg = strip_bg_x
+
+        # strip_placement: "inside" puts label inside panel, "outside" is default
+        inside = theme.strip_placement == "inside"
+        strip_y = 1.0 if not inside else 0.97
+        strip_pad = 6 if not inside else -14
 
         if strip_position == "bottom":
             # Use xlabel for bottom strip — constrained_layout handles spacing
@@ -252,7 +296,7 @@ def apply_facet_decorations(
                 resolved.panels[idx].label,
                 **skw,
                 bbox={
-                    "facecolor": strip_bg,
+                    "facecolor": effective_strip_bg,
                     "edgecolor": "none",
                     "pad": DEFAULT_STRIP_BOX_PAD,
                 },
@@ -260,10 +304,11 @@ def apply_facet_decorations(
         else:
             ax.set_title(
                 resolved.panels[idx].label,
-                pad=6,
+                pad=strip_pad,
+                y=strip_y,
                 **skw,
                 bbox={
-                    "facecolor": strip_bg,
+                    "facecolor": effective_strip_bg,
                     "edgecolor": "none",
                     "pad": DEFAULT_STRIP_BOX_PAD,
                 },

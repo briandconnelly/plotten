@@ -766,3 +766,453 @@ def test_top_level_imports():
     assert callable(plotten.theme_economist)
     assert callable(plotten.theme_tufte)
     assert callable(plotten.theme_seaborn)
+
+
+# ---------------------------------------------------------------------------
+# New theme fields — ggplot2 gap closure
+# ---------------------------------------------------------------------------
+
+
+class TestNewThemeFields:
+    """Tests for per-axis elements, ticks, spacing, legend key, etc."""
+
+    def test_per_axis_title_elements(self):
+        from plotten.themes._elements import ElementBlank, ElementText
+
+        t = Theme(
+            axis_title_x=element_text(size=16, color="red"),
+            axis_title_y=element_blank(),
+        )
+        assert isinstance(t.axis_title_x, ElementText)
+        assert t.axis_title_x.size == 16
+        assert t.axis_title_x.color == "red"
+        assert isinstance(t.axis_title_y, ElementBlank)
+
+    def test_per_axis_text_elements(self):
+        from plotten.themes._elements import ElementText
+
+        t = Theme(
+            axis_text_x=element_text(size=8, rotation=45),
+            axis_text_y=element_text(size=10),
+        )
+        assert isinstance(t.axis_text_x, ElementText)
+        assert t.axis_text_x.size == 8
+        assert t.axis_text_x.rotation == 45
+        assert isinstance(t.axis_text_y, ElementText)
+        assert t.axis_text_y.size == 10
+
+    def test_axis_ticks_elements(self):
+        from plotten.themes._elements import ElementBlank, ElementLine
+
+        t = Theme(
+            axis_ticks=element_line(color="gray", size=0.5),
+            axis_ticks_x=element_blank(),
+        )
+        assert isinstance(t.axis_ticks, ElementLine)
+        assert t.axis_ticks.color == "gray"
+        assert isinstance(t.axis_ticks_x, ElementBlank)
+
+    def test_axis_ticks_length_per_axis(self):
+        t = Theme(axis_ticks_length_x=6.0, axis_ticks_length_y=3.0)
+        assert t.axis_ticks_length_x == 6.0
+        assert t.axis_ticks_length_y == 3.0
+
+    def test_axis_line_element(self):
+        from plotten.themes._elements import ElementLine
+
+        t = Theme(axis_line_element=element_line(color="black", size=1.0))
+        assert isinstance(t.axis_line_element, ElementLine)
+        assert t.axis_line_element.color == "black"
+        assert t.axis_line_element.size == 1.0
+
+    def test_per_axis_grid_elements(self):
+        from plotten.themes._elements import ElementBlank, ElementLine
+
+        t = Theme(
+            panel_grid_major_x=element_line(color="red"),
+            panel_grid_major_y=element_blank(),
+        )
+        assert isinstance(t.panel_grid_major_x, ElementLine)
+        assert t.panel_grid_major_x.color == "red"
+        assert isinstance(t.panel_grid_major_y, ElementBlank)
+
+    def test_panel_spacing(self):
+        t = Theme(panel_spacing=0.12, panel_spacing_x=0.1, panel_spacing_y=0.15)
+        assert t.panel_spacing == 0.12
+        assert t.panel_spacing_x == 0.1
+        assert t.panel_spacing_y == 0.15
+
+    def test_strip_per_axis(self):
+        from plotten.themes._elements import ElementText
+
+        t = Theme(
+            strip_text_x=element_text(size=12, color="blue"),
+            strip_text_y=element_text(size=10),
+            strip_background_x="#eeeeee",
+            strip_background_y="#dddddd",
+            strip_placement="inside",
+        )
+        assert isinstance(t.strip_text_x, ElementText)
+        assert t.strip_text_x.size == 12
+        assert isinstance(t.strip_text_y, ElementText)
+        assert t.strip_text_y.size == 10
+        assert t.strip_background_x == "#eeeeee"
+        assert t.strip_placement == "inside"
+
+    def test_legend_key(self):
+        from plotten.themes._elements import ElementRect
+
+        t = Theme(
+            legend_key=element_rect(fill="white", color="gray"),
+            legend_key_size=25.0,
+            legend_key_width=30.0,
+            legend_key_height=15.0,
+        )
+        assert isinstance(t.legend_key, ElementRect)
+        assert t.legend_key.fill == "white"
+        assert t.legend_key_size == 25.0
+        assert t.legend_key_width == 30.0
+        assert t.legend_key_height == 15.0
+
+    def test_legend_spacing_and_margin(self):
+        t = Theme(legend_spacing=6.0, legend_margin=10.0)
+        assert t.legend_spacing == 6.0
+        assert t.legend_margin == 10.0
+
+    def test_plot_background(self):
+        from plotten.themes._elements import ElementRect
+
+        t = Theme(plot_background=element_rect(fill="#fafafa"))
+        assert isinstance(t.plot_background, ElementRect)
+        assert t.plot_background.fill == "#fafafa"
+
+    def test_plot_margin(self):
+        t = Theme(plot_margin=(0.05, 0.05, 0.05, 0.05))
+        assert t.plot_margin == (0.05, 0.05, 0.05, 0.05)
+
+    def test_aspect_ratio(self):
+        t = Theme(aspect_ratio=0.75)
+        assert t.aspect_ratio == 0.75
+
+    def test_composition_preserves_new_fields(self):
+        from plotten.themes._elements import ElementText
+
+        t1 = Theme(axis_title_x=element_text(size=16))
+        t2 = Theme(axis_title_y=element_text(size=14))
+        combined = t1 + t2
+        assert isinstance(combined.axis_title_x, ElementText)
+        assert combined.axis_title_x.size == 16
+        assert isinstance(combined.axis_title_y, ElementText)
+        assert combined.axis_title_y.size == 14
+
+    def test_theme_function_validates_new_fields(self):
+        t = theme(axis_ticks_length_x=5.0, panel_spacing=0.1, aspect_ratio=1.0)
+        assert t.axis_ticks_length_x == 5.0
+        assert t.panel_spacing == 0.1
+        assert t.aspect_ratio == 1.0
+
+    def test_theme_function_rejects_invalid_new_field(self):
+        with pytest.raises(TypeError, match="Unknown theme"):
+            theme(axis_ticks_length_z=5.0)
+
+    def test_render_with_per_axis_elements(self):
+        """Smoke test: rendering with per-axis element overrides doesn't crash."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                axis_text_x=element_text(size=8, rotation=45, color="red"),
+                axis_title_y=element_blank(),
+                axis_ticks=element_line(color="gray"),
+                axis_ticks_x=element_blank(),
+                axis_line_element=element_line(color="black", size=1.0),
+                panel_grid_major_x=element_blank(),
+                panel_grid_major_y=element_line(color="#cccccc", size=0.5),
+            )
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_render_with_aspect_ratio(self):
+        """Smoke test: aspect_ratio affects figure size."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(aspect_ratio=0.5)
+        fig = render(p)
+        w, h = fig.get_size_inches()
+        # aspect_ratio=0.5 means h = w * 0.5
+        assert abs(h - w * 0.5) < 0.1
+        plt.close(fig)
+
+    def test_render_with_plot_margin(self):
+        """Smoke test: plot_margin doesn't crash rendering."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(plot_margin=(0.05, 0.05, 0.05, 0.05))
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_render_with_panel_spacing(self):
+        """Smoke test: panel_spacing doesn't crash faceted rendering."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "a"]})
+        from plotten import facet_wrap
+
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("g")
+            + theme(panel_spacing=0.15)
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestDarkThemeTextColors:
+    """Fix 1: Dark theme should have light text on dark backgrounds."""
+
+    def test_dark_theme_has_light_title(self):
+        from plotten import theme_dark
+
+        t = theme_dark()
+        assert t.title_color == "#ffffff"
+
+    def test_dark_theme_has_light_subtitle(self):
+        from plotten import theme_dark
+
+        t = theme_dark()
+        assert t.subtitle_color == "#e0e0e0"
+
+    def test_dark_theme_has_light_axis_text(self):
+        from plotten import theme_dark
+        from plotten.themes._elements import ElementText
+
+        t = theme_dark()
+        assert isinstance(t.axis_text, ElementText)
+        assert t.axis_text.color == "#cccccc"
+
+    def test_dark_theme_has_light_axis_title(self):
+        from plotten import theme_dark
+        from plotten.themes._elements import ElementText
+
+        t = theme_dark()
+        assert isinstance(t.axis_title, ElementText)
+        assert t.axis_title.color == "#e0e0e0"
+
+    def test_dark_theme_has_light_strip_text(self):
+        from plotten import theme_dark
+
+        t = theme_dark()
+        assert t.strip_text_color == "#e0e0e0"
+
+    def test_dark_theme_renders(self):
+        """Smoke test: dark theme renders without errors."""
+        from plotten import theme_dark
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_dark()
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestGeomFontInheritance:
+    """Fix 2: geom_text/geom_label should inherit theme font_family."""
+
+    def test_geom_text_inherits_font(self):
+        from plotten import geom_text
+
+        df = pl.DataFrame({"x": [1.0], "y": [1.0], "lab": ["hello"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", label="lab"))
+            + geom_text()
+            + theme(font_family="monospace")
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        texts = [t for t in ax.texts if t.get_text() == "hello"]
+        assert len(texts) == 1
+        assert "monospace" in str(texts[0].get_fontfamily())
+        plt.close(fig)
+
+    def test_geom_text_explicit_family_overrides(self):
+        from plotten import geom_text
+
+        df = pl.DataFrame({"x": [1.0], "y": [1.0], "lab": ["hello"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", label="lab"))
+            + geom_text(family="serif")
+            + theme(font_family="monospace")
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        texts = [t for t in ax.texts if t.get_text() == "hello"]
+        assert len(texts) == 1
+        assert "serif" in str(texts[0].get_fontfamily())
+        plt.close(fig)
+
+
+class TestThemeLinedraw:
+    """Fix 3: theme_linedraw() should exist."""
+
+    def test_linedraw_exists(self):
+        from plotten import theme_linedraw
+
+        t = theme_linedraw()
+        assert isinstance(t, Theme)
+
+    def test_linedraw_has_white_background(self):
+        from plotten import theme_linedraw
+
+        t = theme_linedraw()
+        assert t.panel_background == "#ffffff"
+
+    def test_linedraw_has_border(self):
+        from plotten import theme_linedraw
+
+        t = theme_linedraw()
+        assert t.panel_border_color == "#000000"
+
+    def test_linedraw_composable(self):
+        from plotten import theme_linedraw
+
+        combined = theme_linedraw() + Theme(title_size=20)
+        assert combined.title_size == 20
+        assert combined.panel_border_color == "#000000"
+
+    def test_linedraw_renders(self):
+        from plotten import theme_linedraw
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_linedraw()
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestSecAxisThemeStyling:
+    """Fix 5: Secondary axes should respect theme styling."""
+
+    def test_sec_axis_with_theme(self):
+        from matplotlib.axes._secondary_axes import SecondaryAxis
+
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(
+                sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2, name="Secondary")
+            )
+            + theme(font_family="monospace", tick_size=8)
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        sec = None
+        for child in ax.get_children():
+            if isinstance(child, SecondaryAxis):
+                sec = child
+                break
+        assert sec is not None
+        assert sec.get_ylabel() == "Secondary"
+        plt.close(fig)
+
+
+class TestLegendInside:
+    """Fix 6: Tuple legend position should be axes-relative."""
+
+    def test_legend_inside_rendering(self):
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "a"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + theme(legend_position=(0.8, 0.8))
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestLegendKeySize:
+    """Fix 4 (partial): legend_key_size is wired into rendering."""
+
+    def test_legend_key_size_rendering(self):
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "a"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + theme(legend_key_size=30.0, legend_spacing=8.0, legend_margin=12.0)
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestGeomLabelThemeAware:
+    """Fix 7: geom_label should adapt to dark themes."""
+
+    def test_label_on_dark_theme(self):
+        from plotten import geom_label, theme_dark
+
+        df = pl.DataFrame({"x": [1.0], "y": [1.0], "lab": ["hello"]})
+        p = ggplot(df, aes(x="x", y="y", label="lab")) + geom_label() + theme_dark()
+        fig = render(p)
+        plt.close(fig)
+
+    def test_label_on_light_theme(self):
+        from plotten import geom_label
+
+        df = pl.DataFrame({"x": [1.0], "y": [1.0], "lab": ["hello"]})
+        p = ggplot(df, aes(x="x", y="y", label="lab")) + geom_label()
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestStripPlacement:
+    """Fix 4 (partial): strip_placement is wired into rendering."""
+
+    def test_strip_inside(self):
+        from plotten import facet_wrap
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "a"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("g")
+            + theme(strip_placement="inside")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestIsDarkColor:
+    """Unit tests for _is_dark_color helper."""
+
+    def test_dark_colors(self):
+        from plotten._render._mpl_theme import _is_dark_color
+
+        assert _is_dark_color("#000000") is True
+        assert _is_dark_color("#2d2d2d") is True
+        assert _is_dark_color("#3d3d3d") is True
+
+    def test_light_colors(self):
+        from plotten._render._mpl_theme import _is_dark_color
+
+        assert _is_dark_color("#ffffff") is False
+        assert _is_dark_color("#ebebeb") is False
+        assert _is_dark_color("#f0f0f0") is False
+
+    def test_none_color(self):
+        from plotten._render._mpl_theme import _is_dark_color
+
+        assert _is_dark_color("none") is False
+
+    def test_non_hex(self):
+        from plotten._render._mpl_theme import _is_dark_color
+
+        assert _is_dark_color("red") is False

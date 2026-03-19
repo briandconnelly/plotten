@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from plotten.themes._elements import ElementText
 from plotten.themes._theme import Theme
 
 
@@ -19,14 +20,16 @@ def theme_minimal() -> Theme:
 
 
 def theme_dark() -> Theme:
-    """Dark theme — dark backgrounds with subtle grid lines.
-
-    Note: light-colored text adjustments should be handled at render time.
-    """
+    """Dark theme — dark backgrounds with light text and subtle grid lines."""
     return Theme(
         background="#2d2d2d",
         panel_background="#3d3d3d",
         grid_color="#555555",
+        title_color="#ffffff",
+        subtitle_color="#e0e0e0",
+        strip_text_color="#e0e0e0",
+        axis_text=ElementText(color="#cccccc"),
+        axis_title=ElementText(color="#e0e0e0"),
     )
 
 
@@ -137,6 +140,19 @@ def theme_seaborn() -> Theme:
         axis_line_y=False,
         panel_border_color="#cccccc",
         panel_border_width=1.0,
+    )
+
+
+def theme_linedraw() -> Theme:
+    """Line-drawing theme — white background with thin black lines everywhere."""
+    return Theme(
+        panel_background="#ffffff",
+        grid_color="#d9d9d9",
+        grid_line_width=0.3,
+        panel_border_color="#000000",
+        panel_border_width=0.5,
+        axis_line_width=0.5,
+        strip_background="#d9d9d9",
     )
 
 

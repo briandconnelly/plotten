@@ -43,7 +43,7 @@ def render_single(
 
     panel = resolved.panels[0]
     render_panel(panel, ax, resolved, theme)
-    apply_scales(ax, resolved.scales, polar=isinstance(resolved.coord, CoordPolar))
+    apply_scales(ax, resolved.scales, polar=isinstance(resolved.coord, CoordPolar), theme=theme)
     _apply_coord_limits(ax, resolved.coord, is_flipped)
 
     # Apply labs directly to axes
@@ -102,7 +102,7 @@ def render(plot: Plot) -> Figure:
         ax = create_axes(main_subfig, resolved, theme)
         panel = resolved.panels[0]
         render_panel(panel, ax, resolved, theme)
-        apply_scales(ax, resolved.scales, polar=is_polar)
+        apply_scales(ax, resolved.scales, polar=is_polar, theme=theme)
         _apply_coord_limits(ax, resolved.coord, is_flipped)
         apply_axis_labs(ax, resolved, theme)
 
@@ -138,11 +138,11 @@ def render(plot: Plot) -> Figure:
 
             # Scales: use panel-specific if free, else global
             if free_scales == "fixed":
-                apply_scales(ax, resolved.scales, polar=is_polar)
+                apply_scales(ax, resolved.scales, polar=is_polar, theme=theme)
             else:
                 panel_sc = dict(resolved.scales)
                 panel_sc.update(panel.scales)
-                apply_scales(ax, panel_sc, polar=is_polar)
+                apply_scales(ax, panel_sc, polar=is_polar, theme=theme)
 
             _apply_coord_limits(ax, resolved.coord, is_flipped)
 

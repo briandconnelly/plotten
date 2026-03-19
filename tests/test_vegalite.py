@@ -852,6 +852,291 @@ class TestTheme:
         assert spec["config"]["title"]["fontSize"] == 20
         assert spec["config"]["title"]["color"] == "#333333"
 
+    def test_per_axis_text_sizes(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_text_x_size=8, axis_text_y_size=12, axis_title_x_size=14),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["labelFontSize"] == 8
+        assert spec["config"]["axisY"]["labelFontSize"] == 12
+        assert spec["config"]["axisX"]["titleFontSize"] == 14
+
+    def test_per_axis_rotation(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_text_x_rotation=45),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["labelAngle"] == 45
+
+    def test_per_axis_grid_element_blank(self) -> None:
+        from plotten.themes._elements import ElementBlank
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(panel_grid_major_x=ElementBlank()),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["grid"] is False
+
+    def test_per_axis_grid_element_line(self) -> None:
+        from plotten.themes._elements import ElementLine
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(panel_grid_major_y=ElementLine(color="#ff0000", size=2.0)),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisY"]["gridColor"] == "#ff0000"
+        assert spec["config"]["axisY"]["gridWidth"] == 2.0
+
+    def test_axis_ticks_blank(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_ticks=ElementBlank()),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axis"]["tickSize"] == 0
+
+    def test_axis_ticks_per_axis(self) -> None:
+        from plotten.themes._elements import ElementLine
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_ticks_x=ElementLine(color="red", size=2.0)),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["tickColor"] == "red"
+        assert spec["config"]["axisX"]["tickWidth"] == 2.0
+
+    def test_axis_line_element(self) -> None:
+        from plotten.themes._elements import ElementLine
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_line_element=ElementLine(color="blue", size=2.0)),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axis"]["domainColor"] == "blue"
+        assert spec["config"]["axis"]["domainWidth"] == 2.0
+
+    def test_axis_line_element_blank(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_line_element=ElementBlank()),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axis"]["domain"] is False
+
+    def test_per_axis_title_element(self) -> None:
+        from plotten.themes._elements import ElementText
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_title_x=ElementText(size=18, color="red")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["titleFontSize"] == 18
+        assert spec["config"]["axisX"]["titleColor"] == "red"
+
+    def test_per_axis_title_element_blank(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_title_y=ElementBlank()),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisY"]["titleFontSize"] == 0
+
+    def test_per_axis_text_element(self) -> None:
+        from plotten.themes._elements import ElementText
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_text_x=ElementText(size=7, color="green", rotation=90)),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["labelFontSize"] == 7
+        assert spec["config"]["axisX"]["labelColor"] == "green"
+        assert spec["config"]["axisX"]["labelAngle"] == 90
+
+    def test_panel_border_element(self) -> None:
+        from plotten.themes._elements import ElementRect
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(panel_border=ElementRect(color="black", size=2.0)),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["view"]["stroke"] == "black"
+        assert spec["config"]["view"]["strokeWidth"] == 2.0
+
+    def test_panel_border_color_field(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(panel_border_color="#000000", panel_border_width=1.5),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["view"]["stroke"] == "#000000"
+        assert spec["config"]["view"]["strokeWidth"] == 1.5
+
+    def test_strip_text_config(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(strip_text_size=14, strip_text_color="blue"),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["header"]["labelFontSize"] == 14
+        assert spec["config"]["header"]["labelColor"] == "blue"
+
+    def test_legend_key_size(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(legend_key_size=30.0),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["legend"]["symbolSize"] == 30.0
+
+    def test_legend_spacing(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(legend_spacing=8.0),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["legend"]["rowPadding"] == 8.0
+
+    def test_aspect_ratio(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(aspect_ratio=0.5),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["view"]["continuousWidth"] == 600
+
+    def test_plot_background_element(self) -> None:
+        from plotten.themes._elements import ElementRect
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(plot_background=ElementRect(fill="#eeeeee")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["background"] == "#eeeeee"
+
+    def test_plot_title_element_text(self) -> None:
+        from plotten.themes._elements import ElementText
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(plot_title=ElementText(size=24, color="navy", weight="bold")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["title"]["fontSize"] == 24
+        assert spec["config"]["title"]["color"] == "navy"
+        assert spec["config"]["title"]["fontWeight"] == "bold"
+
+    def test_axis_line_visibility_per_axis(self) -> None:
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(axis_line_x=False, axis_line_y=True),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["axisX"]["domain"] is False
+        assert "domain" not in spec["config"].get("axisY", {})
+
+    def test_strip_text_element(self) -> None:
+        from plotten.themes._elements import ElementText
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(strip_text=ElementText(size=16, color="purple", family="monospace")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["header"]["labelFontSize"] == 16
+        assert spec["config"]["header"]["labelColor"] == "purple"
+        assert spec["config"]["header"]["labelFont"] == "monospace"
+
+    def test_legend_title_element(self) -> None:
+        from plotten.themes._elements import ElementText
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(legend_title_element=ElementText(size=14, color="darkred")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["legend"]["titleFontSize"] == 14
+        assert spec["config"]["legend"]["titleColor"] == "darkred"
+
+    def test_legend_key_element(self) -> None:
+        from plotten.themes._elements import ElementRect
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(legend_key=ElementRect(fill="white", color="gray")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["legend"]["symbolFillColor"] == "white"
+        assert spec["config"]["legend"]["symbolStrokeColor"] == "gray"
+
+    def test_plot_subtitle_element(self) -> None:
+        from plotten.themes._elements import ElementText
+
+        p = Plot(
+            data=_sample_df(),
+            mapping=aes(x="x", y="y"),
+            layers=(Layer(geom=GeomPoint()),),
+            theme=ThemeClass(plot_subtitle=ElementText(size=11, color="#777777")),
+        )
+        spec = to_vegalite(p)
+        assert spec["config"]["title"]["subtitleFontSize"] == 11
+        assert spec["config"]["title"]["subtitleColor"] == "#777777"
+
 
 class TestHTML:
     def test_html_contains_vega_embed(self) -> None:

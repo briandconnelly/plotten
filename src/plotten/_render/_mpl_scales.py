@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
-def _apply_axis_scale(ax: Axes, scale: Any, axis: str, *, polar: bool) -> None:
+def _apply_axis_scale(ax: Axes, scale: Any, axis: str, *, polar: bool, theme: Any = None) -> None:
     """Apply a single axis scale (limits, breaks, labels, secondary axis)."""
     from plotten.scales._date import ScaleDateContinuous
     from plotten.scales._log import ScaleLog
@@ -45,18 +45,24 @@ def _apply_axis_scale(ax: Axes, scale: Any, axis: str, *, polar: bool) -> None:
     if not polar:
         set_label = ax.set_xlabel if axis == "x" else ax.set_ylabel
         set_label(axis)
-    _apply_sec_axis(ax, scale, axis=axis)
+    _apply_sec_axis(ax, scale, axis=axis, theme=theme)
 
 
-def apply_scales(ax: Axes, scales: dict, *, polar: bool = False) -> None:
+def apply_scales(ax: Axes, scales: dict, *, polar: bool = False, theme: Any = None) -> None:
     """Apply scale limits, breaks, and labels to axes."""
     if "x" in scales and not polar:
-        _apply_axis_scale(ax, scales["x"], "x", polar=polar)
+        _apply_axis_scale(ax, scales["x"], "x", polar=polar, theme=theme)
     if "y" in scales:
-        _apply_axis_scale(ax, scales["y"], "y", polar=polar)
+        _apply_axis_scale(ax, scales["y"], "y", polar=polar, theme=theme)
 
 
-def _apply_sec_axis(ax: Axes, scale: Any, axis: str) -> None:
+def _apply_sec_axis(
+    ax: Axes,
+    scale: Any,
+    axis: str,
+    *,
+    theme: Any = None,
+) -> None:
     """Apply a secondary axis if the scale has one configured."""
     sec = getattr(scale, "_sec_axis", None)
     if sec is None:
@@ -77,6 +83,22 @@ def _apply_sec_axis(ax: Axes, scale: Any, axis: str) -> None:
             sec_ax.set_yticklabels(sec.labels)
         else:
             sec_ax.set_xticklabels(sec.labels)
+
+    # Apply theme styling to secondary axis
+    if theme is not None:
+        sec_ax.tick_params(
+            labelsize=theme.tick_size,
+            length=theme.tick_length,
+        )
+        tick_labels = sec_ax.get_yticklabels() if axis == "y" else sec_ax.get_xticklabels()
+        for label in tick_labels:
+            label.set_fontfamily(theme.font_family)
+        if axis == "y" and sec.name is not None:
+            sec_ax.yaxis.label.set_fontfamily(theme.font_family)
+            sec_ax.yaxis.label.set_fontsize(theme.axis_title_y_size or theme.label_size)
+        elif axis == "x" and sec.name is not None:
+            sec_ax.xaxis.label.set_fontfamily(theme.font_family)
+            sec_ax.xaxis.label.set_fontsize(theme.axis_title_x_size or theme.label_size)
 
 
 def _apply_continuous_scale(ax: Axes, scale: Any, axis: str) -> None:
