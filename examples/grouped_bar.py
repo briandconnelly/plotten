@@ -18,6 +18,7 @@ plot = (
     + scale_fill_manual(values={"North": "#2196F3", "South": "#FF9800"})
     + labs(
         title="Quarterly Revenue by Region",
+        caption="Source: internal sales data, FY2025",
         x="Quarter",
         y="Revenue ($K)",
         fill="Region",

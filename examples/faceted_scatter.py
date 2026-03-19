@@ -69,6 +69,7 @@ plot = (
     + facet_wrap("subject", ncol=3)
     + labs(
         title="Study Hours vs Test Scores",
+        caption="Data: 8 students per subject",
         x="Hours Studied per Day",
         y="Test Score",
     )

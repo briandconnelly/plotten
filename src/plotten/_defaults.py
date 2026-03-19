@@ -20,6 +20,9 @@ TOP_BOTH_POLAR: float = 0.78
 TOP_SINGLE_NORMAL: float = 0.93
 TOP_SINGLE_POLAR: float = 0.84
 
+# Extra top-margin reduction when facet strip labels are present
+FACET_STRIP_TOP_PAD: float = 0.08
+
 # Caption position
 CAPTION_X: float = 0.99
 CAPTION_Y: float = 0.005

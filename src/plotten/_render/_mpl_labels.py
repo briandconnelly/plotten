@@ -8,6 +8,7 @@ from plotten._defaults import (
     CAPTION_BOTTOM_PAD,
     CAPTION_X,
     CAPTION_Y,
+    FACET_STRIP_TOP_PAD,
     SUBTITLE_Y_NORMAL,
     SUBTITLE_Y_POLAR,
     TITLE_Y,
@@ -82,6 +83,11 @@ def apply_title(fig: Figure, resolved: ResolvedPlot, theme: Theme) -> None:
     # Polar axes need more top margin since tick labels extend above the circle
     top_both = TOP_BOTH_POLAR if polar else TOP_BOTH_NORMAL
     top_single = TOP_SINGLE_POLAR if polar else TOP_SINGLE_NORMAL
+
+    # Faceted plots need extra room for strip labels between suptitle and axes
+    if resolved.facet is not None:
+        top_both -= FACET_STRIP_TOP_PAD
+        top_single -= FACET_STRIP_TOP_PAD
 
     if has_title and has_subtitle:
         title = labs.title

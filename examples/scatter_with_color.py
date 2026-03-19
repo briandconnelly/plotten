@@ -19,6 +19,7 @@ plot = (
     + labs(
         title="Engine Size vs Horsepower",
         subtitle="Color shows fuel efficiency (MPG)",
+        caption="Source: synthetic automotive dataset",
         x="Engine Displacement (L)",
         y="Horsepower",
         color="MPG",

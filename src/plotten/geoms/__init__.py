@@ -51,8 +51,9 @@ def _make_geom_factory(geom_cls: type, doc: str):
 
     def factory(**params: Any) -> Layer:
         position = params.pop("position", None)
+        data = params.pop("data", None)
         mapping, params = _extract_aes(params)
-        return Layer(geom=geom_cls(), mapping=mapping, params=params, position=position)
+        return Layer(geom=geom_cls(), mapping=mapping, params=params, position=position, data=data)
 
     factory.__doc__ = doc
     factory.__qualname__ = f"geom_{geom_cls.__name__}"
