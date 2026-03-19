@@ -6,6 +6,11 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
+def _scalar(values: list) -> Any:
+    """Extract a single value from a uniform-group list."""
+    return values[0]
+
+
 class GeomStep:
     """Draw step lines using ax.step."""
 
@@ -23,29 +28,27 @@ class GeomStep:
         where = params.get("direction", "mid")
         kwargs["where"] = where
 
-        if "color" in data and isinstance(data["color"], str):
-            kwargs["color"] = data["color"]
+        if "color" in data:
+            color = data["color"]
+            kwargs["color"] = _scalar(color) if isinstance(color, list) else color
         elif "color" in params:
             kwargs["color"] = params["color"]
 
-        if "alpha" in data and not isinstance(data["alpha"], list):
-            kwargs["alpha"] = data["alpha"]
+        if "alpha" in data:
+            alpha = data["alpha"]
+            kwargs["alpha"] = _scalar(alpha) if isinstance(alpha, list) else alpha
         elif "alpha" in params:
             kwargs["alpha"] = params["alpha"]
 
         if "linetype" in data:
-            if isinstance(data["linetype"], list) and data["linetype"]:
-                kwargs["linestyle"] = data["linetype"][0]
-            elif isinstance(data["linetype"], str):
-                kwargs["linestyle"] = data["linetype"]
+            lt = data["linetype"]
+            kwargs["linestyle"] = _scalar(lt) if isinstance(lt, list) else lt
         elif "linetype" in params:
             kwargs["linestyle"] = params["linetype"]
 
         if "size" in data:
-            if isinstance(data["size"], list) and data["size"]:
-                kwargs["linewidth"] = data["size"][0]
-            elif isinstance(data["size"], int | float):
-                kwargs["linewidth"] = data["size"]
+            size = data["size"]
+            kwargs["linewidth"] = _scalar(size) if isinstance(size, list) else size
         elif "size" in params:
             kwargs["linewidth"] = params["size"]
 

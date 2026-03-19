@@ -4,12 +4,12 @@ from typing import Any
 
 import narwhals as nw
 
-from plotten.scales._base import LegendEntry, ScaleBase
+from plotten.scales._base import LegendEntry, MappedDiscreteScale
 
 DEFAULT_LINETYPES = ["solid", "dashed", "dotted", "dashdot"]
 
 
-class ScaleLinetypeDiscrete(ScaleBase):
+class ScaleLinetypeDiscrete(MappedDiscreteScale):
     """Map categories to matplotlib linestyle strings."""
 
     def __init__(
@@ -21,13 +21,6 @@ class ScaleLinetypeDiscrete(ScaleBase):
         self._levels: list = []
         self._manual_values = values
 
-    def train(self, values: Any) -> None:
-        s = nw.from_native(values, series_only=True)
-        new_levels = s.unique().sort().to_list()
-        for lev in new_levels:
-            if lev not in self._levels:
-                self._levels.append(lev)
-
     def map_data(self, values: Any) -> Any:
         s = nw.from_native(values, series_only=True)
         if self._manual_values:
@@ -37,15 +30,6 @@ class ScaleLinetypeDiscrete(ScaleBase):
             for i, lev in enumerate(self._levels)
         }
         return [lt_map[v] for v in s.to_list()]
-
-    def get_limits(self) -> tuple[float, float]:
-        return (0, len(self._levels))
-
-    def get_breaks(self) -> list:
-        return list(range(len(self._levels)))
-
-    def get_labels(self) -> list[str]:
-        return [str(lev) for lev in self._levels]
 
     def legend_entries(self) -> list[LegendEntry]:
         entries = []

@@ -6,6 +6,11 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
+def _scalar(values: list) -> Any:
+    """Extract a single value from a uniform-group list."""
+    return values[0]
+
+
 class GeomRibbon:
     """Draw a filled band between ymin and ymax."""
 
@@ -20,7 +25,8 @@ class GeomRibbon:
     def draw(self, data: dict[str, Any], ax: Axes, params: dict) -> None:
         kwargs: dict[str, Any] = {}
         if "fill" in data:
-            kwargs["color"] = data["fill"]
+            fill = data["fill"]
+            kwargs["color"] = _scalar(fill) if isinstance(fill, list) else fill
         elif "color" in params:
             kwargs["color"] = params["color"]
         kwargs["alpha"] = params.get("alpha", 0.3)

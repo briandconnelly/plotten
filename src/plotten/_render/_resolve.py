@@ -1,3 +1,22 @@
+"""Resolution pipeline: transforms a Plot spec into a RenderablePlot.
+
+Steps:
+1. Collect explicit scales from the plot spec.
+2. Split data into facet panels (or use a single panel).
+3. For each panel, resolve layers:
+   a. Merge global and per-layer aesthetic mappings.
+   b. Separate AfterStat/AfterScale mappings from normal string mappings.
+   c. Rename columns to match aesthetic names.
+   d. Run the stat transformation.
+   e. Apply after_stat column renames.
+   f. Infer and train scales from the computed data.
+   g. Map non-position aesthetics through their scales.
+   h. Apply after_scale mappings.
+   i. Apply position adjustments.
+   j. Split by group for line-like geoms.
+4. Merge panel scales into global scales (respecting facet free-scale settings).
+"""
+
 from __future__ import annotations
 
 import copy
@@ -11,17 +30,20 @@ from plotten.scales._base import ScaleBase, auto_scale
 
 if TYPE_CHECKING:
     from plotten._aes import Aes
+    from plotten._labs import Labs
     from plotten._layer import Layer
+    from plotten._protocols import Coord, Geom, Position
+    from plotten.themes._theme import Theme
 
 
 @dataclass(slots=True)
 class ResolvedLayer:
     """A layer with stat applied and data resolved to plain dicts."""
 
-    geom: Any
+    geom: Geom
     data: dict[str, Any]
     params: dict
-    position: Any | None = None
+    position: Position | None = None
 
 
 @dataclass(slots=True)
@@ -39,9 +61,9 @@ class ResolvedPlot:
 
     panels: list[ResolvedPanel] = field(default_factory=list)
     scales: dict[str, ScaleBase] = field(default_factory=dict)
-    coord: Any = None
-    theme: Any = None
-    labs: Any = None
+    coord: Coord | None = None
+    theme: Theme | None = None
+    labs: Labs | None = None
     facet: Any = None
     guides: dict | None = None
 
@@ -251,16 +273,7 @@ def _split_by_group(data_dict: dict[str, Any], group_key: str) -> list[dict[str,
         sub: dict[str, Any] = {}
         for k, v in data_dict.items():
             if isinstance(v, list):
-                subset = [v[i] for i in indices]
-                # Convert group aesthetics to scalar if all values are the same
-                if k in ("color", "fill", "linetype", "group"):
-                    unique = set(subset)
-                    if len(unique) == 1:
-                        sub[k] = subset[0]
-                    else:
-                        sub[k] = subset
-                else:
-                    sub[k] = subset
+                sub[k] = [v[i] for i in indices]
             else:
                 sub[k] = v
         result.append(sub)
@@ -338,7 +351,7 @@ def resolve(plot: Any) -> ResolvedPlot:
                         continue  # x is free
                     if k not in global_scales:
                         global_scales[k] = v
-                    elif k in ("y",):
+                    elif k == "y":
                         # Train the global scale with this panel's data
                         _merge_domain(global_scales[k], v)
                 panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
@@ -356,7 +369,7 @@ def resolve(plot: Any) -> ResolvedPlot:
                         continue  # y is free
                     if k not in global_scales:
                         global_scales[k] = v
-                    elif k in ("x",):
+                    elif k == "x":
                         _merge_domain(global_scales[k], v)
                 panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 

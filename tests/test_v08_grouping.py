@@ -56,9 +56,9 @@ class TestGroupSplitting:
         assert len(result) == 2
         assert result[0]["x"] == [1, 2]
         assert result[0]["y"] == [10, 20]
-        assert result[0]["color"] == "red"
+        assert result[0]["color"] == ["red", "red"]
         assert result[1]["x"] == [3, 4]
-        assert result[1]["color"] == "blue"
+        assert result[1]["color"] == ["blue", "blue"]
 
     def test_split_preserves_order(self):
         data = {
@@ -68,9 +68,9 @@ class TestGroupSplitting:
         }
         result = _split_by_group(data, "color")
         assert len(result) == 2
-        assert result[0]["color"] == "blue"
+        assert result[0]["color"] == ["blue", "blue"]
         assert result[0]["x"] == [1, 3]
-        assert result[1]["color"] == "red"
+        assert result[1]["color"] == ["red"]
 
     def test_split_scalar_non_list(self):
         data = {

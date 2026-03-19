@@ -6,6 +6,11 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
+def _scalar(values: list) -> Any:
+    """Extract a single value from a uniform-group list."""
+    return values[0]
+
+
 class GeomDensity:
     """Draw density curves."""
 
@@ -27,7 +32,7 @@ class GeomDensity:
 
         color = data.get("color", params.get("color", "#3366CC"))
         if isinstance(color, list):
-            color = color[0]
+            color = _scalar(color)
 
         ax.plot(data["x"], data["y"], color=color)
         if fill:

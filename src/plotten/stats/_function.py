@@ -39,7 +39,7 @@ class StatFunction:
                     xmin, xmax = col.min(), col.max()
                 else:
                     xmin, xmax = 0.0, 1.0
-            except Exception:
+            except (KeyError, TypeError):
                 xmin, xmax = 0.0, 1.0
 
         x = np.linspace(xmin, xmax, self._n)

@@ -36,33 +36,55 @@ from plotten.geoms._violin import GeomViolin
 
 def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
     """Split params into Aes fields and remaining params."""
+    from plotten._computed import AfterScale, AfterStat
+
     aes_kwargs = {
-        k: params.pop(k) for k in list(params) if hasattr(Aes, k) and isinstance(params[k], str)
+        k: params.pop(k)
+        for k in list(params)
+        if hasattr(Aes, k) and isinstance(params[k], str | AfterStat | AfterScale)
     }
     return Aes(**aes_kwargs), params
 
 
-def geom_point(**params: Any) -> Layer:
-    """Create a point layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomPoint(), mapping=mapping, params=params, position=position)
+def _make_geom_factory(geom_cls: type, doc: str):
+    """Generate a standard geom factory: pop position, extract aes, return Layer."""
+
+    def factory(**params: Any) -> Layer:
+        position = params.pop("position", None)
+        mapping, params = _extract_aes(params)
+        return Layer(geom=geom_cls(), mapping=mapping, params=params, position=position)
+
+    factory.__doc__ = doc
+    factory.__qualname__ = f"geom_{geom_cls.__name__}"
+    return factory
 
 
-def geom_line(**params: Any) -> Layer:
-    """Create a line layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomLine(), mapping=mapping, params=params, position=position)
+# --- Standard factories (generated) ---
+geom_point = _make_geom_factory(GeomPoint, "Create a point layer.")
+geom_line = _make_geom_factory(GeomLine, "Create a line layer.")
+geom_bar = _make_geom_factory(GeomBar, "Create a bar layer.")
+geom_boxplot = _make_geom_factory(GeomBoxplot, "Create a boxplot layer.")
+geom_text = _make_geom_factory(GeomText, "Create a text layer.")
+geom_label = _make_geom_factory(GeomLabel, "Create a label (text with background box) layer.")
+geom_area = _make_geom_factory(GeomArea, "Create a filled area layer.")
+geom_ribbon = _make_geom_factory(GeomRibbon, "Create a ribbon (filled band) layer.")
+geom_tile = _make_geom_factory(GeomTile, "Create a tile (heatmap) layer.")
+geom_errorbar = _make_geom_factory(GeomErrorbar, "Create an errorbar layer.")
+geom_col = _make_geom_factory(GeomCol, "Create a column (pre-counted bar) layer.")
+geom_violin = _make_geom_factory(GeomViolin, "Create a violin plot layer.")
+geom_segment = _make_geom_factory(GeomSegment, "Create a segment layer.")
+geom_rect = _make_geom_factory(GeomRect, "Create a rectangle layer.")
+geom_step = _make_geom_factory(GeomStep, "Create a step line layer.")
+geom_rug = _make_geom_factory(GeomRug, "Create a rug layer.")
+geom_path = _make_geom_factory(GeomPath, "Create a path layer (connects points in data order).")
+geom_polygon = _make_geom_factory(GeomPolygon, "Create a polygon layer.")
+geom_crossbar = _make_geom_factory(GeomCrossbar, "Create a crossbar layer.")
+geom_pointrange = _make_geom_factory(GeomPointrange, "Create a pointrange layer.")
+geom_linerange = _make_geom_factory(GeomLinerange, "Create a linerange layer.")
+geom_hex = _make_geom_factory(GeomHex, "Create a hexagonal binning layer.")
 
 
-def geom_bar(**params: Any) -> Layer:
-    """Create a bar layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomBar(), mapping=mapping, params=params, position=position)
-
-
+# --- Non-standard factories (hand-written) ---
 def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     """Create a histogram layer."""
     from plotten.stats._bin import StatBin
@@ -78,13 +100,6 @@ def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     )
 
 
-def geom_boxplot(**params: Any) -> Layer:
-    """Create a boxplot layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomBoxplot(), mapping=mapping, params=params, position=position)
-
-
 def geom_smooth(method: str = "loess", se: bool = True, **params: Any) -> Layer:
     """Create a smooth line layer."""
     position = params.pop("position", None)
@@ -97,20 +112,6 @@ def geom_smooth(method: str = "loess", se: bool = True, **params: Any) -> Layer:
         params=params,
         position=position,
     )
-
-
-def geom_text(**params: Any) -> Layer:
-    """Create a text layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomText(), mapping=mapping, params=params, position=position)
-
-
-def geom_label(**params: Any) -> Layer:
-    """Create a label (text with background box) layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomLabel(), mapping=mapping, params=params, position=position)
 
 
 def geom_hline(yintercept: float, **params: Any) -> Layer:
@@ -146,41 +147,6 @@ def geom_abline(slope: float, intercept: float, **params: Any) -> Layer:
     )
 
 
-def geom_area(**params: Any) -> Layer:
-    """Create a filled area layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomArea(), mapping=mapping, params=params, position=position)
-
-
-def geom_ribbon(**params: Any) -> Layer:
-    """Create a ribbon (filled band) layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomRibbon(), mapping=mapping, params=params, position=position)
-
-
-def geom_tile(**params: Any) -> Layer:
-    """Create a tile (heatmap) layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomTile(), mapping=mapping, params=params, position=position)
-
-
-def geom_errorbar(**params: Any) -> Layer:
-    """Create an errorbar layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomErrorbar(), mapping=mapping, params=params, position=position)
-
-
-def geom_col(**params: Any) -> Layer:
-    """Create a column (pre-counted bar) layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomCol(), mapping=mapping, params=params, position=position)
-
-
 def geom_density(fill: bool = True, alpha: float = 0.3, **params: Any) -> Layer:
     """Create a density curve layer."""
     position = params.pop("position", None)
@@ -195,41 +161,6 @@ def geom_density(fill: bool = True, alpha: float = 0.3, **params: Any) -> Layer:
     )
 
 
-def geom_violin(**params: Any) -> Layer:
-    """Create a violin plot layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomViolin(), mapping=mapping, params=params, position=position)
-
-
-def geom_segment(**params: Any) -> Layer:
-    """Create a segment layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomSegment(), mapping=mapping, params=params, position=position)
-
-
-def geom_rect(**params: Any) -> Layer:
-    """Create a rectangle layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomRect(), mapping=mapping, params=params, position=position)
-
-
-def geom_step(**params: Any) -> Layer:
-    """Create a step line layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomStep(), mapping=mapping, params=params, position=position)
-
-
-def geom_rug(**params: Any) -> Layer:
-    """Create a rug layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomRug(), mapping=mapping, params=params, position=position)
-
-
 def geom_jitter(
     width: float = 0.4, height: float = 0.0, seed: int | None = None, **params: Any
 ) -> Layer:
@@ -239,48 +170,6 @@ def geom_jitter(
     position = PositionJitter(width=width, height=height, seed=seed)
     mapping, params = _extract_aes(params)
     return Layer(geom=GeomPoint(), mapping=mapping, params=params, position=position)
-
-
-def geom_path(**params: Any) -> Layer:
-    """Create a path layer (connects points in data order)."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomPath(), mapping=mapping, params=params, position=position)
-
-
-def geom_polygon(**params: Any) -> Layer:
-    """Create a polygon layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomPolygon(), mapping=mapping, params=params, position=position)
-
-
-def geom_crossbar(**params: Any) -> Layer:
-    """Create a crossbar layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomCrossbar(), mapping=mapping, params=params, position=position)
-
-
-def geom_pointrange(**params: Any) -> Layer:
-    """Create a pointrange layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomPointrange(), mapping=mapping, params=params, position=position)
-
-
-def geom_linerange(**params: Any) -> Layer:
-    """Create a linerange layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomLinerange(), mapping=mapping, params=params, position=position)
-
-
-def geom_hex(**params: Any) -> Layer:
-    """Create a hexagonal binning layer."""
-    position = params.pop("position", None)
-    mapping, params = _extract_aes(params)
-    return Layer(geom=GeomHex(), mapping=mapping, params=params, position=position)
 
 
 def geom_bin2d(bins: int | tuple[int, int] = 30, **params: Any) -> Layer:

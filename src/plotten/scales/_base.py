@@ -50,10 +50,78 @@ class ScaleBase:
         return None
 
 
+class MappedContinuousScale(ScaleBase):
+    """Base class for non-position continuous scales (color, size, alpha).
+
+    Provides shared train/get_limits/get_breaks logic.
+    Subclasses must set ``_breaks``, ``_limits`` in their ``__init__``.
+    """
+
+    _breaks: list[float] | None
+    _limits: tuple[float, float] | None
+
+    def train(self, values: Any) -> None:
+        s = nw.from_native(values, series_only=True)
+        vmin = s.min()
+        vmax = s.max()
+        if self._domain_min is None or vmin < self._domain_min:
+            self._domain_min = vmin
+        if self._domain_max is None or vmax > self._domain_max:
+            self._domain_max = vmax
+
+    def get_limits(self) -> tuple[float, float]:
+        if self._limits is not None:
+            return self._limits
+        lo = self._domain_min if self._domain_min is not None else 0.0
+        hi = self._domain_max if self._domain_max is not None else 1.0
+        return (lo, hi)
+
+    def get_breaks(self) -> list:
+        if self._breaks is not None:
+            return list(self._breaks)
+        import numpy as np
+
+        from plotten._defaults import DEFAULT_CONTINUOUS_BREAK_COUNT
+
+        lo, hi = self.get_limits()
+        return np.linspace(lo, hi, DEFAULT_CONTINUOUS_BREAK_COUNT).tolist()
+
+
+class MappedDiscreteScale(ScaleBase):
+    """Base class for non-position discrete scales (color, size, alpha, shape, linetype).
+
+    Provides shared train/get_limits/get_breaks/get_labels logic.
+    Subclasses must set ``_levels`` in their ``__init__``.
+    """
+
+    _levels: list
+
+    def train(self, values: Any) -> None:
+        s = nw.from_native(values, series_only=True)
+        new_levels = s.unique().sort().to_list()
+        for lev in new_levels:
+            if lev not in self._levels:
+                self._levels.append(lev)
+
+    def get_limits(self) -> tuple[float, float]:
+        return (0, len(self._levels))
+
+    def get_breaks(self) -> list:
+        return list(range(len(self._levels)))
+
+    def get_labels(self) -> list[str]:
+        return [str(lev) for lev in self._levels]
+
+
 def auto_scale(aesthetic: str, series: Any) -> ScaleBase:
     """Pick the right scale based on narwhals dtype."""
+    from plotten.scales._alpha import ScaleAlphaContinuous, ScaleAlphaDiscrete
     from plotten.scales._color import ScaleColorContinuous, ScaleColorDiscrete
+    from plotten.scales._date import ScaleDateContinuous
+    from plotten.scales._linetype import ScaleLinetypeDiscrete
     from plotten.scales._position import ScaleContinuous, ScaleDiscrete
+    from plotten.scales._shape import ScaleShapeDiscrete
+    from plotten.scales._size import ScaleSizeContinuous, ScaleSizeDiscrete
 
     s = nw.from_native(series, series_only=True)
 
@@ -64,53 +132,25 @@ def auto_scale(aesthetic: str, series: Any) -> ScaleBase:
             return ScaleColorDiscrete(aesthetic=aesthetic)
 
         case "size":
-            try:
-                from plotten.scales._size import ScaleSizeContinuous, ScaleSizeDiscrete
-
-                if s.dtype.is_numeric():
-                    return ScaleSizeContinuous(aesthetic=aesthetic)
-                return ScaleSizeDiscrete(aesthetic=aesthetic)
-            except ImportError:
-                pass
+            if s.dtype.is_numeric():
+                return ScaleSizeContinuous(aesthetic=aesthetic)
+            return ScaleSizeDiscrete(aesthetic=aesthetic)
 
         case "alpha":
-            try:
-                from plotten.scales._alpha import (
-                    ScaleAlphaContinuous,
-                    ScaleAlphaDiscrete,
-                )
-
-                if s.dtype.is_numeric():
-                    return ScaleAlphaContinuous(aesthetic=aesthetic)
-                return ScaleAlphaDiscrete(aesthetic=aesthetic)
-            except ImportError:
-                pass
+            if s.dtype.is_numeric():
+                return ScaleAlphaContinuous(aesthetic=aesthetic)
+            return ScaleAlphaDiscrete(aesthetic=aesthetic)
 
         case "shape":
-            try:
-                from plotten.scales._shape import ScaleShapeDiscrete
-
-                return ScaleShapeDiscrete(aesthetic=aesthetic)
-            except ImportError:
-                pass
+            return ScaleShapeDiscrete(aesthetic=aesthetic)
 
         case "linetype":
-            try:
-                from plotten.scales._linetype import ScaleLinetypeDiscrete
-
-                return ScaleLinetypeDiscrete(aesthetic=aesthetic)
-            except ImportError:
-                pass
+            return ScaleLinetypeDiscrete(aesthetic=aesthetic)
 
     # Detect temporal dtypes before numeric check
     dtype_str = str(s.dtype).lower()
     if any(t in dtype_str for t in ("date", "datetime", "timestamp")):
-        try:
-            from plotten.scales._date import ScaleDateContinuous
-
-            return ScaleDateContinuous(aesthetic=aesthetic)
-        except ImportError:
-            pass
+        return ScaleDateContinuous(aesthetic=aesthetic)
 
     if s.dtype.is_numeric():
         return ScaleContinuous(aesthetic=aesthetic)

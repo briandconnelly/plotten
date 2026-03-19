@@ -8,6 +8,11 @@ if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
 
+def _scalar(values: list) -> Any:
+    """Extract a single value from a uniform-group list."""
+    return values[0]
+
+
 class GeomPolygon:
     """Draw filled polygons."""
 
@@ -26,13 +31,13 @@ class GeomPolygon:
 
         fill_color = data.get("fill")
         if isinstance(fill_color, list):
-            fill_color = fill_color[0]
+            fill_color = _scalar(fill_color)
         if fill_color is None:
             fill_color = params.get("fill", "#3366CC")
 
         edge_color = data.get("color")
         if isinstance(edge_color, list):
-            edge_color = edge_color[0]
+            edge_color = _scalar(edge_color)
         if edge_color is None:
             edge_color = params.get("color", "black")
 
