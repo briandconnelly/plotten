@@ -240,15 +240,23 @@ def apply_facet_decorations(
     n_panels: int,
     nrow: int,
     ncol: int,
+    panel_pos: Any = None,
 ) -> None:
     """Apply strip labels, shared axis labels, and hide empty axes for faceted plots."""
+    if panel_pos is None:
+        panel_pos = lambda idx: divmod(idx, ncol)  # noqa: E731
+
     strip_bg = theme.strip_background
     strip_text_size = theme.strip_text_size or theme.label_size
     strip_text_color = theme.strip_text_color
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
+    # Track which grid cells are occupied by panels
+    occupied: set[tuple[int, int]] = set()
+
     for idx in range(n_panels):
-        r, c = divmod(idx, ncol)
+        r, c = panel_pos(idx)
+        occupied.add((r, c))
         ax = axes[r][c]
 
         if strip_position == "bottom":
@@ -277,10 +285,11 @@ def apply_facet_decorations(
                 },
             )
 
-    # Hide empty axes
-    for idx in range(n_panels, nrow * ncol):
-        r, c = divmod(idx, ncol)
-        axes[r][c].set_visible(False)
+    # Hide empty axes (cells not occupied by any panel)
+    for r in range(nrow):
+        for c in range(ncol):
+            if (r, c) not in occupied:
+                axes[r][c].set_visible(False)
 
     # Shared axis labels via supxlabel/supylabel — constrained_layout aware
     labs_obj = resolved.labs
@@ -297,11 +306,17 @@ def apply_facet_decorations(
     if labs_obj and labs_obj.x and strip_position == "bottom":
         main_subfig.supxlabel(labs_obj.x, fontsize=axis_title_x_size)
 
+    # Determine which rows/cols are at the bottom/left edges
+    max_row_per_col: dict[int, int] = {}
+    for r_val, c_val in occupied:
+        if c_val not in max_row_per_col or r_val > max_row_per_col[c_val]:
+            max_row_per_col[c_val] = r_val
+
     # Suppress per-panel labels for non-edge panels
     for idx in range(n_panels):
-        r, c = divmod(idx, ncol)
+        r, c = panel_pos(idx)
         ax = axes[r][c]
-        is_bottom = (r == nrow - 1) or (idx + ncol >= n_panels)
+        is_bottom = r == max_row_per_col.get(c, nrow - 1)
 
         if strip_position != "bottom":
             # Only edge panels show axis labels

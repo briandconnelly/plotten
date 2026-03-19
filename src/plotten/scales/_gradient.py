@@ -139,3 +139,94 @@ def scale_fill_gradient2(
     return ScaleGradient2(
         aesthetic="fill", low=low, mid=mid, high=high, midpoint=midpoint, **kwargs
     )
+
+
+class ScaleGradientN(ScaleColorContinuous):
+    """Multi-stop gradient scale with arbitrary color stops."""
+
+    def __init__(
+        self,
+        aesthetic: str = "color",
+        colors: list[str] | None = None,
+        values: list[float] | None = None,
+        breaks: list[float] | None = None,
+        limits: tuple[float, float] | None = None,
+    ) -> None:
+        from matplotlib.colors import LinearSegmentedColormap
+
+        if colors is None:
+            colors = ["#132B43", "#56B1F7"]
+        super().__init__(aesthetic=aesthetic, cmap_name="viridis", breaks=breaks, limits=limits)
+        self._colors = colors
+        self._values = values
+        if values is not None:
+            if len(values) != len(colors):
+                msg = (
+                    f"Length of values ({len(values)}) must match length of colors ({len(colors)})"
+                )
+                raise ValueError(msg)
+            self._cmap = LinearSegmentedColormap.from_list(
+                "gradientn",
+                list(zip(values, [self._parse_color(c) for c in colors], strict=True)),
+                N=256,
+            )
+        else:
+            self._cmap = LinearSegmentedColormap.from_list("gradientn", colors, N=256)
+
+    @staticmethod
+    def _parse_color(color: str) -> tuple[float, ...]:
+        import matplotlib.colors as mcolors
+
+        return mcolors.to_rgba(color)
+
+    def legend_entries(self) -> list[LegendEntry]:
+        import matplotlib.colors as mcolors
+
+        breaks = self.get_breaks()
+        lo, hi = self.get_limits()
+        span = hi - lo if hi != lo else 1.0
+        entries = []
+        for b in breaks:
+            norm = (b - lo) / span
+            hex_color = mcolors.to_hex(self._cmap(norm))
+            if self.aesthetic == "fill":
+                entries.append(LegendEntry(label=f"{b:.3g}", fill=hex_color))
+            else:
+                entries.append(LegendEntry(label=f"{b:.3g}", color=hex_color))
+        return entries
+
+
+def scale_color_gradientn(
+    colors: list[str] | None = None,
+    values: list[float] | None = None,
+    **kwargs: Any,
+) -> ScaleGradientN:
+    """Create a multi-stop color gradient scale.
+
+    Parameters
+    ----------
+    colors : list of str
+        List of colors (hex or named) for the gradient stops.
+    values : list of float, optional
+        Positions (0-1) for each color stop. If ``None``, colors are
+        evenly spaced.
+    """
+    return ScaleGradientN(aesthetic="color", colors=colors, values=values, **kwargs)
+
+
+def scale_fill_gradientn(
+    colors: list[str] | None = None,
+    values: list[float] | None = None,
+    **kwargs: Any,
+) -> ScaleGradientN:
+    """Create a multi-stop fill gradient scale.
+
+    Parameters
+    ----------
+    colors : list of str
+        List of colors (hex or named) for the gradient stops.
+    values : list of float, optional
+        Positions (0-1) for each color stop. If ``None``, colors are
+        evenly spaced.
+    """
+    return ScaleGradientN(aesthetic="fill", colors=colors, values=values, **kwargs)

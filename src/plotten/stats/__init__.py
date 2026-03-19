@@ -15,6 +15,7 @@ from plotten.stats._function import StatFunction
 from plotten.stats._identity import StatIdentity
 from plotten.stats._poly_eq import StatPolyEq
 from plotten.stats._qq import StatQQ, StatQQLine
+from plotten.stats._quantile import StatQuantile
 from plotten.stats._smooth import StatSmooth
 from plotten.stats._summary import StatSummary
 from plotten.stats._summary_bin import StatSummaryBin
@@ -39,6 +40,7 @@ __all__ = [
     "StatPolyEq",
     "StatQQ",
     "StatQQLine",
+    "StatQuantile",
     "StatSmooth",
     "StatSummary",
     "StatSummaryBin",

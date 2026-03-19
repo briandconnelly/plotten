@@ -93,6 +93,9 @@ def render(plot: Any) -> Figure:
 
         # Legend — make room by adjusting constrained rect, then draw on top-level fig
         _apply_legend(fig, [ax], resolved, theme)
+
+        # Watermark
+        _apply_watermark(fig, plot)
     else:
         # Faceted
         n_panels = len(resolved.panels)
@@ -101,8 +104,10 @@ def render(plot: Any) -> Figure:
 
         free_scales = getattr(resolved.facet, "scales", "fixed")
 
+        _pos = _facet_panel_position(resolved.facet, nrow, ncol)
+
         for idx, panel in enumerate(resolved.panels):
-            r, c = divmod(idx, ncol)
+            r, c = _pos(idx)
             ax = axes[r][c]
 
             render_panel(panel, ax, resolved, theme)
@@ -118,16 +123,34 @@ def render(plot: Any) -> Figure:
             _apply_coord_limits(ax, resolved.coord, is_flipped)
 
         # Apply strip labels, shared axis labels, hide empty axes
-        apply_facet_decorations(main_subfig, axes, resolved, theme, n_panels, nrow, ncol)
+        apply_facet_decorations(main_subfig, axes, resolved, theme, n_panels, nrow, ncol, _pos)
 
         # Caption
         render_caption(caption_subfig, resolved, theme)
 
         # Legend
-        visible_axes = [axes[idx // ncol][idx % ncol] for idx in range(n_panels)]
+        visible_axes = [axes[_pos(idx)[0]][_pos(idx)[1]] for idx in range(n_panels)]
         _apply_legend(fig, visible_axes, resolved, theme)
 
+        # Watermark
+        _apply_watermark(fig, plot)
+
     return fig
+
+
+def _facet_panel_position(
+    facet: Any,
+    nrow: int,
+    ncol: int,
+) -> Any:
+    """Return a callable that maps panel index to (row, col).
+
+    Uses the facet's ``panel_position`` method if available (FacetWrap with dir),
+    otherwise falls back to row-major ``divmod(idx, ncol)``.
+    """
+    if hasattr(facet, "panel_position"):
+        return lambda idx: facet.panel_position(idx, nrow, ncol)
+    return lambda idx: divmod(idx, ncol)
 
 
 def _apply_legend(
@@ -185,3 +208,23 @@ def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:
             ax.set_xlim(coord.ylim)
     elif isinstance(coord, CoordPolar) or coord is not None:
         coord.transform(None, ax)
+
+
+def _apply_watermark(fig: Figure, plot: Any) -> None:
+    """Draw a watermark overlay if the plot has one."""
+    wm = plot._watermark
+    if wm is None:
+        return
+    fig.text(
+        0.5,
+        0.5,
+        wm.text,
+        transform=fig.transFigure,
+        ha="center",
+        va="center",
+        alpha=wm.alpha,
+        fontsize=wm.fontsize,
+        rotation=wm.rotation,
+        color=wm.color,
+        zorder=1000,
+    )

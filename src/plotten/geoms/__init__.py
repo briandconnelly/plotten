@@ -25,6 +25,7 @@ from plotten.geoms._path import GeomPath
 from plotten.geoms._point import GeomPoint
 from plotten.geoms._pointrange import GeomPointrange
 from plotten.geoms._polygon import GeomPolygon
+from plotten.geoms._quantile import GeomQuantile
 from plotten.geoms._raster import GeomRaster
 from plotten.geoms._rect import GeomRect
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
@@ -499,6 +500,23 @@ def stat_sum(**params: Any) -> Layer:
     return geom_count(**params)
 
 
+def geom_quantile(
+    quantiles: list[float] | None = None, n_points: int = 100, **params: Any
+) -> Layer:
+    """Create a quantile regression line layer."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    _quantiles = quantiles if quantiles is not None else [0.25, 0.5, 0.75]
+    geom = GeomQuantile(quantiles=_quantiles, n_points=n_points)
+    return Layer(
+        geom=geom,
+        stat=geom.default_stat(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 def geom_density_ridges(
     bandwidth: float | None = None, n_points: int = 128, **params: Any
 ) -> Layer:
@@ -543,6 +561,7 @@ __all__ = [
     "GeomPoint",
     "GeomPointrange",
     "GeomPolygon",
+    "GeomQuantile",
     "GeomRaster",
     "GeomRect",
     "GeomRibbon",
@@ -586,6 +605,7 @@ __all__ = [
     "geom_polygon",
     "geom_qq",
     "geom_qq_line",
+    "geom_quantile",
     "geom_raster",
     "geom_rect",
     "geom_ribbon",

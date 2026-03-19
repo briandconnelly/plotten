@@ -8,6 +8,7 @@ from plotten._aes import Aes
 from plotten._enums import SizeUnit
 from plotten._labs import Labs
 from plotten._layer import Layer
+from plotten._watermark import Watermark
 from plotten.coords._cartesian import CoordCartesian
 from plotten.coords._flip import CoordFlip
 from plotten.facets import FacetGrid, FacetWrap
@@ -30,6 +31,7 @@ class Plot:
     guides: dict | None = None
     _expand_limits: tuple = ()
     _insets: tuple = ()
+    _watermark: Watermark | None = None
 
     def _replace(self, **kwargs: Any) -> Self:
         """Return a copy with given fields replaced."""
@@ -57,6 +59,8 @@ class Plot:
                 return self._replace(facet=other)
             case ExpandLimits():
                 return self._replace(_expand_limits=(*self._expand_limits, other))
+            case Watermark():
+                return self._replace(_watermark=other)
             case dict():
                 # Guides dict
                 existing = self.guides or {}

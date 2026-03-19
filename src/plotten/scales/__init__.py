@@ -42,10 +42,13 @@ from plotten.scales._date import (
 from plotten.scales._gradient import (
     ScaleGradient,
     ScaleGradient2,
+    ScaleGradientN,
     scale_color_gradient,
     scale_color_gradient2,
+    scale_color_gradientn,
     scale_fill_gradient,
     scale_fill_gradient2,
+    scale_fill_gradientn,
 )
 from plotten.scales._grey import (
     ScaleGreyContinuous,
@@ -122,6 +125,7 @@ __all__ = [
     "ScaleFillBinned",
     "ScaleGradient",
     "ScaleGradient2",
+    "ScaleGradientN",
     "ScaleGreyContinuous",
     "ScaleGreyDiscrete",
     "ScaleIdentity",
@@ -151,6 +155,7 @@ __all__ = [
     "scale_color_fermenter",
     "scale_color_gradient",
     "scale_color_gradient2",
+    "scale_color_gradientn",
     "scale_color_gray",
     "scale_color_gray_continuous",
     "scale_color_grey",
@@ -166,6 +171,7 @@ __all__ = [
     "scale_fill_fermenter",
     "scale_fill_gradient",
     "scale_fill_gradient2",
+    "scale_fill_gradientn",
     "scale_fill_gray",
     "scale_fill_gray_continuous",
     "scale_fill_grey",

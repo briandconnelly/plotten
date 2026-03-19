@@ -21,6 +21,7 @@ class FacetWrap:
     labeller: Callable[[str], str] | None = None
     drop: bool = True
     strip_position: str = "top"
+    dir: str = "h"
 
     def facet_data(self, data: Any) -> list[tuple[str, Any]]:
         """Split data by faceting column. Returns (label, native_df) pairs."""
@@ -47,6 +48,16 @@ class FacetWrap:
         nrow = math.ceil(n_panels / ncol)
         return (nrow, ncol)
 
+    def panel_position(self, idx: int, nrow: int, ncol: int) -> tuple[int, int]:
+        """Map panel index to (row, col) grid position.
+
+        When ``dir="h"`` (default), panels fill left-to-right (row-major).
+        When ``dir="v"``, panels fill top-to-bottom (column-major).
+        """
+        if self.dir == "v":
+            return (idx % nrow, idx // nrow)
+        return divmod(idx, ncol)
+
 
 def facet_wrap(
     facets: str,
@@ -56,6 +67,7 @@ def facet_wrap(
     labeller: Callable[[str], str] | None = None,
     drop: bool = True,
     strip_position: str = "top",
+    dir: str = "h",
 ) -> FacetWrap:
     """Create a FacetWrap specification."""
     return FacetWrap(
@@ -66,4 +78,5 @@ def facet_wrap(
         labeller=labeller,
         drop=drop,
         strip_position=strip_position,
+        dir=dir,
     )
