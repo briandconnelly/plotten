@@ -13,6 +13,7 @@ from plotten._render._mpl_labels import apply_axis_labs
 from plotten._render._mpl_scales import apply_scales
 from plotten._render._mpl_theme import render_panel
 from plotten._render._resolve import ResolvedPlot, resolve
+from plotten.themes._text_props import text_props
 from plotten.themes._theme import Theme, theme_get
 
 if TYPE_CHECKING:
@@ -49,14 +50,34 @@ def render_single(
     labs = resolved.labs
     if labs is not None:
         if not isinstance(resolved.coord, CoordPolar):
-            axis_title_x_size = theme.axis_title_x_size or theme.label_size
-            axis_title_y_size = theme.axis_title_y_size or theme.label_size
+            axis_title_kw = text_props(
+                theme.axis_title,
+                theme,
+                default_size=theme.label_size,
+                default_color="#000000",
+            )
+            for k in ("ha", "va", "rotation"):
+                axis_title_kw.pop(k, None)
+            ax_x_kw = dict(axis_title_kw)
+            ax_y_kw = dict(axis_title_kw)
+            if theme.axis_title_x_size is not None:
+                ax_x_kw["fontsize"] = theme.axis_title_x_size
+            if theme.axis_title_y_size is not None:
+                ax_y_kw["fontsize"] = theme.axis_title_y_size
             if labs.x is not None:
-                ax.set_xlabel(labs.x, fontsize=axis_title_x_size)
+                ax.set_xlabel(labs.x, **ax_x_kw)
             if labs.y is not None:
-                ax.set_ylabel(labs.y, fontsize=axis_title_y_size)
+                ax.set_ylabel(labs.y, **ax_y_kw)
         if labs.title is not None:
-            ax.set_title(labs.title, fontsize=theme.title_size)
+            title_kw = text_props(
+                theme.plot_title,
+                theme,
+                default_size=theme.title_size,
+                default_color=theme.title_color,
+            )
+            for k in ("ha", "va"):
+                title_kw.pop(k, None)
+            ax.set_title(labs.title, **title_kw)
 
 
 def render(plot: Plot) -> Figure:

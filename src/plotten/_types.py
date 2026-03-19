@@ -53,6 +53,9 @@ class GeomParams(TypedDict, total=False):
     method: str
     curvature: float
     direction: str
+    family: str
     fontsize: float
-    padding: float
     linestyle: str
+    padding: float
+    style: str
+    weight: str

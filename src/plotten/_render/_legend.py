@@ -7,6 +7,7 @@ from matplotlib.patches import Rectangle
 
 from plotten._enums import LegendPosition
 from plotten.scales._color import ScaleColorContinuous
+from plotten.themes._text_props import text_props
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -91,7 +92,13 @@ def _apply_guide_overrides(
 
 
 def _draw_legend_entry(
-    legend_ax: Axes, entry: Any, y: float, step: float, legend_text_size: float, font_family: str
+    legend_ax: Axes,
+    entry: Any,
+    y: float,
+    step: float,
+    legend_text_size: float,
+    font_family: str,
+    text_kw: dict[str, Any] | None = None,
 ) -> None:
     """Draw a single legend entry (swatch + label) at position *y*."""
     if entry.shape is not None:
@@ -156,14 +163,19 @@ def _draw_legend_entry(
         )
         legend_ax.add_patch(rect)
 
+    kw: dict[str, Any] = {
+        "fontsize": legend_text_size,
+        "fontfamily": font_family,
+        "verticalalignment": "center",
+    }
+    if text_kw:
+        kw.update(text_kw)
     legend_ax.text(
         0.25,
         y,
         entry.label,
-        fontsize=legend_text_size,
-        fontfamily=font_family,
-        verticalalignment="center",
         transform=legend_ax.transAxes,
+        **kw,
     )
 
 
@@ -176,6 +188,7 @@ def _draw_legend_entry_at(
     step: float,
     legend_text_size: float,
     font_family: str,
+    text_kw: dict[str, Any] | None = None,
 ) -> None:
     """Draw a legend entry at a specific column offset for multi-column layout."""
     swatch_x = x_offset + 0.05 * col_width
@@ -224,14 +237,19 @@ def _draw_legend_entry_at(
         )
         legend_ax.add_patch(rect)
 
+    kw: dict[str, Any] = {
+        "fontsize": legend_text_size,
+        "fontfamily": font_family,
+        "verticalalignment": "center",
+    }
+    if text_kw:
+        kw.update(text_kw)
     legend_ax.text(
         text_x,
         y,
         entry.label,
-        fontsize=legend_text_size,
-        fontfamily=font_family,
-        verticalalignment="center",
         transform=legend_ax.transAxes,
+        **kw,
     )
 
 
@@ -289,15 +307,42 @@ def _draw_discrete_legend(
     legend_title_size = theme.legend_title_size or theme.label_size
     legend_text_size = theme.legend_text_size or theme.tick_size
 
+    # Build text kwargs from element overrides
+    title_kw = text_props(
+        theme.legend_title_element,
+        theme,
+        default_size=legend_title_size,
+        default_color="#000000",
+    )
+    title_kw.pop("ha", None)
+    title_kw.setdefault("fontweight", "bold")
+
+    entry_text_kw = text_props(
+        theme.legend_text_element,
+        theme,
+        default_size=legend_text_size,
+        default_color="#000000",
+    )
+    # Remove keys that are handled positionally
+    for k in ("ha", "va", "fontsize", "fontfamily"):
+        entry_text_kw.pop(k, None)
+    # Extract overridden size/family for positional args
+    lt_kw = text_props(
+        theme.legend_text_element,
+        theme,
+        default_size=legend_text_size,
+        default_color="#000000",
+    )
+    effective_text_size = lt_kw.get("fontsize", legend_text_size)
+    effective_text_family = lt_kw.get("fontfamily", theme.font_family)
+
     legend_ax.text(
         0.05,
         0.95,
         title,
-        fontsize=legend_title_size,
-        fontweight="bold",
-        fontfamily=theme.font_family,
         verticalalignment="top",
         transform=legend_ax.transAxes,
+        **title_kw,
     )
 
     y_start = 1.0 - title_height / total_height
@@ -318,11 +363,20 @@ def _draw_discrete_legend(
                 col_width,
                 y,
                 step,
-                legend_text_size,
-                theme.font_family,
+                effective_text_size,
+                effective_text_family,
+                text_kw=entry_text_kw or None,
             )
         else:
-            _draw_legend_entry(legend_ax, entry, y, step, legend_text_size, theme.font_family)
+            _draw_legend_entry(
+                legend_ax,
+                entry,
+                y,
+                step,
+                effective_text_size,
+                effective_text_family,
+                text_kw=entry_text_kw or None,
+            )
 
 
 def _draw_continuous_legend(
@@ -386,6 +440,17 @@ def _draw_continuous_legend(
     legend_title_size = theme.legend_title_size or theme.label_size
     legend_text_size = theme.legend_text_size or theme.tick_size
 
+    # Build title kwargs from element override
+    cbar_title_kw = text_props(
+        theme.legend_title_element,
+        theme,
+        default_size=legend_title_size,
+        default_color="#000000",
+    )
+    for k in ("ha", "va", "rotation"):
+        cbar_title_kw.pop(k, None)
+    cbar_title_kw.setdefault("fontweight", "bold")
+
     # Tick labels
     lo, hi = scale.get_limits()
     breaks = scale.get_breaks()
@@ -412,6 +477,6 @@ def _draw_continuous_legend(
 
     # Title above colorbar
     if position in ("right", "left"):
-        cbar_ax.set_title(title, fontsize=legend_title_size, fontfamily=theme.font_family, pad=4)
+        cbar_ax.set_title(title, pad=4, **cbar_title_kw)
     else:
-        cbar_ax.set_xlabel(title, fontsize=legend_title_size, fontfamily=theme.font_family)
+        cbar_ax.set_xlabel(title, **cbar_title_kw)

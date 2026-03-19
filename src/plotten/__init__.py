@@ -57,6 +57,7 @@ from plotten.facets import (
     labeller_both,
     labeller_wrap,
 )
+from plotten.fonts import available_fonts, register_font, register_google_font
 from plotten.geoms import (
     geom_abline,
     geom_area,
@@ -330,6 +331,7 @@ __all__ = [
     "after_stat",
     "annotate",
     "arrow",
+    "available_fonts",
     "coord_cartesian",
     "coord_equal",
     "coord_fixed",
@@ -415,6 +417,8 @@ __all__ = [
     "position_jitterdodge",
     "position_nudge",
     "position_stack",
+    "register_font",
+    "register_google_font",
     "scale_alpha_continuous",
     "scale_alpha_discrete",
     "scale_alpha_identity",

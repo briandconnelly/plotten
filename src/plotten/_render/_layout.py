@@ -17,6 +17,7 @@ from plotten._defaults import (
     DEFAULT_FIGSIZE,
     DEFAULT_STRIP_BOX_PAD,
 )
+from plotten.themes._text_props import text_props
 
 if TYPE_CHECKING:
     from matplotlib.figure import Figure, SubFigure
@@ -107,32 +108,22 @@ def _render_header(
     theme: Theme,
 ) -> None:
     """Render title and subtitle into the header subfigure."""
-    from plotten.themes._elements import ElementText
-
     labs = resolved.labs
     if labs is None:
         return
 
-    title_size = theme.title_size
-    title_color = theme.title_color
-    title_family = theme.font_family
-
-    if isinstance(theme.plot_title, ElementText):
-        if theme.plot_title.size is not None:
-            title_size = theme.plot_title.size
-        if theme.plot_title.color is not None:
-            title_color = theme.plot_title.color
-        if theme.plot_title.family is not None:
-            title_family = theme.plot_title.family
-
-    subtitle_size = theme.subtitle_size or theme.label_size
-    subtitle_color = theme.subtitle_color
-
-    if isinstance(theme.plot_subtitle, ElementText):
-        if theme.plot_subtitle.size is not None:
-            subtitle_size = theme.plot_subtitle.size
-        if theme.plot_subtitle.color is not None:
-            subtitle_color = theme.plot_subtitle.color
+    title_kw = text_props(
+        theme.plot_title,
+        theme,
+        default_size=theme.title_size,
+        default_color=theme.title_color,
+    )
+    subtitle_kw = text_props(
+        theme.plot_subtitle,
+        theme,
+        default_size=theme.subtitle_size or theme.label_size,
+        default_color=theme.subtitle_color,
+    )
 
     has_subtitle = labs.subtitle is not None
     has_title = labs.title is not None
@@ -141,38 +132,19 @@ def _render_header(
     subtitle_text = labs.subtitle
 
     if has_title and has_subtitle and title_text is not None and subtitle_text is not None:
-        header.suptitle(
-            title_text,
-            fontsize=title_size,
-            fontfamily=title_family,
-            color=title_color,
-            y=0.95,
-            va="top",
-        )
+        header.suptitle(title_text, y=0.95, va="top", **title_kw)
         header.text(
             0.5,
             0.25,
             subtitle_text,
-            ha="center",
-            va="top",
-            fontsize=subtitle_size,
-            fontfamily=theme.font_family,
-            color=subtitle_color,
+            ha=subtitle_kw.pop("ha", "center"),
+            va=subtitle_kw.pop("va", "top"),
+            **subtitle_kw,
         )
     elif has_title and title_text is not None:
-        header.suptitle(
-            title_text,
-            fontsize=title_size,
-            fontfamily=title_family,
-            color=title_color,
-        )
+        header.suptitle(title_text, **title_kw)
     elif has_subtitle and subtitle_text is not None:
-        header.suptitle(
-            subtitle_text,
-            fontsize=subtitle_size,
-            fontfamily=theme.font_family,
-            color=subtitle_color,
-        )
+        header.suptitle(subtitle_text, **subtitle_kw)
 
 
 def render_caption(
@@ -192,14 +164,19 @@ def render_caption(
     if isinstance(theme.plot_caption, ElementBlank):
         return
 
+    caption_kw = text_props(
+        theme.plot_caption,
+        theme,
+        default_size=theme.tick_size,
+        default_color="#000000",
+    )
     caption_subfig.text(
         0.99,
         0.5,
         labs.caption,
-        ha="right",
-        va="center",
-        fontsize=theme.tick_size,
-        fontfamily=theme.font_family,
+        ha=caption_kw.pop("ha", "right"),
+        va=caption_kw.pop("va", "center"),
+        **caption_kw,
     )
 
 
@@ -247,8 +224,12 @@ def apply_facet_decorations(
         panel_pos = lambda idx: divmod(idx, ncol)  # noqa: E731
 
     strip_bg = theme.strip_background
-    strip_text_size = theme.strip_text_size or theme.label_size
-    strip_text_color = theme.strip_text_color
+    strip_kw = text_props(
+        theme.strip_text,
+        theme,
+        default_size=theme.strip_text_size or theme.label_size,
+        default_color=theme.strip_text_color,
+    )
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
     # Track which grid cells are occupied by panels
@@ -259,13 +240,17 @@ def apply_facet_decorations(
         occupied.add((r, c))
         ax = axes[r][c]
 
+        # Strip label kwargs — copy so pop doesn't affect subsequent iterations
+        skw = dict(strip_kw)
+        skw.pop("ha", None)
+        skw.pop("va", None)
+
         if strip_position == "bottom":
             # Use xlabel for bottom strip — constrained_layout handles spacing
             ax.set_title("")
             ax.set_xlabel(
                 resolved.panels[idx].label,
-                fontsize=strip_text_size,
-                color=strip_text_color,
+                **skw,
                 bbox={
                     "facecolor": strip_bg,
                     "edgecolor": "none",
@@ -275,9 +260,8 @@ def apply_facet_decorations(
         else:
             ax.set_title(
                 resolved.panels[idx].label,
-                fontsize=strip_text_size,
-                color=strip_text_color,
                 pad=6,
+                **skw,
                 bbox={
                     "facecolor": strip_bg,
                     "edgecolor": "none",
@@ -293,18 +277,34 @@ def apply_facet_decorations(
 
     # Shared axis labels via supxlabel/supylabel — constrained_layout aware
     labs_obj = resolved.labs
-    axis_title_x_size = theme.axis_title_x_size or theme.label_size
-    axis_title_y_size = theme.axis_title_y_size or theme.label_size
+    axis_title_kw = text_props(
+        theme.axis_title,
+        theme,
+        default_size=theme.label_size,
+        default_color="#000000",
+    )
+    # Per-axis size overrides
+    ax_x_kw = dict(axis_title_kw)
+    ax_y_kw = dict(axis_title_kw)
+    if theme.axis_title_x_size is not None:
+        ax_x_kw["fontsize"] = theme.axis_title_x_size
+    if theme.axis_title_y_size is not None:
+        ax_y_kw["fontsize"] = theme.axis_title_y_size
+    # Remove ha/va — supxlabel/supylabel don't accept them
+    for kw in (ax_x_kw, ax_y_kw):
+        kw.pop("ha", None)
+        kw.pop("va", None)
+        kw.pop("rotation", None)
 
     if labs_obj and labs_obj.x and strip_position != "bottom":
-        main_subfig.supxlabel(labs_obj.x, fontsize=axis_title_x_size)
+        main_subfig.supxlabel(labs_obj.x, **ax_x_kw)
     if labs_obj and labs_obj.y:
-        main_subfig.supylabel(labs_obj.y, fontsize=axis_title_y_size)
+        main_subfig.supylabel(labs_obj.y, **ax_y_kw)
 
     # For bottom strips, the xlabel is used for strip labels,
     # so shared x-axis label goes via supxlabel
     if labs_obj and labs_obj.x and strip_position == "bottom":
-        main_subfig.supxlabel(labs_obj.x, fontsize=axis_title_x_size)
+        main_subfig.supxlabel(labs_obj.x, **ax_x_kw)
 
     # Determine which rows/cols are at the bottom/left edges
     max_row_per_col: dict[int, int] = {}

@@ -29,6 +29,12 @@ class GeomText:
         kwargs: dict[str, Any] = {"color": color, "fontsize": fontsize, "ha": ha, "va": va}
         if bbox is not None:
             kwargs["bbox"] = bbox
+        if params.get("family") is not None:
+            kwargs["fontfamily"] = params["family"]
+        if params.get("weight") is not None:
+            kwargs["fontweight"] = params["weight"]
+        if params.get("style") is not None:
+            kwargs["fontstyle"] = params["style"]
 
         for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(x, y, str(label), **kwargs)
@@ -60,6 +66,14 @@ class GeomLabel:
             edgecolor=color,
         )
 
+        extra: dict[str, Any] = {}
+        if params.get("family") is not None:
+            extra["fontfamily"] = params["family"]
+        if params.get("weight") is not None:
+            extra["fontweight"] = params["weight"]
+        if params.get("style") is not None:
+            extra["fontstyle"] = params["style"]
+
         for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(
                 x,
@@ -70,4 +84,5 @@ class GeomLabel:
                 ha=ha,
                 va=va,
                 bbox=bbox,
+                **extra,
             )

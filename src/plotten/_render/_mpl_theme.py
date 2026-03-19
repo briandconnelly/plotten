@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
+from plotten.themes._text_props import text_props
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -95,23 +97,38 @@ def render_panel(
             spine.set_linewidth(panel_border_width)
 
     # Tick styling — per-axis sizes and rotation
-    axis_text_x_size = theme.axis_text_x_size or theme.tick_size
-    axis_text_y_size = theme.axis_text_y_size or theme.tick_size
+    axis_text_kw = text_props(
+        theme.axis_text,
+        theme,
+        default_size=theme.tick_size,
+        default_color="#000000",
+    )
+    axis_text_x_size = theme.axis_text_x_size or axis_text_kw.get("fontsize", theme.tick_size)
+    axis_text_y_size = theme.axis_text_y_size or axis_text_kw.get("fontsize", theme.tick_size)
     axis_text_x_rotation = theme.axis_text_x_rotation
     axis_text_y_rotation = theme.axis_text_y_rotation
+    if "rotation" in axis_text_kw:
+        axis_text_x_rotation = axis_text_kw["rotation"]
+        axis_text_y_rotation = axis_text_kw["rotation"]
 
     ax.tick_params(
         axis="x",
         labelsize=axis_text_x_size,
         labelrotation=axis_text_x_rotation,
+        labelcolor=axis_text_kw.get("color", "#000000"),
         length=theme.tick_length,
     )
     ax.tick_params(
         axis="y",
         labelsize=axis_text_y_size,
         labelrotation=axis_text_y_rotation,
+        labelcolor=axis_text_kw.get("color", "#000000"),
         length=theme.tick_length,
     )
+    # Apply font family to tick labels
+    tick_family = axis_text_kw.get("fontfamily", theme.font_family)
+    for label in ax.get_xticklabels() + ax.get_yticklabels():
+        label.set_fontfamily(tick_family)
 
     # Draw layers
     coord = resolved.coord
@@ -122,11 +139,26 @@ def render_panel(
         draw_params = cast("GeomParams", layer.params)
         layer.geom.draw(draw_data, ax, draw_params)
 
-    # Font — per-axis title sizes
-    axis_title_x_size = theme.axis_title_x_size or theme.label_size
-    axis_title_y_size = theme.axis_title_y_size or theme.label_size
+    # Font — axis titles
+    axis_title_kw = text_props(
+        theme.axis_title,
+        theme,
+        default_size=theme.label_size,
+        default_color="#000000",
+    )
+    axis_title_x_size = theme.axis_title_x_size or axis_title_kw.get("fontsize", theme.label_size)
+    axis_title_y_size = theme.axis_title_y_size or axis_title_kw.get("fontsize", theme.label_size)
 
-    ax.xaxis.label.set_fontfamily(theme.font_family)
-    ax.yaxis.label.set_fontfamily(theme.font_family)
+    ax.xaxis.label.set_fontfamily(axis_title_kw.get("fontfamily", theme.font_family))
+    ax.yaxis.label.set_fontfamily(axis_title_kw.get("fontfamily", theme.font_family))
     ax.xaxis.label.set_fontsize(axis_title_x_size)
     ax.yaxis.label.set_fontsize(axis_title_y_size)
+    if "fontweight" in axis_title_kw:
+        ax.xaxis.label.set_fontweight(axis_title_kw["fontweight"])
+        ax.yaxis.label.set_fontweight(axis_title_kw["fontweight"])
+    if "fontstyle" in axis_title_kw:
+        ax.xaxis.label.set_fontstyle(axis_title_kw["fontstyle"])
+        ax.yaxis.label.set_fontstyle(axis_title_kw["fontstyle"])
+    if "color" in axis_title_kw:
+        ax.xaxis.label.set_color(axis_title_kw["color"])
+        ax.yaxis.label.set_color(axis_title_kw["color"])
