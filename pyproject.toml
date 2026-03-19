@@ -24,6 +24,7 @@ dev = [
     "pandas>=2.0",
     "scipy>=1.10",
     "ty>=0.0.1a7",
+    "prek>=0.3.6",
 ]
 
 [build-system]
