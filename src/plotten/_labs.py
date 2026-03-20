@@ -32,5 +32,25 @@ class Labs:
 
 
 def labs(**kwargs: str) -> Labs:
-    """Convenience constructor for Labs."""
+    """Set plot labels for title, axes, and legends.
+
+    Parameters
+    ----------
+    title : str, optional
+        Plot title.
+    subtitle : str, optional
+        Plot subtitle.
+    x, y : str, optional
+        Axis labels.
+    color, fill, size : str, optional
+        Legend titles for the corresponding aesthetic.
+    caption : str, optional
+        Caption text below the plot.
+
+    Examples
+    --------
+    >>> from plotten import labs
+    >>> labs(title="My Plot", x="Speed (mph)", y="Distance (ft)")
+    Labs(title='My Plot', ...)
+    """
     return Labs(**kwargs)

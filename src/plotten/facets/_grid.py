@@ -69,5 +69,26 @@ def facet_grid(
     scales: str = "fixed",
     labeller: Callable[[str], str] | None = None,
 ) -> FacetGrid:
-    """Create a FacetGrid specification."""
+    """Create a grid of panels defined by row and/or column variables.
+
+    Parameters
+    ----------
+    rows : str or None
+        Column name whose unique values define the panel rows.
+    cols : str or None
+        Column name whose unique values define the panel columns.
+    scales : str
+        Whether axis scales are shared: ``"fixed"`` (default), ``"free"``,
+        ``"free_x"``, or ``"free_y"``.
+    labeller : callable or None
+        Function that transforms facet level strings into strip labels.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.facets import facet_grid
+    >>> df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "r": ["a", "a", "b", "b"], "c": ["x", "y", "x", "y"]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="r", cols="c")
+    """
     return FacetGrid(rows=rows, cols=cols, scales=scales, labeller=labeller)

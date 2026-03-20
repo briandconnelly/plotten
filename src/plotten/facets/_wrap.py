@@ -69,7 +69,36 @@ def facet_wrap(
     strip_position: str = "top",
     dir: str = "h",
 ) -> FacetWrap:
-    """Create a FacetWrap specification."""
+    """Wrap a one-dimensional sequence of panels into a two-dimensional grid.
+
+    Parameters
+    ----------
+    facets : str
+        Column name whose unique values define the panels.
+    nrow : int or None
+        Number of rows in the panel grid.
+    ncol : int or None
+        Number of columns in the panel grid.
+    scales : str
+        Whether axis scales are shared: ``"fixed"`` (default), ``"free"``,
+        ``"free_x"``, or ``"free_y"``.
+    labeller : callable or None
+        Function that transforms facet level strings into strip labels.
+    drop : bool
+        Whether to drop unused factor levels.
+    strip_position : str
+        Position of strip labels: ``"top"`` (default) or ``"bottom"``.
+    dir : str
+        Panel fill direction: ``"h"`` for row-major, ``"v"`` for column-major.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.facets import facet_wrap
+    >>> df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", ncol=2)
+    """
     return FacetWrap(
         facets=facets,
         nrow=nrow,

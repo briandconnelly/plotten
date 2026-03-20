@@ -92,4 +92,23 @@ def position_beeswarm(
     side: str = "both",
     seed: int | None = None,
 ) -> PositionBeeswarm:
+    """Arrange points in a beeswarm layout to avoid overlap.
+
+    Parameters
+    ----------
+    spacing : float
+        Minimum distance between points (controls density).
+    side : str
+        Which side to expand towards: ``"both"``, ``"left"``, or ``"right"``.
+    seed : int or None
+        Random seed for reproducibility.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.positions import position_beeswarm
+    >>> df = pd.DataFrame({"g": ["a"] * 5 + ["b"] * 5, "val": list(range(10))})
+    >>> ggplot(df, aes(x="g", y="val")) + geom_point(position=position_beeswarm())
+    """
     return PositionBeeswarm(spacing=spacing, side=side, seed=seed)

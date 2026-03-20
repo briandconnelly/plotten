@@ -43,8 +43,39 @@ class ScaleLinetypeDiscrete(MappedDiscreteScale):
 
 
 def scale_linetype_discrete(**kwargs: Any) -> ScaleLinetypeDiscrete:
+    """Map discrete values to matplotlib linestyle strings.
+
+    Parameters
+    ----------
+    values : dict of str to str, optional
+        Manual mapping from category names to linestyle strings.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_line, scale_linetype_discrete
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "a", "a"]})
+    >>> ggplot(df, aes(x="x", y="y", linetype="g")) + geom_line() + scale_linetype_discrete()
+    Plot(...)
+    """
     return ScaleLinetypeDiscrete(**kwargs)
 
 
 def scale_linetype_manual(values: dict[str, str]) -> ScaleLinetypeDiscrete:
+    """Map discrete values to manually specified linestyle strings.
+
+    Parameters
+    ----------
+    values : dict of str to str
+        Mapping from category names to matplotlib linestyle strings
+        (e.g. ``"solid"``, ``"dashed"``, ``"dotted"``, ``"dashdot"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_line, scale_linetype_manual
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "a", "a"]})
+    >>> ggplot(df, aes(x="x", y="y", linetype="g")) + geom_line() + scale_linetype_manual({"a": "dashed"})
+    Plot(...)
+    """
     return ScaleLinetypeDiscrete(values=values)

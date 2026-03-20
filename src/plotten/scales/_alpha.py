@@ -74,12 +74,61 @@ class ScaleAlphaDiscrete(MappedDiscreteScale):
 
 
 def scale_alpha_continuous(**kwargs: Any) -> ScaleAlphaContinuous:
+    """Map continuous values to alpha transparency levels.
+
+    Parameters
+    ----------
+    range : tuple of float, optional
+        Output alpha range as ``(min, max)`` (default ``(0.1, 1.0)``).
+    breaks : list of float, optional
+        Explicit break values for the legend.
+    limits : tuple of float, optional
+        Fixed ``(min, max)`` domain limits.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_alpha_continuous
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", alpha="v")) + geom_point() + scale_alpha_continuous()
+    Plot(...)
+    """
     return ScaleAlphaContinuous(**kwargs)
 
 
 def scale_alpha_discrete(**kwargs: Any) -> ScaleAlphaDiscrete:
+    """Map discrete values to evenly spaced alpha transparency levels.
+
+    Parameters
+    ----------
+    values : dict of str to float, optional
+        Manual mapping from category names to alpha values.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_alpha_discrete
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", alpha="g")) + geom_point() + scale_alpha_discrete()
+    Plot(...)
+    """
     return ScaleAlphaDiscrete(**kwargs)
 
 
 def scale_alpha_manual(values: dict[str, float]) -> ScaleAlphaDiscrete:
+    """Map discrete values to manually specified alpha transparency levels.
+
+    Parameters
+    ----------
+    values : dict of str to float
+        Mapping from category names to alpha values (0-1).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_alpha_manual
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", alpha="g")) + geom_point() + scale_alpha_manual({"a": 0.2, "b": 0.6, "c": 1.0})
+    Plot(...)
+    """
     return ScaleAlphaDiscrete(values=values)

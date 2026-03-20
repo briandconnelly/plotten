@@ -58,5 +58,23 @@ class CoordPolar:
 
 
 def coord_polar(theta: str = "x", start: float = 0, direction: int = 1) -> CoordPolar:
-    """Create a polar coordinate system."""
+    """Create a polar coordinate system for pie and radar charts.
+
+    Parameters
+    ----------
+    theta : str
+        Which aesthetic maps to the angle: ``"x"`` (default) or ``"y"``.
+    start : float
+        Offset in radians from 12 o'clock.
+    direction : int
+        ``1`` for clockwise, ``-1`` for counter-clockwise.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar
+    >>> from plotten.coords import coord_polar
+    >>> df = pd.DataFrame({"cat": ["a", "b", "c"], "val": [3, 1, 2]})
+    >>> ggplot(df, aes(x="cat", y="val")) + geom_bar(stat="identity") + coord_polar()
+    """
     return CoordPolar(theta=theta, start=start, direction=direction)

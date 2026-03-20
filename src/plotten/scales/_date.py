@@ -63,16 +63,92 @@ class ScaleDateContinuous(ScaleBase):
 
 
 def scale_x_date(**kwargs: Any) -> ScaleDateContinuous:
+    """Set x-axis to a date scale for date-valued data.
+
+    Parameters
+    ----------
+    date_breaks : str, optional
+        Break interval specification (e.g. ``"1 month"``).
+    date_labels : str, optional
+        strftime format string for tick labels.
+    limits : tuple, optional
+        Fixed ``(min, max)`` date limits.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_x_date
+    >>> df = pd.DataFrame({"x": pd.to_datetime(["2024-01-01", "2024-06-01"]), "y": [1, 2]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_date()
+    Plot(...)
+    """
     return ScaleDateContinuous(aesthetic="x", **kwargs)
 
 
 def scale_y_date(**kwargs: Any) -> ScaleDateContinuous:
+    """Set y-axis to a date scale for date-valued data.
+
+    Parameters
+    ----------
+    date_breaks : str, optional
+        Break interval specification (e.g. ``"1 month"``).
+    date_labels : str, optional
+        strftime format string for tick labels.
+    limits : tuple, optional
+        Fixed ``(min, max)`` date limits.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_y_date
+    >>> df = pd.DataFrame({"x": [1, 2], "y": pd.to_datetime(["2024-01-01", "2024-06-01"])})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_date()
+    Plot(...)
+    """
     return ScaleDateContinuous(aesthetic="y", **kwargs)
 
 
 def scale_x_datetime(**kwargs: Any) -> ScaleDateContinuous:
+    """Set x-axis to a datetime scale for datetime-valued data.
+
+    Parameters
+    ----------
+    date_breaks : str, optional
+        Break interval specification (e.g. ``"6 hours"``).
+    date_labels : str, optional
+        strftime format string for tick labels.
+    limits : tuple, optional
+        Fixed ``(min, max)`` datetime limits.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_x_datetime
+    >>> df = pd.DataFrame({"x": pd.to_datetime(["2024-01-01 08:00", "2024-01-01 16:00"]), "y": [1, 2]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_datetime()
+    Plot(...)
+    """
     return ScaleDateContinuous(aesthetic="x", **kwargs)
 
 
 def scale_y_datetime(**kwargs: Any) -> ScaleDateContinuous:
+    """Set y-axis to a datetime scale for datetime-valued data.
+
+    Parameters
+    ----------
+    date_breaks : str, optional
+        Break interval specification (e.g. ``"6 hours"``).
+    date_labels : str, optional
+        strftime format string for tick labels.
+    limits : tuple, optional
+        Fixed ``(min, max)`` datetime limits.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_y_datetime
+    >>> df = pd.DataFrame({"x": [1, 2], "y": pd.to_datetime(["2024-01-01 08:00", "2024-01-01 16:00"])})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_datetime()
+    Plot(...)
+    """
     return ScaleDateContinuous(aesthetic="y", **kwargs)

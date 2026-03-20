@@ -92,18 +92,86 @@ class ScaleGreyContinuous(MappedContinuousScale):
 
 
 def scale_color_grey(start: float = 0.2, end: float = 0.8) -> ScaleGreyDiscrete:
+    """Map discrete color aesthetic to shades of grey.
+
+    Parameters
+    ----------
+    start : float, optional
+        Grey level for the lightest shade, 0-1 (default ``0.2``).
+    end : float, optional
+        Grey level for the darkest shade, 0-1 (default ``0.8``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_grey
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_grey()
+    Plot(...)
+    """
     return ScaleGreyDiscrete("color", start=start, end=end)
 
 
 def scale_fill_grey(start: float = 0.2, end: float = 0.8) -> ScaleGreyDiscrete:
+    """Map discrete fill aesthetic to shades of grey.
+
+    Parameters
+    ----------
+    start : float, optional
+        Grey level for the lightest shade, 0-1 (default ``0.2``).
+    end : float, optional
+        Grey level for the darkest shade, 0-1 (default ``0.8``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_grey
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y", fill="x")) + geom_bar() + scale_fill_grey()
+    Plot(...)
+    """
     return ScaleGreyDiscrete("fill", start=start, end=end)
 
 
 def scale_color_grey_continuous(start: float = 0.2, end: float = 0.8) -> ScaleGreyContinuous:
+    """Map continuous color aesthetic to shades of grey.
+
+    Parameters
+    ----------
+    start : float, optional
+        Grey level for the low end, 0-1 (default ``0.2``).
+    end : float, optional
+        Grey level for the high end, 0-1 (default ``0.8``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_grey_continuous
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_grey_continuous()
+    Plot(...)
+    """
     return ScaleGreyContinuous("color", start=start, end=end)
 
 
 def scale_fill_grey_continuous(start: float = 0.2, end: float = 0.8) -> ScaleGreyContinuous:
+    """Map continuous fill aesthetic to shades of grey.
+
+    Parameters
+    ----------
+    start : float, optional
+        Grey level for the low end, 0-1 (default ``0.2``).
+    end : float, optional
+        Grey level for the high end, 0-1 (default ``0.8``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_grey_continuous
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_grey_continuous()
+    Plot(...)
+    """
     return ScaleGreyContinuous("fill", start=start, end=end)
 
 

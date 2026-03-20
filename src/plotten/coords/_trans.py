@@ -66,12 +66,23 @@ def coord_trans(
     x: str | Callable = "identity",
     y: str | Callable = "identity",
 ) -> CoordTrans:
-    """Create a coordinate transformation.
+    """Apply arbitrary transformations to the coordinate axes.
 
     Parameters
     ----------
-    x, y : str or callable
-        Transformation for each axis. Built-in options: "identity", "log10",
-        "sqrt", "reverse", "exp", "reciprocal". Or pass a callable.
+    x : str or callable
+        Transformation for the x-axis. Built-in options: ``"identity"``,
+        ``"log10"``, ``"sqrt"``, ``"reverse"``, ``"exp"``, ``"reciprocal"``.
+        Or pass a callable.
+    y : str or callable
+        Transformation for the y-axis (same options as *x*).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.coords import coord_trans
+    >>> df = pd.DataFrame({"x": [1, 10, 100], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + coord_trans(x="log10", y="sqrt")
     """
     return CoordTrans(x=x, y=y)

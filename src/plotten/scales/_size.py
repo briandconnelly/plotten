@@ -74,12 +74,61 @@ class ScaleSizeDiscrete(MappedDiscreteScale):
 
 
 def scale_size_continuous(**kwargs: Any) -> ScaleSizeContinuous:
+    """Map continuous values to point sizes.
+
+    Parameters
+    ----------
+    range : tuple of float, optional
+        Output size range as ``(min, max)`` (default ``(1, 10)``).
+    breaks : list of float, optional
+        Explicit break values for the legend.
+    limits : tuple of float, optional
+        Fixed ``(min, max)`` domain limits.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_size_continuous
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", size="v")) + geom_point() + scale_size_continuous()
+    Plot(...)
+    """
     return ScaleSizeContinuous(**kwargs)
 
 
 def scale_size_discrete(**kwargs: Any) -> ScaleSizeDiscrete:
+    """Map discrete values to evenly spaced point sizes.
+
+    Parameters
+    ----------
+    values : dict of str to float, optional
+        Manual mapping from category names to point sizes.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_size_discrete
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", size="g")) + geom_point() + scale_size_discrete()
+    Plot(...)
+    """
     return ScaleSizeDiscrete(**kwargs)
 
 
 def scale_size_manual(values: dict[str, float]) -> ScaleSizeDiscrete:
+    """Map discrete values to manually specified point sizes.
+
+    Parameters
+    ----------
+    values : dict of str to float
+        Mapping from category names to point sizes.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_size_manual
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", size="g")) + geom_point() + scale_size_manual({"a": 2, "b": 5, "c": 10})
+    Plot(...)
+    """
     return ScaleSizeDiscrete(values=values)

@@ -158,20 +158,92 @@ class ScaleDiscrete(ScaleBase):
 
 
 def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:
-    """Create a continuous x scale."""
+    """Set continuous x-axis scale with custom breaks, labels, or limits.
+
+    Parameters
+    ----------
+    breaks : list of float or callable, optional
+        Explicit tick positions or a function that receives limits.
+    limits : tuple of float, optional
+        Fixed ``(min, max)`` axis limits.
+    labels : list of str or callable, optional
+        Tick labels corresponding to ``breaks``.
+    expand : tuple of float, optional
+        Multiplicative and additive expansion ``(mult, add)``.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_x_continuous
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_continuous(limits=(0, 5))
+    Plot(...)
+    """
     return ScaleContinuous(aesthetic="x", **kwargs)
 
 
 def scale_y_continuous(**kwargs: Any) -> ScaleContinuous:
-    """Create a continuous y scale."""
+    """Set continuous y-axis scale with custom breaks, labels, or limits.
+
+    Parameters
+    ----------
+    breaks : list of float or callable, optional
+        Explicit tick positions or a function that receives limits.
+    limits : tuple of float, optional
+        Fixed ``(min, max)`` axis limits.
+    labels : list of str or callable, optional
+        Tick labels corresponding to ``breaks``.
+    expand : tuple of float, optional
+        Multiplicative and additive expansion ``(mult, add)``.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_y_continuous
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_continuous(limits=(0, 10))
+    Plot(...)
+    """
     return ScaleContinuous(aesthetic="y", **kwargs)
 
 
 def scale_x_discrete(**kwargs: Any) -> ScaleDiscrete:
-    """Create a discrete x scale."""
+    """Set discrete x-axis scale with custom labels or expansion.
+
+    Parameters
+    ----------
+    labels : dict or list of str, optional
+        Mapping from level names to display labels, or an ordered list.
+    expand : tuple of float, optional
+        Multiplicative and additive expansion ``(mult, add)``.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_x_discrete
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_bar() + scale_x_discrete(labels={"a": "Alpha"})
+    Plot(...)
+    """
     return ScaleDiscrete(aesthetic="x", **kwargs)
 
 
 def scale_y_discrete(**kwargs: Any) -> ScaleDiscrete:
-    """Create a discrete y scale."""
+    """Set discrete y-axis scale with custom labels or expansion.
+
+    Parameters
+    ----------
+    labels : dict or list of str, optional
+        Mapping from level names to display labels, or an ordered list.
+    expand : tuple of float, optional
+        Multiplicative and additive expansion ``(mult, add)``.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_y_discrete
+    >>> df = pd.DataFrame({"x": [1, 4, 9], "y": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_bar() + scale_y_discrete()
+    Plot(...)
+    """
     return ScaleDiscrete(aesthetic="y", **kwargs)

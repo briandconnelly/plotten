@@ -15,10 +15,38 @@ class ScaleSqrt(ScaleContinuous):
 
 
 def scale_x_sqrt(**kwargs) -> ScaleSqrt:
-    """Create a sqrt x scale."""
+    """Set x-axis to a square-root scale.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to the underlying continuous scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_x_sqrt
+    >>> df = pd.DataFrame({"x": [0, 4, 16], "y": [1, 2, 3]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_sqrt()
+    Plot(...)
+    """
     return ScaleSqrt(aesthetic="x", **kwargs)
 
 
 def scale_y_sqrt(**kwargs) -> ScaleSqrt:
-    """Create a sqrt y scale."""
+    """Set y-axis to a square-root scale.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to the underlying continuous scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_y_sqrt
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [0, 4, 16]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_sqrt()
+    Plot(...)
+    """
     return ScaleSqrt(aesthetic="y", **kwargs)

@@ -49,9 +49,28 @@ class Aes:
 
 
 def aes(**kwargs: str | AfterStat | AfterScale | Interaction) -> Aes:
-    """Convenience constructor for Aes.
+    """Map data columns to visual properties.
 
     Accepts ``colour`` as an alias for ``color`` (ggplot2 convention).
+
+    Parameters
+    ----------
+    x, y : str, optional
+        Column names for position aesthetics.
+    color, fill : str, optional
+        Column names for color or fill mapping.
+    size, alpha, shape, linetype : str, optional
+        Column names for other visual properties.
+    label : str, optional
+        Column name for text labels.
+    group : str, optional
+        Column name for grouping.
+
+    Examples
+    --------
+    >>> from plotten import aes
+    >>> aes(x="speed", y="distance", color="category")
+    Aes(x='speed', y='distance', color='category', ...)
     """
     # Support British spelling alias
     if "colour" in kwargs:

@@ -84,6 +84,27 @@ def position_jitterdodge(
     jitter_height: float = 0.0,
     seed: int | None = None,
 ) -> PositionJitterDodge:
+    """Simultaneously dodge and jitter points for grouped scatter plots.
+
+    Parameters
+    ----------
+    dodge_width : float
+        Total width for dodging groups.
+    jitter_width : float
+        Amount of horizontal jitter applied after dodging.
+    jitter_height : float
+        Amount of vertical jitter.
+    seed : int or None
+        Random seed for reproducibility.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.positions import position_jitterdodge
+    >>> df = pd.DataFrame({"x": ["a", "a", "b", "b"], "y": [1, 2, 3, 4], "g": ["m", "n", "m", "n"]})
+    >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point(position=position_jitterdodge())
+    """
     return PositionJitterDodge(
         dodge_width=dodge_width,
         jitter_width=jitter_width,

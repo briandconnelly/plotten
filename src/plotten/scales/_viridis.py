@@ -30,10 +30,44 @@ def _resolve_option(option: str) -> str:
 
 
 def scale_color_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuous:
-    """Create a continuous color scale using a viridis-family palette."""
+    """Map continuous color aesthetic using a viridis-family palette.
+
+    Parameters
+    ----------
+    option : str, optional
+        Palette variant: ``"viridis"``, ``"magma"``, ``"inferno"``,
+        ``"plasma"``, or ``"cividis"`` (default ``"viridis"``).
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_viridis
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_viridis("magma")
+    Plot(...)
+    """
     return ScaleColorContinuous(aesthetic="color", cmap_name=_resolve_option(option), **kwargs)
 
 
 def scale_fill_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuous:
-    """Create a continuous fill scale using a viridis-family palette."""
+    """Map continuous fill aesthetic using a viridis-family palette.
+
+    Parameters
+    ----------
+    option : str, optional
+        Palette variant: ``"viridis"``, ``"magma"``, ``"inferno"``,
+        ``"plasma"``, or ``"cividis"`` (default ``"viridis"``).
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_viridis
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_viridis("plasma")
+    Plot(...)
+    """
     return ScaleColorContinuous(aesthetic="fill", cmap_name=_resolve_option(option), **kwargs)

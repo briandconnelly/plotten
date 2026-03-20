@@ -28,10 +28,28 @@ class ScaleLog(ScaleContinuous):
 
 
 def scale_x_log10() -> ScaleLog:
-    """Log10 scale for the x axis."""
+    """Set x-axis to a log-base-10 scale.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_x_log10
+    >>> df = pd.DataFrame({"x": [1, 10, 100], "y": [1, 2, 3]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_log10()
+    Plot(...)
+    """
     return ScaleLog(aesthetic="x", base=10)
 
 
 def scale_y_log10() -> ScaleLog:
-    """Log10 scale for the y axis."""
+    """Set y-axis to a log-base-10 scale.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_y_log10
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 10, 100]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_log10()
+    Plot(...)
+    """
     return ScaleLog(aesthetic="y", base=10)

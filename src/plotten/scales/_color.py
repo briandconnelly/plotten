@@ -104,10 +104,40 @@ class ScaleColorDiscrete(MappedDiscreteScale):
 
 
 def scale_color_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
+    """Map continuous values to a sequential color palette.
+
+    Parameters
+    ----------
+    cmap : str, optional
+        Matplotlib colormap name (default ``"viridis"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_continuous
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_continuous("plasma")
+    Plot(...)
+    """
     return ScaleColorContinuous(cmap_name=cmap)
 
 
 def scale_color_discrete(palette: str = "tab10") -> ScaleColorDiscrete:
+    """Map discrete values to distinct colors from a qualitative palette.
+
+    Parameters
+    ----------
+    palette : str, optional
+        Matplotlib qualitative colormap name (default ``"tab10"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_discrete
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete("Set2")
+    Plot(...)
+    """
     return ScaleColorDiscrete(palette=palette)
 
 
@@ -122,8 +152,38 @@ def scale_fill_manual(values: dict[str, str]) -> ScaleColorDiscrete:
 
 
 def scale_fill_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
+    """Map continuous values to a sequential fill palette.
+
+    Parameters
+    ----------
+    cmap : str, optional
+        Matplotlib colormap name (default ``"viridis"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_continuous
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_continuous("plasma")
+    Plot(...)
+    """
     return ScaleColorContinuous(aesthetic="fill", cmap_name=cmap)
 
 
 def scale_fill_discrete(palette: str = "tab10") -> ScaleColorDiscrete:
+    """Map discrete values to distinct fill colors from a qualitative palette.
+
+    Parameters
+    ----------
+    palette : str, optional
+        Matplotlib qualitative colormap name (default ``"tab10"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_discrete
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y", fill="x")) + geom_bar() + scale_fill_discrete("Pastel1")
+    Plot(...)
+    """
     return ScaleColorDiscrete(aesthetic="fill", palette=palette)

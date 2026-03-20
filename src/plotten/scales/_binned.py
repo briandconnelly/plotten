@@ -145,20 +145,84 @@ class ScaleFillBinned(ScaleColorBinned):
 
 
 def scale_color_steps(n: int = 5, cmap: str = "viridis") -> ScaleColorBinned:
-    """Binned color scale with *n* evenly-spaced bins."""
+    """Create a binned color scale with evenly spaced bins.
+
+    Parameters
+    ----------
+    n : int, optional
+        Number of bins (default ``5``).
+    cmap : str, optional
+        Matplotlib colormap name (default ``"viridis"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_steps
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_steps(n=3)
+    Plot(...)
+    """
     return ScaleColorBinned(aesthetic="color", breaks=n, cmap=cmap)
 
 
 def scale_fill_steps(n: int = 5, cmap: str = "viridis") -> ScaleFillBinned:
-    """Binned fill scale with *n* evenly-spaced bins."""
+    """Create a binned fill scale with evenly spaced bins.
+
+    Parameters
+    ----------
+    n : int, optional
+        Number of bins (default ``5``).
+    cmap : str, optional
+        Matplotlib colormap name (default ``"viridis"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_steps
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_steps(n=3)
+    Plot(...)
+    """
     return ScaleFillBinned(breaks=n, cmap=cmap)
 
 
 def scale_color_fermenter(n: int = 5, palette: str = "Blues") -> ScaleColorBinned:
-    """Binned color scale using a Brewer / matplotlib palette."""
+    """Create a binned color scale using a Brewer palette.
+
+    Parameters
+    ----------
+    n : int, optional
+        Number of bins (default ``5``).
+    palette : str, optional
+        ColorBrewer or matplotlib palette name (default ``"Blues"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_fermenter
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_fermenter(palette="Reds")
+    Plot(...)
+    """
     return ScaleColorBinned(aesthetic="color", breaks=n, cmap=palette)
 
 
 def scale_fill_fermenter(n: int = 5, palette: str = "Blues") -> ScaleFillBinned:
-    """Binned fill scale using a Brewer / matplotlib palette."""
+    """Create a binned fill scale using a Brewer palette.
+
+    Parameters
+    ----------
+    n : int, optional
+        Number of bins (default ``5``).
+    palette : str, optional
+        ColorBrewer or matplotlib palette name (default ``"Blues"``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_fermenter
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_fermenter(palette="Greens")
+    Plot(...)
+    """
     return ScaleFillBinned(breaks=n, cmap=palette)

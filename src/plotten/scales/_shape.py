@@ -42,8 +42,38 @@ class ScaleShapeDiscrete(MappedDiscreteScale):
 
 
 def scale_shape_discrete(**kwargs: Any) -> ScaleShapeDiscrete:
+    """Map discrete values to matplotlib marker shapes.
+
+    Parameters
+    ----------
+    values : dict of str to str, optional
+        Manual mapping from category names to marker strings.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_shape_discrete
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", shape="g")) + geom_point() + scale_shape_discrete()
+    Plot(...)
+    """
     return ScaleShapeDiscrete(**kwargs)
 
 
 def scale_shape_manual(values: dict[str, str]) -> ScaleShapeDiscrete:
+    """Map discrete values to manually specified marker shapes.
+
+    Parameters
+    ----------
+    values : dict of str to str
+        Mapping from category names to matplotlib marker strings.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_shape_manual
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+    >>> ggplot(df, aes(x="x", y="y", shape="g")) + geom_point() + scale_shape_manual({"a": "o", "b": "s", "c": "^"})
+    Plot(...)
+    """
     return ScaleShapeDiscrete(values=values)

@@ -15,10 +15,38 @@ class ScaleReverse(ScaleContinuous):
 
 
 def scale_x_reverse(**kwargs) -> ScaleReverse:
-    """Create a reversed x scale."""
+    """Set x-axis to a reversed continuous scale.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to the underlying continuous scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_x_reverse
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_reverse()
+    Plot(...)
+    """
     return ScaleReverse(aesthetic="x", **kwargs)
 
 
 def scale_y_reverse(**kwargs) -> ScaleReverse:
-    """Create a reversed y scale."""
+    """Set y-axis to a reversed continuous scale.
+
+    Parameters
+    ----------
+    **kwargs
+        Passed to the underlying continuous scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_y_reverse
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_reverse()
+    Plot(...)
+    """
     return ScaleReverse(aesthetic="y", **kwargs)

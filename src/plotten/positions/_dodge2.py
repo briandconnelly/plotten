@@ -48,4 +48,21 @@ class PositionDodge2:
 
 
 def position_dodge2(width: float = 0.9, padding: float = 0.1) -> PositionDodge2:
+    """Dodge overlapping objects side-by-side with padding between groups.
+
+    Parameters
+    ----------
+    width : float
+        Total width allocated for all dodged elements at each x position.
+    padding : float
+        Fraction of the element width reserved as padding between groups.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_boxplot
+    >>> from plotten.positions import position_dodge2
+    >>> df = pd.DataFrame({"x": ["a", "a", "b", "b"], "y": [1, 2, 3, 4], "g": ["m", "n", "m", "n"]})
+    >>> ggplot(df, aes(x="x", y="y", fill="g")) + geom_boxplot(position=position_dodge2(padding=0.2))
+    """
     return PositionDodge2(width=width, padding=padding)

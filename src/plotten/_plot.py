@@ -108,7 +108,30 @@ class Plot:
         height: float | None = None,
         units: str = "in",
     ) -> None:
-        """Render and save the plot to a file."""
+        """Render and save the plot to a file.
+
+        Parameters
+        ----------
+        path : str
+            Output file path. Format is inferred from the extension
+            (e.g. ``"plot.png"``, ``"plot.pdf"``).
+        dpi : int, optional
+            Resolution in dots per inch (default 150).
+        width, height : float, optional
+            Figure dimensions in *units*. If omitted, matplotlib defaults
+            are used.
+        units : str, optional
+            Units for *width* / *height*: ``"in"`` (default), ``"cm"``,
+            ``"mm"``, or ``"px"``.
+
+        Examples
+        --------
+        >>> import pandas as pd
+        >>> from plotten import ggplot, aes, geom_point
+        >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        >>> p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        >>> p.save("scatter.png", dpi=300, width=6, height=4)  # doctest: +SKIP
+        """
         from plotten._render._mpl import render
 
         fig = render(self)
@@ -147,5 +170,22 @@ class Plot:
 
 
 def ggplot(data: Any = None, mapping: Aes | None = None) -> Plot:
-    """Create a new plot."""
+    """Create a new plot.
+
+    Parameters
+    ----------
+    data : DataFrame, optional
+        Default dataset for the plot. Any DataFrame supported by narwhals
+        (pandas, Polars, cuDF, etc.).
+    mapping : Aes, optional
+        Default aesthetic mappings created by :func:`aes`.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point()
+    Plot(...)
+    """
     return Plot(data=data, mapping=mapping or Aes())

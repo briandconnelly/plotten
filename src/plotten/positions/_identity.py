@@ -9,4 +9,14 @@ class PositionIdentity:
 
 
 def position_identity() -> PositionIdentity:
+    """Keep data positions unchanged (the default for most geoms).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.positions import position_identity
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point(position=position_identity())
+    """
     return PositionIdentity()

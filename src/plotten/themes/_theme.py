@@ -156,9 +156,21 @@ def theme(**kwargs: Any) -> Theme:
     Validates that all keyword arguments are valid Theme fields,
     then returns a Theme instance suitable for composition via ``+``.
 
-    Usage::
+    Parameters
+    ----------
+    **kwargs
+        Any valid :class:`Theme` field. Common fields include
+        ``title_size``, ``label_size``, ``font_family``,
+        ``background``, ``panel_background``, ``legend_position``,
+        ``axis_text_x_rotation``, and ``panel_spacing``.
 
-        ggplot(...) + theme_minimal() + theme(title_size=20, axis_text_x_rotation=45)
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, theme
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + theme(title_size=20)
+    Plot(...)
     """
     valid_fields = {f.name for f in fields(Theme)}
     invalid = set(kwargs) - valid_fields

@@ -40,4 +40,14 @@ class PositionStack:
 
 
 def position_stack() -> PositionStack:
+    """Stack overlapping objects on top of each other.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar
+    >>> from plotten.positions import position_stack
+    >>> df = pd.DataFrame({"x": ["a", "a", "b", "b"], "y": [1, 2, 3, 4], "g": ["m", "n", "m", "n"]})
+    >>> ggplot(df, aes(x="x", y="y", fill="g")) + geom_bar(stat="identity", position=position_stack())
+    """
     return PositionStack()

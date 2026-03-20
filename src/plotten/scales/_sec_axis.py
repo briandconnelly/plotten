@@ -30,10 +30,40 @@ def sec_axis(
     name: str | None = None,
     **kwargs: Any,
 ) -> SecAxis:
-    """Create a secondary axis with a transformation."""
+    """Create a secondary axis with forward and inverse transforms.
+
+    Parameters
+    ----------
+    trans : callable
+        Forward transformation from primary to secondary axis values.
+    inverse : callable
+        Inverse transformation from secondary back to primary axis values.
+    name : str, optional
+        Label for the secondary axis.
+    **kwargs
+        Additional arguments such as ``breaks`` or ``labels``.
+
+    Examples
+    --------
+    >>> from plotten import scale_y_continuous, sec_axis
+    >>> scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 1.8 + 32, inverse=lambda x: (x - 32) / 1.8, name="Fahrenheit"))
+    ScaleContinuous(...)
+    """
     return SecAxis(trans=trans, inverse=inverse, name=name, **kwargs)
 
 
 def dup_axis(name: str | None = None) -> SecAxis:
-    """Create a duplicate (identity) secondary axis."""
+    """Create a duplicate secondary axis mirroring the primary axis.
+
+    Parameters
+    ----------
+    name : str, optional
+        Label for the secondary axis.
+
+    Examples
+    --------
+    >>> from plotten import scale_y_continuous, dup_axis
+    >>> scale_y_continuous(sec_axis=dup_axis(name="Same scale"))
+    ScaleContinuous(...)
+    """
     return SecAxis(trans=lambda x: x, inverse=lambda x: x, name=name)

@@ -25,4 +25,23 @@ class PositionJitter:
 def position_jitter(
     width: float = 0.4, height: float = 0.0, seed: int | None = None
 ) -> PositionJitter:
+    """Add random noise to point positions to reduce overplotting.
+
+    Parameters
+    ----------
+    width : float
+        Amount of horizontal jitter (total spread, not half-range).
+    height : float
+        Amount of vertical jitter.
+    seed : int or None
+        Random seed for reproducibility.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point
+    >>> from plotten.positions import position_jitter
+    >>> df = pd.DataFrame({"g": ["a", "a", "b", "b"], "val": [1, 2, 3, 4]})
+    >>> ggplot(df, aes(x="g", y="val")) + geom_point(position=position_jitter(width=0.2))
+    """
     return PositionJitter(width=width, height=height, seed=seed)

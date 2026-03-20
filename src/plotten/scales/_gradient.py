@@ -108,12 +108,50 @@ class ScaleGradient2(ScaleColorContinuous):
 def scale_color_gradient(
     low: str = "#132B43", high: str = "#56B1F7", **kwargs: Any
 ) -> ScaleGradient:
+    """Create a two-color sequential gradient for the color aesthetic.
+
+    Parameters
+    ----------
+    low : str, optional
+        Color for the low end of the gradient (default ``"#132B43"``).
+    high : str, optional
+        Color for the high end of the gradient (default ``"#56B1F7"``).
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_gradient
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_gradient("white", "red")
+    Plot(...)
+    """
     return ScaleGradient(aesthetic="color", low=low, high=high, **kwargs)
 
 
 def scale_fill_gradient(
     low: str = "#132B43", high: str = "#56B1F7", **kwargs: Any
 ) -> ScaleGradient:
+    """Create a two-color sequential gradient for the fill aesthetic.
+
+    Parameters
+    ----------
+    low : str, optional
+        Color for the low end of the gradient (default ``"#132B43"``).
+    high : str, optional
+        Color for the high end of the gradient (default ``"#56B1F7"``).
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_gradient
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_gradient("white", "blue")
+    Plot(...)
+    """
     return ScaleGradient(aesthetic="fill", low=low, high=high, **kwargs)
 
 
@@ -124,6 +162,29 @@ def scale_color_gradient2(
     midpoint: float = 0,
     **kwargs: Any,
 ) -> ScaleGradient2:
+    """Create a diverging three-color gradient for the color aesthetic.
+
+    Parameters
+    ----------
+    low : str, optional
+        Color for the low end (default ``"#67001F"``).
+    mid : str, optional
+        Color for the midpoint (default ``"#FFFFFF"``).
+    high : str, optional
+        Color for the high end (default ``"#053061"``).
+    midpoint : float, optional
+        Data value at the center of the diverging palette (default ``0``).
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_gradient2
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [-1, 0, 1]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_gradient2()
+    Plot(...)
+    """
     return ScaleGradient2(
         aesthetic="color", low=low, mid=mid, high=high, midpoint=midpoint, **kwargs
     )
@@ -136,6 +197,29 @@ def scale_fill_gradient2(
     midpoint: float = 0,
     **kwargs: Any,
 ) -> ScaleGradient2:
+    """Create a diverging three-color gradient for the fill aesthetic.
+
+    Parameters
+    ----------
+    low : str, optional
+        Color for the low end (default ``"#67001F"``).
+    mid : str, optional
+        Color for the midpoint (default ``"#FFFFFF"``).
+    high : str, optional
+        Color for the high end (default ``"#053061"``).
+    midpoint : float, optional
+        Data value at the center of the diverging palette (default ``0``).
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_gradient2
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [-1, 0, 1]})
+    >>> ggplot(df, aes(x="x", y="y", fill="y")) + geom_bar() + scale_fill_gradient2()
+    Plot(...)
+    """
     return ScaleGradient2(
         aesthetic="fill", low=low, mid=mid, high=high, midpoint=midpoint, **kwargs
     )
@@ -210,6 +294,16 @@ def scale_color_gradientn(
     values : list of float, optional
         Positions (0-1) for each color stop. If ``None``, colors are
         evenly spaced.
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_point, scale_color_gradientn
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_gradientn(["red", "white", "blue"])
+    Plot(...)
     """
     return ScaleGradientN(aesthetic="color", colors=colors, values=values, **kwargs)
 
@@ -228,5 +322,15 @@ def scale_fill_gradientn(
     values : list of float, optional
         Positions (0-1) for each color stop. If ``None``, colors are
         evenly spaced.
+    **kwargs
+        Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar, scale_fill_gradientn
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [1, 4, 9], "v": [10, 20, 30]})
+    >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_gradientn(["red", "white", "blue"])
+    Plot(...)
     """
     return ScaleGradientN(aesthetic="fill", colors=colors, values=values, **kwargs)

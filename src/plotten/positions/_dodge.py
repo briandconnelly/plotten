@@ -44,4 +44,19 @@ class PositionDodge:
 
 
 def position_dodge(width: float = 0.9) -> PositionDodge:
+    """Dodge overlapping objects side-by-side.
+
+    Parameters
+    ----------
+    width : float
+        Total width allocated for all dodged elements at each x position.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar
+    >>> from plotten.positions import position_dodge
+    >>> df = pd.DataFrame({"x": ["a", "a", "b", "b"], "y": [1, 2, 3, 4], "g": ["m", "n", "m", "n"]})
+    >>> ggplot(df, aes(x="x", y="y", fill="g")) + geom_bar(stat="identity", position=position_dodge())
+    """
     return PositionDodge(width=width)

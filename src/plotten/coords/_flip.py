@@ -68,5 +68,21 @@ def coord_flip(
     xlim: tuple[float, float] | None = None,
     ylim: tuple[float, float] | None = None,
 ) -> CoordFlip:
-    """Create a flipped coordinate system."""
+    """Flip the x and y axes of a plot.
+
+    Parameters
+    ----------
+    xlim : tuple of float or None
+        Optional ``(min, max)`` limits for the x-axis (before flipping).
+    ylim : tuple of float or None
+        Optional ``(min, max)`` limits for the y-axis (before flipping).
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_bar
+    >>> from plotten.coords import coord_flip
+    >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [3, 1, 2]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_bar(stat="identity") + coord_flip()
+    """
     return CoordFlip(xlim=xlim, ylim=ylim)
