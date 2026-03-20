@@ -207,6 +207,14 @@ class TestExistingLabels:
         fmt = label_number(accuracy=2)
         assert fmt(1234.5) == "1,234.50"
 
+    def test_label_number_dot_separator(self):
+        fmt = label_number(big_mark=".")
+        assert fmt(1234567) == "1.234.567"
+
+    def test_label_number_no_separator(self):
+        fmt = label_number(big_mark="")
+        assert fmt(1234567) == "1234567"
+
 
 # ---------------------------------------------------------------------------
 # Label formatters (new)
@@ -537,6 +545,9 @@ class TestRescale:
         result = rescale([5, 5, 5])
         assert all(v == 0.5 for v in result)
 
+    def test_empty(self):
+        assert rescale([]) == []
+
 
 class TestRescaleMid:
     def test_symmetric(self):
@@ -549,34 +560,37 @@ class TestRescaleMid:
         assert result[0] < 0.5
         assert result[2] > 0.5
 
+    def test_empty(self):
+        assert rescale_mid([]) == []
+
 
 class TestSquish:
     def test_clamp(self):
-        result = squish([-1, 0.5, 2], range=(0, 1))
+        result = squish([-1, 0.5, 2], limits=(0, 1))
         assert result == [0, 0.5, 1]
 
     def test_no_clamp(self):
-        result = squish([0.2, 0.5, 0.8], range=(0, 1))
+        result = squish([0.2, 0.5, 0.8], limits=(0, 1))
         assert result == [0.2, 0.5, 0.8]
 
 
 class TestCensor:
     def test_basic(self):
-        result = censor([-1, 0.5, 2], range=(0, 1))
+        result = censor([-1, 0.5, 2], limits=(0, 1))
         assert result == [None, 0.5, None]
 
     def test_none_passthrough(self):
-        result = censor([None, 0.5], range=(0, 1))
+        result = censor([None, 0.5], limits=(0, 1))
         assert result == [None, 0.5]
 
 
 class TestOobHandlers:
     def test_oob_squish(self):
-        handler = oob_squish(range=(0, 10))
+        handler = oob_squish(limits=(0, 10))
         assert handler([-5, 3, 15]) == [0, 3, 10]
 
     def test_oob_censor(self):
-        handler = oob_censor(range=(0, 10))
+        handler = oob_censor(limits=(0, 10))
         assert handler([-5, 3, 15]) == [None, 3, None]
 
     def test_oob_keep(self):

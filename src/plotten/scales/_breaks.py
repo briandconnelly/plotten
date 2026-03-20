@@ -51,6 +51,8 @@ def _pretty(lo: float, hi: float, n: int) -> list[float]:
 
     # Rough step size
     raw_step = span / max(n - 1, 1)
+    if raw_step <= 0:
+        return [lo]
     # Order of magnitude
     magnitude = 10 ** math.floor(math.log10(raw_step))
 

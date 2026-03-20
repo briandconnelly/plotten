@@ -51,8 +51,8 @@ p_norm = (
 
 rng = np.random.default_rng(42)
 values = rng.normal(50, 25, 30).tolist()
-squished = squish(values, range=(20, 80))
-censored = censor(values, range=(20, 80))
+squished = squish(values, limits=(20, 80))
+censored = censor(values, limits=(20, 80))
 
 df_oob = pl.DataFrame(
     {

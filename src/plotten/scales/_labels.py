@@ -6,18 +6,26 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+_SI_PREFIXES: list[tuple[float, str]] = [
+    (1e15, "P"),
+    (1e12, "T"),
+    (1e9, "G"),
+    (1e6, "M"),
+    (1e3, "k"),
+]
+
 
 def label_comma() -> Callable[[float], str]:
     """Format numbers with comma separators."""
     return lambda x: f"{x:,.0f}"
 
 
-def label_percent(accuracy: float = 1, scale: float = 100) -> Callable[[float], str]:
+def label_percent(accuracy: int = 1, scale: float = 100) -> Callable[[float], str]:
     """Format numbers as percentages.
 
     Parameters
     ----------
-    accuracy : float
+    accuracy : int
         Number of decimal places.
     scale : float
         Multiplier applied before formatting.  Use ``100`` (default) when
@@ -31,8 +39,7 @@ def label_percent(accuracy: float = 1, scale: float = 100) -> Callable[[float], 
     >>> label_percent(scale=1)(50)
     '50.0%'
     """
-    decimals = int(accuracy)
-    return lambda x: f"{x * scale:.{decimals}f}%"
+    return lambda x: f"{x * scale:.{accuracy}f}%"
 
 
 def label_dollar(prefix: str = "$") -> Callable[[float], str]:
@@ -46,33 +53,48 @@ def label_scientific() -> Callable[[float], str]:
 
 
 def label_number(accuracy: int = 0, big_mark: str = ",") -> Callable[[float], str]:
-    """Format numbers with configurable precision and thousands separator."""
+    """Format numbers with configurable precision and thousands separator.
+
+    Parameters
+    ----------
+    accuracy : int
+        Number of decimal places.
+    big_mark : str
+        Thousands separator (default ``","``).  Use ``"."`` for European
+        style or ``""`` for no separator.
+
+    Examples
+    --------
+    >>> label_number(accuracy=2)(1234.5)
+    '1,234.50'
+    >>> label_number(big_mark=".")(1234567)
+    '1.234.567'
+    """
 
     def _fmt(x: float) -> str:
         if accuracy > 0:
             formatted = f"{x:.{accuracy}f}"
         else:
             formatted = f"{x:.0f}"
-        if big_mark == ",":
-            # Use locale-style formatting
-            parts = formatted.split(".")
-            int_part = parts[0]
-            # Add thousands separator
-            negative = int_part.startswith("-")
-            if negative:
-                int_part = int_part[1:]
-            groups = []
-            while len(int_part) > 3:
-                groups.append(int_part[-3:])
-                int_part = int_part[:-3]
-            groups.append(int_part)
-            int_part = big_mark.join(reversed(groups))
-            if negative:
-                int_part = "-" + int_part
-            if len(parts) > 1:
-                return f"{int_part}.{parts[1]}"
-            return int_part
-        return formatted
+        if not big_mark:
+            return formatted
+        # Always apply thousands grouping, then substitute the separator
+        parts = formatted.split(".")
+        int_part = parts[0]
+        negative = int_part.startswith("-")
+        if negative:
+            int_part = int_part[1:]
+        groups = []
+        while len(int_part) > 3:
+            groups.append(int_part[-3:])
+            int_part = int_part[:-3]
+        groups.append(int_part)
+        int_part = big_mark.join(reversed(groups))
+        if negative:
+            int_part = "-" + int_part
+        if len(parts) > 1:
+            return f"{int_part}.{parts[1]}"
+        return int_part
 
     return _fmt
 
@@ -106,7 +128,7 @@ def label_bytes(units: str = "auto", accuracy: int = 1) -> Callable[[float], str
 
     def _fmt(x: float) -> str:
         if x == 0:
-            return f"0 {_units[_fixed_exp or 0]}"
+            return f"0 {_units[_fixed_exp if _fixed_exp is not None else 0]}"
         if _fixed_exp is not None:
             val = x / (1024**_fixed_exp)
             return f"{val:.{accuracy}f} {_units[_fixed_exp]}"
@@ -221,20 +243,13 @@ def label_si(accuracy: int = 1) -> Callable[[float], str]:
     >>> [fmt(v) for v in [0, 1500, 2_500_000, 3_800_000_000]]
     ['0', '1.5k', '2.5M', '3.8G']
     """
-    _prefixes = [
-        (1e15, "P"),
-        (1e12, "T"),
-        (1e9, "G"),
-        (1e6, "M"),
-        (1e3, "k"),
-    ]
 
     def _fmt(x: float) -> str:
         if x == 0:
             return "0"
         sign = "-" if x < 0 else ""
         ax = abs(x)
-        for threshold, prefix in _prefixes:
+        for threshold, prefix in _SI_PREFIXES:
             if ax >= threshold:
                 return f"{sign}{ax / threshold:.{accuracy}f}{prefix}"
         # Below 1k — format as plain number
@@ -431,20 +446,16 @@ def label_number_auto() -> Callable[[float], str]:
     >>> [fmt(v) for v in [0.005, 3.14, 42, 12500, 2_500_000]]
     ['5.00e-03', '3.14', '42', '12,500', '2.5M']
     """
-    _si_prefixes = [
-        (1e15, "P"),
-        (1e12, "T"),
-        (1e9, "G"),
-        (1e6, "M"),
-    ]
 
     def _fmt(x: float) -> str:
         if x == 0:
             return "0"
         ax = abs(x)
         sign = "-" if x < 0 else ""
-        # Very large: SI prefixes
-        for threshold, prefix in _si_prefixes:
+        # Very large: SI prefixes (skip "k" — use commas for 1k-999k)
+        for threshold, prefix in _SI_PREFIXES:
+            if threshold < 1e6:
+                break
             if ax >= threshold:
                 return f"{sign}{ax / threshold:.1f}{prefix}"
         # Large: comma separators
