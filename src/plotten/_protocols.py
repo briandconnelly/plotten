@@ -22,6 +22,7 @@ class Stat(Protocol):
 @runtime_checkable
 class Geom(Protocol):
     required_aes: frozenset[str]
+    supports_group_splitting: bool
 
     def default_stat(self) -> Stat: ...
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None: ...

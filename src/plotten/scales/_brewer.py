@@ -9,6 +9,8 @@ from plotten.scales._color import ScaleColorContinuous, ScaleColorDiscrete
 class ScaleBrewerDiscrete(ScaleColorDiscrete):
     """Discrete ColorBrewer palette scale."""
 
+    __slots__ = ("_direction",)
+
     def __init__(
         self,
         aesthetic: str = "color",
@@ -52,6 +54,8 @@ class ScaleBrewerDiscrete(ScaleColorDiscrete):
 
 class ScaleBrewerContinuous(ScaleColorContinuous):
     """Continuous ColorBrewer palette scale (distiller)."""
+
+    __slots__ = ("_direction",)
 
     def __init__(
         self,

@@ -10,6 +10,8 @@ from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscr
 class ScaleColorContinuous(MappedContinuousScale):
     """Map numeric values to a matplotlib colormap."""
 
+    __slots__ = ("_cmap", "_cmap_name")
+
     def __init__(
         self,
         aesthetic: str = "color",
@@ -53,6 +55,8 @@ class ScaleColorContinuous(MappedContinuousScale):
 
 class ScaleColorDiscrete(MappedDiscreteScale):
     """Map categorical values to distinct colors."""
+
+    __slots__ = ("_cmap", "_manual_values", "_palette_name")
 
     def __init__(
         self,

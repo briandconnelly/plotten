@@ -12,6 +12,8 @@ DEFAULT_SHAPES = ["o", "s", "^", "D", "v", "p", "h", "*", "X", "P"]
 class ScaleShapeDiscrete(MappedDiscreteScale):
     """Map categories to matplotlib marker strings."""
 
+    __slots__ = ("_manual_values",)
+
     def __init__(
         self,
         aesthetic: str = "shape",

@@ -6,6 +6,8 @@ from plotten.scales._position import ScaleContinuous
 class ScaleReverse(ScaleContinuous):
     """Reversed scale for position aesthetics."""
 
+    __slots__ = ()
+
     def __init__(self, aesthetic: str = "x", **kwargs) -> None:
         super().__init__(aesthetic, **kwargs)
 

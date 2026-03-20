@@ -27,6 +27,8 @@ class ScaleColorBinned(MappedContinuousScale):
         Optional fixed (lo, hi) domain limits.
     """
 
+    __slots__ = ("_breaks_spec", "_cmap", "_cmap_name", "_na_value")
+
     def __init__(
         self,
         aesthetic: str = "color",
@@ -122,6 +124,8 @@ class ScaleColorBinned(MappedContinuousScale):
 
 class ScaleFillBinned(ScaleColorBinned):
     """Binned continuous scale for the *fill* aesthetic."""
+
+    __slots__ = ()
 
     def __init__(
         self,

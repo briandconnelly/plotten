@@ -12,6 +12,8 @@ from plotten.scales._base import ScaleBase
 class ScaleIdentity(ScaleBase):
     """Use data values directly as aesthetic values, with no transformation."""
 
+    __slots__ = ("_guide", "_levels")
+
     def __init__(self, aesthetic: str, guide: str = "none") -> None:
         super().__init__(aesthetic)
         self._guide = guide

@@ -10,6 +10,8 @@ from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscr
 class ScaleSizeContinuous(MappedContinuousScale):
     """Map numeric values to point sizes."""
 
+    __slots__ = ("_range",)
+
     def __init__(
         self,
         aesthetic: str = "size",
@@ -43,6 +45,8 @@ class ScaleSizeContinuous(MappedContinuousScale):
 
 class ScaleSizeDiscrete(MappedDiscreteScale):
     """Map categories to sizes."""
+
+    __slots__ = ("_manual_values",)
 
     def __init__(
         self,
@@ -121,6 +125,8 @@ class ScaleSizeArea(MappedContinuousScale):
     Ensures that a value of 0 maps to size 0 (area-proportional scaling).
     """
 
+    __slots__ = ("_max_size",)
+
     def __init__(
         self,
         aesthetic: str = "size",
@@ -156,6 +162,8 @@ class ScaleRadius(MappedContinuousScale):
     Unlike :class:`ScaleSizeArea`, this maps linearly — the radius (not the
     area) is proportional to the data value.
     """
+
+    __slots__ = ("_range",)
 
     def __init__(
         self,

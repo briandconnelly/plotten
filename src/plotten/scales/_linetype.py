@@ -12,6 +12,8 @@ DEFAULT_LINETYPES = ["solid", "dashed", "dotted", "dashdot"]
 class ScaleLinetypeDiscrete(MappedDiscreteScale):
     """Map categories to matplotlib linestyle strings."""
 
+    __slots__ = ("_manual_values",)
+
     def __init__(
         self,
         aesthetic: str = "linetype",

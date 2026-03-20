@@ -10,6 +10,8 @@ from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscr
 class ScaleAlphaContinuous(MappedContinuousScale):
     """Map numeric values to alpha transparency."""
 
+    __slots__ = ("_range",)
+
     def __init__(
         self,
         aesthetic: str = "alpha",
@@ -43,6 +45,8 @@ class ScaleAlphaContinuous(MappedContinuousScale):
 
 class ScaleAlphaDiscrete(MappedDiscreteScale):
     """Map categories to fixed alpha values."""
+
+    __slots__ = ("_manual_values",)
 
     def __init__(
         self,

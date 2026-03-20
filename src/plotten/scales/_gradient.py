@@ -9,6 +9,8 @@ from plotten.scales._color import ScaleColorContinuous
 class ScaleGradient(ScaleColorContinuous):
     """Two-color linear gradient scale."""
 
+    __slots__ = ("_high", "_low")
+
     def __init__(
         self,
         aesthetic: str = "color",
@@ -43,6 +45,8 @@ class ScaleGradient(ScaleColorContinuous):
 
 class ScaleGradient2(ScaleColorContinuous):
     """Diverging three-color gradient scale with a midpoint."""
+
+    __slots__ = ("_high", "_low", "_mid", "_midpoint")
 
     def __init__(
         self,
@@ -227,6 +231,8 @@ def scale_fill_gradient2(
 
 class ScaleGradientN(ScaleColorContinuous):
     """Multi-stop gradient scale with arbitrary color stops."""
+
+    __slots__ = ("_colors", "_values")
 
     def __init__(
         self,

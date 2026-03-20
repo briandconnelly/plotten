@@ -17,6 +17,7 @@ class _GeomAnnotRect:
     """Internal geom for annotate("rect")."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(
         self,
@@ -62,6 +63,7 @@ class _GeomAnnotSegment:
     """Internal geom for annotate("segment")."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(
         self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
@@ -121,6 +123,7 @@ class _GeomAnnotCurve:
     """Internal geom for annotate("curve")."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(
         self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
@@ -174,6 +177,7 @@ class _GeomAnnotBracket:
     """Internal geom for annotate("bracket")."""
 
     required_aes: frozenset[str] = frozenset()
+    supports_group_splitting: bool = False
 
     def __init__(
         self,

@@ -22,6 +22,8 @@ def _smart_format(value: float) -> str:
 class ScaleContinuous(ScaleBase):
     """Linear scale for numeric position aesthetics."""
 
+    __slots__ = ("_breaks", "_expand", "_labels", "_limits", "_padding", "_sec_axis")
+
     def __init__(
         self,
         aesthetic: str = "x",
@@ -105,6 +107,8 @@ class ScaleContinuous(ScaleBase):
 
 class ScaleDiscrete(ScaleBase):
     """Scale for categorical position aesthetics."""
+
+    __slots__ = ("_expand", "_levels", "_manual_labels")
 
     def __init__(
         self,

@@ -10,6 +10,8 @@ from plotten.scales._base import ScaleBase
 class ScaleDateContinuous(ScaleBase):
     """Scale for date/datetime axes."""
 
+    __slots__ = ("_date_breaks", "_date_labels", "_limits")
+
     def __init__(
         self,
         aesthetic: str = "x",

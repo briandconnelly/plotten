@@ -24,13 +24,12 @@ class LegendEntry:
 class ScaleBase:
     """Base class for all scales."""
 
-    _domain_min: float | None
-    _domain_max: float | None
+    __slots__ = ("_cache", "_domain_max", "_domain_min", "aesthetic")
 
     def __init__(self, aesthetic: str) -> None:
         self.aesthetic = aesthetic
-        self._domain_min = None
-        self._domain_max = None
+        self._domain_min: float | None = None
+        self._domain_max: float | None = None
         self._cache: dict[str, Any] = {}
 
     def _invalidate_cache(self) -> None:
@@ -63,6 +62,8 @@ class MappedContinuousScale(ScaleBase):
     Provides shared train/get_limits/get_breaks logic.
     Subclasses must set ``_breaks``, ``_limits`` in their ``__init__``.
     """
+
+    __slots__ = ("_breaks", "_limits")
 
     _breaks: list[float] | None
     _limits: tuple[float, float] | None
@@ -110,6 +111,7 @@ class MappedDiscreteScale(ScaleBase):
     Subclasses must set ``_levels`` in their ``__init__``.
     """
 
+    __slots__ = ("_levels",)
     _levels: list
 
     def train(self, values: Any) -> None:

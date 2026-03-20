@@ -12,6 +12,8 @@ from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscr
 class ScaleGreyDiscrete(MappedDiscreteScale):
     """Map discrete values to shades of grey."""
 
+    __slots__ = ("_end", "_start")
+
     def __init__(
         self,
         aesthetic: str = "color",
@@ -51,6 +53,8 @@ class ScaleGreyDiscrete(MappedDiscreteScale):
 
 class ScaleGreyContinuous(MappedContinuousScale):
     """Map continuous values to shades of grey."""
+
+    __slots__ = ("_end", "_start")
 
     def __init__(
         self,

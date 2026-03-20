@@ -12,6 +12,8 @@ DEFAULT_HATCH_CYCLE = ["/", "\\", "|", "-", "+", "x", "o", ".", "*"]
 class ScaleHatchDiscrete(MappedDiscreteScale):
     """Map categories to hatch patterns."""
 
+    __slots__ = ("_manual_values",)
+
     def __init__(
         self,
         aesthetic: str = "hatch",

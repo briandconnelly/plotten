@@ -14,27 +14,27 @@ type AesValue = str | AfterStat | AfterScale | Interaction | None
 class Aes:
     """Aesthetic mapping specification."""
 
-    x: str | AfterStat | AfterScale | Interaction | None = None
-    y: str | AfterStat | AfterScale | Interaction | None = None
-    color: str | AfterStat | AfterScale | Interaction | None = None
-    fill: str | AfterStat | AfterScale | Interaction | None = None
-    size: str | AfterStat | AfterScale | Interaction | None = None
-    alpha: str | AfterStat | AfterScale | Interaction | None = None
-    linetype: str | AfterStat | AfterScale | Interaction | None = None
-    shape: str | AfterStat | AfterScale | Interaction | None = None
-    label: str | AfterStat | AfterScale | Interaction | None = None
-    ymin: str | AfterStat | AfterScale | Interaction | None = None
-    ymax: str | AfterStat | AfterScale | Interaction | None = None
-    group: str | AfterStat | AfterScale | Interaction | None = None
-    xend: str | AfterStat | AfterScale | Interaction | None = None
-    yend: str | AfterStat | AfterScale | Interaction | None = None
-    xmin: str | AfterStat | AfterScale | Interaction | None = None
-    xmax: str | AfterStat | AfterScale | Interaction | None = None
-    z: str | AfterStat | AfterScale | Interaction | None = None
-    angle: str | AfterStat | AfterScale | Interaction | None = None
-    radius: str | AfterStat | AfterScale | Interaction | None = None
-    linewidth: str | AfterStat | AfterScale | Interaction | None = None
-    hatch: str | AfterStat | AfterScale | Interaction | None = None
+    x: AesValue = None
+    y: AesValue = None
+    color: AesValue = None
+    fill: AesValue = None
+    size: AesValue = None
+    alpha: AesValue = None
+    linetype: AesValue = None
+    shape: AesValue = None
+    label: AesValue = None
+    ymin: AesValue = None
+    ymax: AesValue = None
+    group: AesValue = None
+    xend: AesValue = None
+    yend: AesValue = None
+    xmin: AesValue = None
+    xmax: AesValue = None
+    z: AesValue = None
+    angle: AesValue = None
+    radius: AesValue = None
+    linewidth: AesValue = None
+    hatch: AesValue = None
 
     def __or__(self, other: Aes) -> Self:
         """Merge aesthetics. other's non-None fields win."""
@@ -50,7 +50,7 @@ class Aes:
         )
 
 
-def aes(**kwargs: str | AfterStat | AfterScale | Interaction) -> Aes:
+def aes(**kwargs: AesValue) -> Aes:
     """Map data columns to visual properties.
 
     Accepts ``colour`` as an alias for ``color`` (ggplot2 convention).

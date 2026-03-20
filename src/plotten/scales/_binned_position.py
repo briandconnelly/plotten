@@ -14,6 +14,8 @@ from plotten.scales._base import ScaleBase
 class ScaleBinnedPosition(ScaleBase):
     """Position scale that snaps continuous values to bin centers."""
 
+    __slots__ = ("_breaks_arg", "_limits", "_n_bins")
+
     def __init__(
         self,
         aesthetic: str = "x",

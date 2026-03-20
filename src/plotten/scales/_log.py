@@ -8,6 +8,8 @@ from plotten.scales._position import ScaleContinuous
 class ScaleLog(ScaleContinuous):
     """Logarithmic scale for position aesthetics."""
 
+    __slots__ = ("_base",)
+
     def __init__(self, aesthetic: str = "x", base: int = 10) -> None:
         super().__init__(aesthetic, expand=(0, 0))
         self._base = base

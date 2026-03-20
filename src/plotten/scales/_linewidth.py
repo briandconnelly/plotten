@@ -10,6 +10,8 @@ from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscr
 class ScaleLinewidthContinuous(MappedContinuousScale):
     """Map numeric values to line widths."""
 
+    __slots__ = ("_range",)
+
     def __init__(
         self,
         aesthetic: str = "linewidth",
@@ -43,6 +45,8 @@ class ScaleLinewidthContinuous(MappedContinuousScale):
 
 class ScaleLinewidthDiscrete(MappedDiscreteScale):
     """Map categories to line widths."""
+
+    __slots__ = ("_manual_values",)
 
     def __init__(
         self,
