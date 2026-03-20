@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import io
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Self
+
+from plotten._defaults import MAPPED_AESTHETICS
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -57,7 +59,7 @@ class PlotGrid:
     annotation: PlotAnnotation | None = None
     collect_legends: bool = False
 
-    def _replace(self, **kwargs: Any) -> PlotGrid:
+    def _replace(self, **kwargs: Any) -> Self:
         from dataclasses import fields as dc_fields
 
         vals = {f.name: getattr(self, f.name) for f in dc_fields(self)}
@@ -359,7 +361,7 @@ def _draw_shared_legend(fig: Any, leaves: list[Any]) -> None:
 
     for leaf in leaves:
         resolved = resolve(leaf)
-        for aes_name in ("color", "fill", "shape", "linetype", "size", "alpha"):
+        for aes_name in MAPPED_AESTHETICS:
             if aes_name in resolved.scales:
                 scale = resolved.scales[aes_name]
                 entries = scale.legend_entries()

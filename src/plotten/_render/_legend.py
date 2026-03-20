@@ -5,9 +5,25 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 from matplotlib.patches import Rectangle
 
+from plotten._defaults import MAPPED_AESTHETICS
 from plotten._enums import LegendPosition
 from plotten.scales._color import ScaleColorContinuous
 from plotten.themes._text_props import text_props
+
+# Legend layout constants (figure-fraction coordinates)
+_ENTRY_HEIGHT_BASE = 0.03
+_TITLE_HEIGHT = 0.04
+_MARGIN_PAD_BASE = 0.02
+_LEGEND_GAP = 0.02
+_COLORBAR_HEIGHT = 0.6
+_MARKER_SIZE_BASE = 30
+_LEGEND_RIGHT_X = 0.88
+_LEGEND_LEFT_X = 0.01
+_LEGEND_WIDTH_PER_COL = 0.12
+_SWATCH_LEFT = 0.05
+_SWATCH_CENTER = 0.12
+_SWATCH_WIDTH = 0.15
+_TEXT_LEFT = 0.25
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -35,7 +51,7 @@ def draw_legend(
 
     # Collect legend groups from scales that have legend entries
     legend_groups: list[tuple[str, str, ScaleBase]] = []
-    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype", "linewidth", "hatch"):
+    for aes_name in MAPPED_AESTHETICS:
         if aes_name in scales:
             scale = scales[aes_name]
             entries = scale.legend_entries()
@@ -61,20 +77,18 @@ def draw_legend(
         if guide_spec is not None:
             entries = _apply_guide_overrides(entries, guide_spec)
         if isinstance(scale, ScaleColorContinuous):
-            group_heights.append(0.6)  # continuous colorbar default height
+            group_heights.append(_COLORBAR_HEIGHT)
         else:
             ncol = 1
             if guide_spec is not None:
                 ncol = getattr(guide_spec, "ncol", None) or 1
             n_entries = len(entries)
             nrow_legend = -(-n_entries // ncol)
-            entry_height = 0.03 * (theme.legend_spacing / 4.0)
-            title_height = 0.04
-            margin_pad = 0.02 * (theme.legend_margin / 8.0)
-            group_heights.append(title_height + nrow_legend * entry_height + margin_pad)
+            entry_height = _ENTRY_HEIGHT_BASE * (theme.legend_spacing / 4.0)
+            margin_pad = _MARGIN_PAD_BASE * (theme.legend_margin / 8.0)
+            group_heights.append(_TITLE_HEIGHT + nrow_legend * entry_height + margin_pad)
 
-    legend_gap = 0.02  # gap between stacked legend groups
-    total_all = sum(group_heights) + legend_gap * (len(group_heights) - 1)
+    total_all = sum(group_heights) + _LEGEND_GAP * (len(group_heights) - 1)
 
     # Draw each legend group, stacking vertically
     y_cursor = 0.0  # cumulative offset from the top of the legend stack
@@ -114,7 +128,7 @@ def draw_legend(
                 y_offset=y_cursor,
                 total_stack_height=total_all,
             )
-        y_cursor += group_heights[i] + legend_gap
+        y_cursor += group_heights[i] + _LEGEND_GAP
 
 
 def _apply_guide_overrides(
@@ -146,10 +160,12 @@ def _draw_legend_entry(
     key_size: float = 20.0,
 ) -> None:
     """Draw a single legend entry (swatch + label) at position *y*."""
-    marker_s = 30 * (key_size / 20.0)
+    marker_s = _MARKER_SIZE_BASE * (key_size / 20.0)
+    line_x0 = _SWATCH_LEFT - 0.02  # left edge of line swatch
+    line_x1 = _SWATCH_LEFT + _SWATCH_WIDTH  # right edge of line swatch
     if entry.shape is not None:
         legend_ax.scatter(
-            [0.12],
+            [_SWATCH_CENTER],
             [y],
             marker=entry.shape,
             s=marker_s,
@@ -159,7 +175,7 @@ def _draw_legend_entry(
         )
     elif entry.linetype is not None:
         legend_ax.plot(
-            [0.03, 0.2],
+            [line_x0, line_x1],
             [y, y],
             linestyle=entry.linetype,
             color=entry.color or "black",
@@ -169,7 +185,7 @@ def _draw_legend_entry(
         )
     elif entry.size is not None and entry.color is None and entry.fill is None:
         legend_ax.scatter(
-            [0.12],
+            [_SWATCH_CENTER],
             [y],
             s=entry.size * 5,
             c="black",
@@ -183,7 +199,7 @@ def _draw_legend_entry(
         and entry.fill is None
     ):
         legend_ax.plot(
-            [0.03, 0.2],
+            [line_x0, line_x1],
             [y, y],
             color="black",
             linewidth=entry.linewidth,
@@ -192,8 +208,8 @@ def _draw_legend_entry(
         )
     elif getattr(entry, "hatch", None) is not None:
         rect = Rectangle(
-            (0.05, y - step * 0.3),
-            0.15,
+            (_SWATCH_LEFT, y - step * 0.3),
+            _SWATCH_WIDTH,
             step * 0.6,
             facecolor=entry.fill or entry.color or "#cccccc",
             edgecolor="black",
@@ -203,8 +219,8 @@ def _draw_legend_entry(
         legend_ax.add_patch(rect)
     elif entry.alpha is not None and entry.color is None and entry.fill is None:
         rect = Rectangle(
-            (0.05, y - step * 0.3),
-            0.15,
+            (_SWATCH_LEFT, y - step * 0.3),
+            _SWATCH_WIDTH,
             step * 0.6,
             facecolor="black",
             alpha=entry.alpha,
@@ -214,8 +230,8 @@ def _draw_legend_entry(
         legend_ax.add_patch(rect)
     elif entry.fill is not None:
         rect = Rectangle(
-            (0.05, y - step * 0.3),
-            0.15,
+            (_SWATCH_LEFT, y - step * 0.3),
+            _SWATCH_WIDTH,
             step * 0.6,
             facecolor=entry.fill,
             edgecolor="none",
@@ -224,8 +240,8 @@ def _draw_legend_entry(
         legend_ax.add_patch(rect)
     else:
         rect = Rectangle(
-            (0.05, y - step * 0.3),
-            0.15,
+            (_SWATCH_LEFT, y - step * 0.3),
+            _SWATCH_WIDTH,
             step * 0.6,
             facecolor=entry.color or "#cccccc",
             edgecolor="none",
@@ -241,7 +257,7 @@ def _draw_legend_entry(
     if text_kw:
         kw.update(text_kw)
     legend_ax.text(
-        0.25,
+        _TEXT_LEFT,
         y,
         entry.label,
         transform=legend_ax.transAxes,
@@ -263,11 +279,11 @@ def _draw_legend_entry_at(
     key_size: float = 20.0,
 ) -> None:
     """Draw a legend entry at a specific column offset for multi-column layout."""
-    swatch_x = x_offset + 0.05 * col_width
-    swatch_cx = x_offset + 0.12 * col_width
-    swatch_w = 0.15 * col_width
-    text_x = x_offset + 0.25 * col_width
-    marker_s = 30 * (key_size / 20.0)
+    swatch_x = x_offset + _SWATCH_LEFT * col_width
+    swatch_cx = x_offset + _SWATCH_CENTER * col_width
+    swatch_w = _SWATCH_WIDTH * col_width
+    text_x = x_offset + _TEXT_LEFT * col_width
+    marker_s = _MARKER_SIZE_BASE * (key_size / 20.0)
 
     if entry.shape is not None:
         legend_ax.scatter(
@@ -345,13 +361,10 @@ def _draw_discrete_legend(
 
     n_entries = len(entries)
     nrow_legend = -(-n_entries // ncol)  # ceiling division
-    # Scale entry height by legend_spacing (default 4.0 → 0.03)
-    entry_height = 0.03 * (theme.legend_spacing / 4.0)
-    title_height = 0.04
-    # Legend margin adds padding (default 8.0 → 0.02)
-    margin_pad = 0.02 * (theme.legend_margin / 8.0)
-    total_height = title_height + nrow_legend * entry_height + margin_pad
-    legend_width = 0.12 * ncol
+    entry_height = _ENTRY_HEIGHT_BASE * (theme.legend_spacing / 4.0)
+    margin_pad = _MARGIN_PAD_BASE * (theme.legend_margin / 8.0)
+    total_height = _TITLE_HEIGHT + nrow_legend * entry_height + margin_pad
+    legend_width = _LEGEND_WIDTH_PER_COL * ncol
 
     # Use total_stack_height for centering when multiple legend groups exist
     effective_height = total_stack_height if total_stack_height > 0 else total_height
@@ -368,19 +381,19 @@ def _draw_discrete_legend(
             x0 = lx
             y0 = max(ly - total_height - y_offset, 0.0)
     elif position == LegendPosition.RIGHT:
-        x0 = 0.88
+        x0 = _LEGEND_RIGHT_X
         stack_top = 0.5 + effective_height / 2
         y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.LEFT:
-        x0 = 0.01
+        x0 = _LEGEND_LEFT_X
         stack_top = 0.5 + effective_height / 2
         y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.TOP:
         x0 = 0.5 - legend_width / 2
-        y0 = 0.88 - y_offset
+        y0 = _LEGEND_RIGHT_X - y_offset
     else:  # bottom
         x0 = 0.5 - legend_width / 2
-        y0 = 0.01 + y_offset
+        y0 = _LEGEND_LEFT_X + y_offset
 
     legend_ax = fig.add_axes((x0, y0, legend_width, total_height))
     legend_ax.set_xlim(0, 1)
@@ -430,7 +443,7 @@ def _draw_discrete_legend(
     effective_text_family = lt_kw.get("fontfamily", theme.font_family)
 
     legend_ax.text(
-        0.05,
+        _SWATCH_LEFT,
         0.95,
         title,
         verticalalignment="top",
@@ -438,7 +451,7 @@ def _draw_discrete_legend(
         **title_kw,
     )
 
-    y_start = 1.0 - title_height / total_height
+    y_start = 1.0 - _TITLE_HEIGHT / total_height
     step = entry_height / total_height
     col_width = 1.0 / ncol
 
@@ -496,24 +509,24 @@ def _draw_continuous_legend(
         barwidth = getattr(guide_spec, "barwidth", None)
         barheight = getattr(guide_spec, "barheight", None)
 
-    effective_height = total_stack_height if total_stack_height > 0 else 0.6
+    effective_height = total_stack_height if total_stack_height > 0 else _COLORBAR_HEIGHT
 
     if isinstance(position, tuple):
         lx, ly = position
         if main_axes:
             ax_bbox = main_axes[0].get_position()
             x0 = ax_bbox.x0 + lx * ax_bbox.width
-            y0 = ax_bbox.y0 + ly * ax_bbox.height - 0.6 - y_offset
-            w, h = 0.03, 0.6
+            y0 = ax_bbox.y0 + ly * ax_bbox.height - _COLORBAR_HEIGHT - y_offset
+            w, h = 0.03, _COLORBAR_HEIGHT
         else:
-            x0, y0, w, h = lx, max(ly - 0.6 - y_offset, 0.0), 0.03, 0.6
+            x0, y0, w, h = lx, max(ly - _COLORBAR_HEIGHT - y_offset, 0.0), 0.03, _COLORBAR_HEIGHT
     elif position == LegendPosition.RIGHT:
         stack_top = 0.5 + effective_height / 2
-        x0, w, h = 0.89, 0.03, 0.6
+        x0, w, h = 0.89, 0.03, _COLORBAR_HEIGHT
         y0 = max(stack_top - y_offset - h, 0.05)
     elif position == LegendPosition.LEFT:
         stack_top = 0.5 + effective_height / 2
-        x0, w, h = 0.02, 0.03, 0.6
+        x0, w, h = _LEGEND_LEFT_X + 0.01, 0.03, _COLORBAR_HEIGHT
         y0 = max(stack_top - y_offset - h, 0.05)
     elif position == LegendPosition.TOP:
         x0, y0, w, h = 0.2, 0.92 - y_offset, 0.5, 0.03

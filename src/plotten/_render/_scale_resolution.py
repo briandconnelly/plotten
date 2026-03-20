@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import copy
 import warnings
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 
+from plotten._defaults import MAPPED_AESTHETICS, detect_backend
 from plotten._validation import PlottenWarning
 from plotten.scales._base import ScaleBase, auto_scale
 
@@ -17,22 +18,22 @@ if TYPE_CHECKING:
 _AUX_TO_POSITION = {"ymin": "y", "ymax": "y", "xmin": "x", "xmax": "x"}
 
 
+def _opt_min(a: float | None, b: float | None) -> float | None:
+    if a is None:
+        return b
+    return min(a, b) if b is not None else a
+
+
+def _opt_max(a: float | None, b: float | None) -> float | None:
+    if a is None:
+        return b
+    return max(a, b) if b is not None else a
+
+
 def _merge_domain(target: ScaleBase, source: ScaleBase) -> None:
     """Merge domain min/max from source into target scale."""
-    src_min = source._domain_min
-    src_max = source._domain_max
-    tgt_min = target._domain_min
-    tgt_max = target._domain_max
-
-    if src_min is not None and tgt_min is not None:
-        target._domain_min = min(tgt_min, src_min)
-    elif src_min is not None:
-        target._domain_min = src_min
-
-    if src_max is not None and tgt_max is not None:
-        target._domain_max = max(tgt_max, src_max)
-    elif src_max is not None:
-        target._domain_max = src_max
+    target._domain_min = _opt_min(target._domain_min, source._domain_min)
+    target._domain_max = _opt_max(target._domain_max, source._domain_max)
 
 
 def _train_scales(
@@ -49,10 +50,10 @@ def _train_scales(
         dtype = series.dtype
         if isinstance(dtype, (nw.List, nw.Array, nw.Object)):
             continue
+        if aes_name not in scales:
+            native_series = series.to_native()
+            scales[aes_name] = auto_scale(aes_name, native_series)
         try:
-            if aes_name not in scales:
-                native_series = series.to_native()
-                scales[aes_name] = auto_scale(aes_name, native_series)
             col_name = column_origins.get(aes_name) if column_origins else None
             validate_data_type(
                 aes_name, series.to_native(), scales[aes_name], column_name=col_name
@@ -96,7 +97,7 @@ def _map_aesthetics(
     from plotten.scales._binned_position import ScaleBinnedPosition
     from plotten.scales._position import ScaleDiscrete
 
-    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype", "linewidth", "hatch"):
+    for aes_name in MAPPED_AESTHETICS:
         if aes_name in data_dict and aes_name in scales:
             scale = scales[aes_name]
             native_series = frame.get_column(aes_name).to_native()
@@ -154,19 +155,9 @@ def _resolve_free_panels(
         panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
 
 
-def _get_backend() -> Literal["polars", "pandas"]:
-    """Return the first available dataframe backend name."""
-    try:
-        import polars as _  # noqa: F401
-
-        return "polars"
-    except ImportError:
-        return "pandas"
-
-
 def _apply_expand_limits(scales: dict[str, ScaleBase], expand_limits: tuple) -> None:
     """Train position scales with sentinel values from expand_limits()."""
-    backend = _get_backend()
+    backend = detect_backend()
     for el in expand_limits:
         if el.x and "x" in scales:
             series = nw.new_series("x", list(el.x), dtype=nw.Float64, backend=backend)

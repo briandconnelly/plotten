@@ -11,7 +11,43 @@ if TYPE_CHECKING:
 
     from plotten._render._resolve import ResolvedPanel, ResolvedPlot
     from plotten._types import GeomDrawData, GeomParams
+    from plotten.themes._elements import ElementBlank, ElementLine
     from plotten.themes._theme import Theme
+
+
+def _resolve_visibility(
+    default: bool,
+    global_el: ElementLine | ElementBlank | None,
+    per_axis_el: ElementLine | ElementBlank | None,
+) -> bool:
+    """Resolve grid/tick visibility through the global → per-axis cascade."""
+    from plotten.themes._elements import ElementBlank
+
+    if isinstance(global_el, ElementBlank):
+        default = False
+    if isinstance(per_axis_el, ElementBlank):
+        default = False
+    return default
+
+
+def _resolve_line_prop[T](
+    default: T,
+    global_el: ElementLine | ElementBlank | None,
+    per_axis_el: ElementLine | ElementBlank | None,
+    attr: str,
+) -> T:
+    """Resolve a line property (color/size) through the global → per-axis cascade."""
+    from plotten.themes._elements import ElementLine
+
+    if isinstance(global_el, ElementLine):
+        val = getattr(global_el, attr, None)
+        if val is not None:
+            default = val
+    if isinstance(per_axis_el, ElementLine):
+        val = getattr(per_axis_el, attr, None)
+        if val is not None:
+            default = val
+    return default
 
 
 def render_panel(
@@ -21,6 +57,8 @@ def render_panel(
     theme: Theme,
 ) -> None:
     """Draw layers and apply theme to a single axes."""
+    from plotten.themes._elements import ElementBlank, ElementLine
+
     # Background
     if theme.panel_background != "none":
         ax.set_facecolor(theme.panel_background)
@@ -28,81 +66,45 @@ def render_panel(
         ax.set_facecolor("none")
 
     # Grid — element overrides take precedence
-    from plotten.themes._elements import ElementBlank, ElementLine
-
-    grid_major_x = theme.grid_major_x
-    grid_major_y = theme.grid_major_y
-    grid_minor_x = theme.grid_minor_x
-    grid_minor_y = theme.grid_minor_y
-
-    # Global element overrides for grid
-    if isinstance(theme.panel_grid_major, ElementBlank):
-        grid_major_x = False
-        grid_major_y = False
-    if isinstance(theme.panel_grid_minor, ElementBlank):
-        grid_minor_x = False
-        grid_minor_y = False
-
-    # Per-axis grid element overrides
-    if isinstance(theme.panel_grid_major_x, ElementBlank):
-        grid_major_x = False
-    if isinstance(theme.panel_grid_major_y, ElementBlank):
-        grid_major_y = False
-    if isinstance(theme.panel_grid_minor_x, ElementBlank):
-        grid_minor_x = False
-    if isinstance(theme.panel_grid_minor_y, ElementBlank):
-        grid_minor_y = False
+    grid_major_x = _resolve_visibility(
+        theme.grid_major_x, theme.panel_grid_major, theme.panel_grid_major_x
+    )
+    grid_major_y = _resolve_visibility(
+        theme.grid_major_y, theme.panel_grid_major, theme.panel_grid_major_y
+    )
+    grid_minor_x = _resolve_visibility(
+        theme.grid_minor_x, theme.panel_grid_minor, theme.panel_grid_minor_x
+    )
+    grid_minor_y = _resolve_visibility(
+        theme.grid_minor_y, theme.panel_grid_minor, theme.panel_grid_minor_y
+    )
 
     # Resolve grid colors and widths per axis
-    major_grid_color_x = theme.grid_color
-    major_grid_width_x = theme.grid_line_width
-    major_grid_color_y = theme.grid_color
-    major_grid_width_y = theme.grid_line_width
+    major_grid_color_x = _resolve_line_prop(
+        theme.grid_color, theme.panel_grid_major, theme.panel_grid_major_x, "color"
+    )
+    major_grid_color_y = _resolve_line_prop(
+        theme.grid_color, theme.panel_grid_major, theme.panel_grid_major_y, "color"
+    )
+    major_grid_width_x = _resolve_line_prop(
+        theme.grid_line_width, theme.panel_grid_major, theme.panel_grid_major_x, "size"
+    )
+    major_grid_width_y = _resolve_line_prop(
+        theme.grid_line_width, theme.panel_grid_major, theme.panel_grid_major_y, "size"
+    )
 
-    # Global major grid element
-    if isinstance(theme.panel_grid_major, ElementLine):
-        if theme.panel_grid_major.color is not None:
-            major_grid_color_x = theme.panel_grid_major.color
-            major_grid_color_y = theme.panel_grid_major.color
-        if theme.panel_grid_major.size is not None:
-            major_grid_width_x = theme.panel_grid_major.size
-            major_grid_width_y = theme.panel_grid_major.size
-
-    # Per-axis major grid elements override global
-    if isinstance(theme.panel_grid_major_x, ElementLine):
-        if theme.panel_grid_major_x.color is not None:
-            major_grid_color_x = theme.panel_grid_major_x.color
-        if theme.panel_grid_major_x.size is not None:
-            major_grid_width_x = theme.panel_grid_major_x.size
-    if isinstance(theme.panel_grid_major_y, ElementLine):
-        if theme.panel_grid_major_y.color is not None:
-            major_grid_color_y = theme.panel_grid_major_y.color
-        if theme.panel_grid_major_y.size is not None:
-            major_grid_width_y = theme.panel_grid_major_y.size
-
-    minor_grid_color_x = theme.grid_color
-    minor_grid_width_x = theme.grid_line_width * 0.5
-    minor_grid_color_y = theme.grid_color
-    minor_grid_width_y = theme.grid_line_width * 0.5
-
-    if isinstance(theme.panel_grid_minor, ElementLine):
-        if theme.panel_grid_minor.color is not None:
-            minor_grid_color_x = theme.panel_grid_minor.color
-            minor_grid_color_y = theme.panel_grid_minor.color
-        if theme.panel_grid_minor.size is not None:
-            minor_grid_width_x = theme.panel_grid_minor.size
-            minor_grid_width_y = theme.panel_grid_minor.size
-
-    if isinstance(theme.panel_grid_minor_x, ElementLine):
-        if theme.panel_grid_minor_x.color is not None:
-            minor_grid_color_x = theme.panel_grid_minor_x.color
-        if theme.panel_grid_minor_x.size is not None:
-            minor_grid_width_x = theme.panel_grid_minor_x.size
-    if isinstance(theme.panel_grid_minor_y, ElementLine):
-        if theme.panel_grid_minor_y.color is not None:
-            minor_grid_color_y = theme.panel_grid_minor_y.color
-        if theme.panel_grid_minor_y.size is not None:
-            minor_grid_width_y = theme.panel_grid_minor_y.size
+    minor_grid_color_x = _resolve_line_prop(
+        theme.grid_color, theme.panel_grid_minor, theme.panel_grid_minor_x, "color"
+    )
+    minor_grid_color_y = _resolve_line_prop(
+        theme.grid_color, theme.panel_grid_minor, theme.panel_grid_minor_y, "color"
+    )
+    minor_grid_width_x = _resolve_line_prop(
+        theme.grid_line_width * 0.5, theme.panel_grid_minor, theme.panel_grid_minor_x, "size"
+    )
+    minor_grid_width_y = _resolve_line_prop(
+        theme.grid_line_width * 0.5, theme.panel_grid_minor, theme.panel_grid_minor_y, "size"
+    )
 
     # Clear any default grid, then apply per-axis
     ax.grid(False)
@@ -193,39 +195,16 @@ def render_panel(
     tick_length_y = theme.axis_ticks_length_y or theme.tick_length
 
     # Resolve tick visibility/styling from axis_ticks elements
-    show_ticks_x = True
-    show_ticks_y = True
-    tick_color_x = axis_text_x_kw.get("color", "#000000")
-    tick_color_y = axis_text_y_kw.get("color", "#000000")
-    tick_width_x = line_width
-    tick_width_y = line_width
-
-    if isinstance(theme.axis_ticks, ElementBlank):
-        show_ticks_x = False
-        show_ticks_y = False
-    elif isinstance(theme.axis_ticks, ElementLine):
-        if theme.axis_ticks.color is not None:
-            tick_color_x = theme.axis_ticks.color
-            tick_color_y = theme.axis_ticks.color
-        if theme.axis_ticks.size is not None:
-            tick_width_x = theme.axis_ticks.size
-            tick_width_y = theme.axis_ticks.size
-
-    # Per-axis tick overrides
-    if isinstance(theme.axis_ticks_x, ElementBlank):
-        show_ticks_x = False
-    elif isinstance(theme.axis_ticks_x, ElementLine):
-        if theme.axis_ticks_x.color is not None:
-            tick_color_x = theme.axis_ticks_x.color
-        if theme.axis_ticks_x.size is not None:
-            tick_width_x = theme.axis_ticks_x.size
-    if isinstance(theme.axis_ticks_y, ElementBlank):
-        show_ticks_y = False
-    elif isinstance(theme.axis_ticks_y, ElementLine):
-        if theme.axis_ticks_y.color is not None:
-            tick_color_y = theme.axis_ticks_y.color
-        if theme.axis_ticks_y.size is not None:
-            tick_width_y = theme.axis_ticks_y.size
+    show_ticks_x = _resolve_visibility(True, theme.axis_ticks, theme.axis_ticks_x)
+    show_ticks_y = _resolve_visibility(True, theme.axis_ticks, theme.axis_ticks_y)
+    tick_color_x = _resolve_line_prop(
+        axis_text_x_kw.get("color", "#000000"), theme.axis_ticks, theme.axis_ticks_x, "color"
+    )
+    tick_color_y = _resolve_line_prop(
+        axis_text_y_kw.get("color", "#000000"), theme.axis_ticks, theme.axis_ticks_y, "color"
+    )
+    tick_width_x = _resolve_line_prop(line_width, theme.axis_ticks, theme.axis_ticks_x, "size")
+    tick_width_y = _resolve_line_prop(line_width, theme.axis_ticks, theme.axis_ticks_y, "size")
 
     ax.tick_params(
         axis="x",

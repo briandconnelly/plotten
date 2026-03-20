@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import MAPPED_AESTHETICS
 from plotten._render._layout import (
     apply_facet_decorations,
     create_axes,
@@ -192,7 +193,7 @@ def _apply_legend(
 
     # Check if there are any legend entries before adjusting layout
     has_legend = False
-    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
+    for aes_name in MAPPED_AESTHETICS:
         if aes_name in resolved.scales and resolved.scales[aes_name].legend_entries():
             has_legend = True
             break

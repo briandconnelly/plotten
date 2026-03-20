@@ -5,10 +5,9 @@ All datasets are bundled with the package — no extra dependencies required.
 
 from __future__ import annotations
 
-from typing import Literal
-
 import narwhals as nw
 
+from plotten._defaults import detect_backend
 from plotten._validation import PlottenError
 
 _SMALL_DATASETS = frozenset({"mtcars", "iris", "faithful", "tips", "mpg", "penguins"})
@@ -44,16 +43,6 @@ def _load_diamonds() -> dict[str, list]:
     return result
 
 
-def _detect_backend() -> Literal["polars", "pandas"]:
-    """Return the first available dataframe backend name."""
-    try:
-        import polars as _  # noqa: F401
-    except ImportError:
-        return "pandas"
-    else:
-        return "polars"
-
-
 def load_dataset(name: str) -> nw.DataFrame:
     """Load a built-in example dataset.
 
@@ -86,4 +75,4 @@ def load_dataset(name: str) -> nw.DataFrame:
         msg = f"Unknown dataset {name!r}. Available datasets: {available}"
         raise PlottenError(msg)
 
-    return nw.from_dict(data_dict, backend=_detect_backend())
+    return nw.from_dict(data_dict, backend=detect_backend())
