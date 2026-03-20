@@ -155,6 +155,8 @@ def _named_to_hex(color: str) -> str | None:
         import matplotlib.colors as mcolors
 
         rgba = mcolors.to_rgba(color)
+        if rgba[3] == 0.0:
+            return None  # fully transparent (e.g. "none") is not a real color
         return f"#{int(rgba[0] * 255):02x}{int(rgba[1] * 255):02x}{int(rgba[2] * 255):02x}"
     except (ValueError, KeyError):
         return None

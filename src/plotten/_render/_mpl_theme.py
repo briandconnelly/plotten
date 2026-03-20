@@ -266,16 +266,22 @@ def render_panel(
         if "fontstyle" in axis_text_y_kw:
             label.set_fontstyle(axis_text_y_kw["fontstyle"])
 
-    # Draw layers
+    # Draw layers — assign incrementing zorder so layer order is respected
     coord = resolved.coord
-    for layer in panel.layers:
+    for layer_idx, layer in enumerate(panel.layers):
         draw_data = cast("GeomDrawData", layer.data)
         if hasattr(coord, "transform_data"):
             draw_data = coord.transform_data(draw_data, resolved.scales)  # type: ignore[union-attr]
         draw_params = cast("GeomParams", layer.params)
         # Inject theme defaults for text geoms
         draw_params = _inject_theme_text_defaults(layer.geom, draw_params, theme)
+        artists_before = set(ax.get_children())
         layer.geom.draw(draw_data, ax, draw_params)
+        # Bump zorder of newly added artists so later layers draw on top
+        base_zorder = 2 + layer_idx
+        for artist in ax.get_children():
+            if artist not in artists_before:
+                artist.set_zorder(base_zorder)
 
     # Font — axis titles with per-axis element overrides
     axis_title_kw = text_props(

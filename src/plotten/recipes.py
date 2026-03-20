@@ -160,7 +160,7 @@ def plot_dumbbell(
     color_end: str = "#2ecc71",
     segment_color: str = "#cccccc",
     segment_size: float = 1.5,
-    point_size: float = 3.0,
+    point_size: float = 50,
     title: str | None = None,
 ) -> Plot:
     """Create a dumbbell chart comparing two values per category.
@@ -233,7 +233,7 @@ def plot_lollipop(
     x: str,
     y: str,
     color: str = "#3498db",
-    point_size: float = 3.0,
+    point_size: float = 50,
     stem_size: float = 0.8,
     horizontal: bool = False,
     baseline: float = 0.0,
@@ -392,7 +392,7 @@ def plot_forest(
     vline: float = 0.0,
     vline_linetype: str = "--",
     vline_color: str = "#999999",
-    point_size: float = 3.0,
+    point_size: float = 50,
     color: str = "#333333",
     title: str | None = None,
 ) -> Plot:
