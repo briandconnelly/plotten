@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_GEOM_FILL
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -27,7 +29,7 @@ class GeomRect:
         ymins = data["ymin"]
         ymaxs = data["ymax"]
 
-        default_fill = params.get("fill", "#4C72B0")
+        default_fill = params.get("fill", DEFAULT_GEOM_FILL)
         default_color = params.get("color", "none")
         default_alpha = params.get("alpha", 0.5)
 

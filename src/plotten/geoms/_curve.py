@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_GEOM_COLOR
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -31,7 +33,7 @@ class GeomCurve:
 
         curvature = params.get("curvature", 0.3)
         arrow = params.get("arrow", False)
-        default_color = params.get("color", "#333333")
+        default_color = params.get("color", DEFAULT_GEOM_COLOR)
         default_alpha = params.get("alpha", 1.0)
         default_linewidth = params.get("size", 0.8)
 

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_GEOM_COLOR
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -26,7 +28,7 @@ class GeomDotplot:
         ys = data["y"]
 
         color = params.get("color", "black")
-        fill = params.get("fill", "#333333")
+        fill = params.get("fill", DEFAULT_GEOM_COLOR)
         alpha = params.get("alpha", 0.7)
         size = params.get("size", 30)
 

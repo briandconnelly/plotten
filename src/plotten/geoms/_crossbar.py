@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_GEOM_FILL
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -23,7 +25,7 @@ class GeomCrossbar:
         from matplotlib.patches import Rectangle
 
         width = params.get("width", 0.5)
-        fill_color = params.get("fill", "#4C72B0")
+        fill_color = params.get("fill", DEFAULT_GEOM_FILL)
         edge_color = params.get("color", "black")
         alpha = params.get("alpha", 0.7)
         hw = width / 2

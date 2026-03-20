@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_GEOM_FILL
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -21,7 +23,7 @@ class GeomBoxplot:
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         width = params.get("width", 0.7)
-        fill_color = params.get("fill", "#4C72B0")
+        fill_color = params.get("fill", DEFAULT_GEOM_FILL)
         alpha = params.get("alpha", 0.7)
         line_color = params.get("color", "black")
 

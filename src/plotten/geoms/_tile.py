@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_GEOM_FILL
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -41,7 +43,7 @@ class GeomTile:
             if fill_vals is not None:
                 fc = fill_vals[i] if isinstance(fill_vals, list) else fill_vals
             else:
-                fc = params.get("fill", "#4C72B0")
+                fc = params.get("fill", DEFAULT_GEOM_FILL)
 
             rect_kwargs: dict[str, Any] = {
                 "facecolor": fc,
