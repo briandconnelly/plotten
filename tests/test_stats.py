@@ -1271,3 +1271,76 @@ class TestStatDensityRidgesBandwidth:
         fig = render(p)
         assert fig is not None
         plt.close(fig)
+
+
+# --- StatUnique tests ---
+
+
+class TestStatUnique:
+    def test_deduplication(self):
+        from plotten.stats._unique import StatUnique
+
+        df = pl.DataFrame({"x": [1, 1, 2, 2, 3], "y": [1, 1, 4, 4, 9]})
+        result = StatUnique().compute(df)
+        result_nw = nw.from_native(result)
+        assert result_nw.shape[0] == 3
+
+    def test_all_unique(self):
+        from plotten.stats._unique import StatUnique
+
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
+        result = StatUnique().compute(df)
+        result_nw = nw.from_native(result)
+        assert result_nw.shape[0] == 3
+
+    def test_stat_unique_render(self):
+        from plotten import stat_unique
+
+        df = pd.DataFrame({"x": [1, 1, 2, 2, 3], "y": [1, 1, 4, 4, 9]})
+        p = ggplot(df, aes(x="x", y="y")) + stat_unique()
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_stat_unique_returns_layer(self):
+        from plotten import stat_unique
+        from plotten._layer import Layer
+
+        layer = stat_unique()
+        assert isinstance(layer, Layer)
+
+
+# --- GeomBlank tests ---
+
+
+class TestGeomBlank:
+    def test_returns_layer(self):
+        from plotten import geom_blank
+        from plotten._layer import Layer
+
+        layer = geom_blank()
+        assert isinstance(layer, Layer)
+
+    def test_geom_blank_renders_empty(self):
+        from plotten import geom_blank
+
+        df = pd.DataFrame({"x": [0, 10], "y": [0, 100]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_blank()
+        fig = render(p)
+        assert fig is not None
+        ax = fig.axes[0]
+        # Axes should reflect the data domain
+        xlo, xhi = ax.get_xlim()
+        assert xlo <= 0
+        assert xhi >= 10
+        plt.close(fig)
+
+    def test_geom_blank_with_other_geom(self):
+        from plotten import geom_blank
+
+        df_points = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        df_range = pd.DataFrame({"x": [0, 10], "y": [0, 50]})
+        p = ggplot(df_points, aes(x="x", y="y")) + geom_point() + geom_blank(data=df_range)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)

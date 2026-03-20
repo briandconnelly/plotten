@@ -90,3 +90,88 @@ def element_rect(**kwargs) -> ElementRect:
 def element_blank() -> ElementBlank:
     """Create a blank element that suppresses drawing."""
     return ElementBlank()
+
+
+@dataclass(frozen=True, slots=True)
+class Margin:
+    """Margin specification with optional unit.
+
+    When used as ``plot_margin`` in a theme, the four sides are specified
+    in the given ``unit``.
+
+    Supported units:
+
+    * ``"npc"`` — normalised parent coordinates (0-1), used directly.
+    * ``"in"`` — inches, converted using figure size at render time.
+    * ``"cm"`` — centimetres, converted via inches.
+    * ``"mm"`` — millimetres, converted via inches.
+    """
+
+    top: float = 0
+    right: float = 0
+    bottom: float = 0
+    left: float = 0
+    unit: str = "npc"
+
+    def to_npc(self, fig_width: float, fig_height: float) -> tuple[float, float, float, float]:
+        """Convert to normalised parent coordinates.
+
+        Parameters
+        ----------
+        fig_width : float
+            Figure width in inches.
+        fig_height : float
+            Figure height in inches.
+
+        Returns
+        -------
+        tuple of float
+            ``(top, right, bottom, left)`` in NPC (0-1).
+        """
+        if self.unit == "npc":
+            return (self.top, self.right, self.bottom, self.left)
+
+        # Convert to inches first
+        scale = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4}.get(self.unit)
+        if scale is None:
+            msg = f"Unknown margin unit: {self.unit!r}. Use 'npc', 'in', 'cm', or 'mm'."
+            raise ValueError(msg)
+
+        return (
+            self.top * scale / fig_height,
+            self.right * scale / fig_width,
+            self.bottom * scale / fig_height,
+            self.left * scale / fig_width,
+        )
+
+
+def margin(
+    top: float = 0,
+    right: float = 0,
+    bottom: float = 0,
+    left: float = 0,
+    unit: str = "npc",
+) -> Margin:
+    """Create a margin specification.
+
+    Parameters
+    ----------
+    top : float, optional
+        Top margin (default 0).
+    right : float, optional
+        Right margin (default 0).
+    bottom : float, optional
+        Bottom margin (default 0).
+    left : float, optional
+        Left margin (default 0).
+    unit : str, optional
+        Unit for values: ``"npc"`` (default), ``"in"``, ``"cm"``, or
+        ``"mm"``.
+
+    Examples
+    --------
+    >>> from plotten import theme, margin
+    >>> theme(plot_margin=margin(0.05, 0.05, 0.05, 0.05))
+    Theme(...)
+    """
+    return Margin(top=top, right=right, bottom=bottom, left=left, unit=unit)

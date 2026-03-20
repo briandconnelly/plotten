@@ -1216,3 +1216,104 @@ class TestIsDarkColor:
         from plotten._render._mpl_theme import _is_dark_color
 
         assert _is_dark_color("red") is False
+
+
+# --- Margin tests ---
+
+
+class TestMargin:
+    def test_margin_construction(self):
+        from plotten import Margin, margin
+
+        m = margin(0.05, 0.1, 0.05, 0.1)
+        assert isinstance(m, Margin)
+        assert m.top == 0.05
+        assert m.right == 0.1
+        assert m.bottom == 0.05
+        assert m.left == 0.1
+        assert m.unit == "npc"
+
+    def test_margin_defaults(self):
+        from plotten import margin
+
+        m = margin()
+        assert m.top == 0
+        assert m.right == 0
+        assert m.bottom == 0
+        assert m.left == 0
+
+    def test_margin_npc_conversion(self):
+        from plotten import margin
+
+        m = margin(0.1, 0.2, 0.3, 0.4, unit="npc")
+        result = m.to_npc(10, 8)
+        assert result == (0.1, 0.2, 0.3, 0.4)
+
+    def test_margin_inches_conversion(self):
+        from plotten import margin
+
+        m = margin(1, 1, 1, 1, unit="in")
+        top, right, bottom, left = m.to_npc(fig_width=10, fig_height=8)
+        assert top == pytest.approx(1.0 / 8.0)
+        assert right == pytest.approx(1.0 / 10.0)
+        assert bottom == pytest.approx(1.0 / 8.0)
+        assert left == pytest.approx(1.0 / 10.0)
+
+    def test_margin_cm_conversion(self):
+        from plotten import margin
+
+        m = margin(2.54, 2.54, 2.54, 2.54, unit="cm")
+        top, right, bottom, left = m.to_npc(fig_width=10, fig_height=8)
+        assert top == pytest.approx(1.0 / 8.0)
+        assert right == pytest.approx(1.0 / 10.0)
+        assert bottom == pytest.approx(1.0 / 8.0)
+        assert left == pytest.approx(1.0 / 10.0)
+
+    def test_margin_mm_conversion(self):
+        from plotten import margin
+
+        m = margin(25.4, 25.4, 25.4, 25.4, unit="mm")
+        top, right, bottom, left = m.to_npc(fig_width=10, fig_height=8)
+        assert top == pytest.approx(1.0 / 8.0)
+        assert right == pytest.approx(1.0 / 10.0)
+        assert bottom == pytest.approx(1.0 / 8.0)
+        assert left == pytest.approx(1.0 / 10.0)
+
+    def test_margin_unknown_unit(self):
+        from plotten import margin
+
+        m = margin(1, 1, 1, 1, unit="px")
+        with pytest.raises(ValueError, match="Unknown margin unit"):
+            m.to_npc(10, 8)
+
+    def test_margin_in_theme(self):
+        from plotten import margin
+
+        t = theme(plot_margin=margin(0.05, 0.05, 0.05, 0.05))
+        assert t.plot_margin is not None
+
+    def test_margin_render(self):
+        from plotten import margin
+
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(plot_margin=margin(0.05, 0.05, 0.05, 0.05))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_margin_with_inch_unit_render(self):
+        from plotten import margin
+
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(plot_margin=margin(0.5, 0.5, 0.5, 0.5, unit="in"))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)

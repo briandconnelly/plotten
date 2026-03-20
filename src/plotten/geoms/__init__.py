@@ -4,6 +4,7 @@ from typing import Any
 
 from plotten._aes import Aes
 from plotten._layer import Layer
+from plotten.geoms._blank import GeomBlank
 from plotten.geoms._contour import GeomContour, GeomContourFilled
 from plotten.geoms._density import GeomDensity
 from plotten.geoms._density_ridges import GeomDensityRidges
@@ -1232,10 +1233,76 @@ def geom_signif(
     )
 
 
+def geom_blank(**params: Any) -> Layer:
+    """Create a blank layer that trains scales without drawing.
+
+    Useful for expanding axis limits from data without rendering any marks.
+
+    Parameters
+    ----------
+    **params
+        Aesthetic mappings and layer-specific data.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes
+    >>> from plotten.geoms import geom_blank
+    >>> df = pd.DataFrame({"x": [0, 10], "y": [0, 100]})
+    >>> p = ggplot(df, aes(x="x", y="y")) + geom_blank()
+    """
+    from plotten.stats._identity import StatIdentity
+
+    position = params.pop("position", None)
+    data = params.pop("data", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomBlank(),
+        stat=StatIdentity(),
+        mapping=mapping,
+        params=params,
+        position=position,
+        data=data,
+    )
+
+
+def stat_unique(**params: Any) -> Layer:
+    """Create a layer that deduplicates observations before plotting.
+
+    By default uses ``geom_point``, but a different geom can be layered on
+    top of deduplicated data.
+
+    Parameters
+    ----------
+    **params
+        Aesthetic mappings and fixed visual properties.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes
+    >>> from plotten.geoms import stat_unique
+    >>> df = pd.DataFrame({"x": [1, 1, 2, 2, 3], "y": [1, 1, 4, 4, 9]})
+    >>> p = ggplot(df, aes(x="x", y="y")) + stat_unique()
+    """
+    from plotten.stats._unique import StatUnique
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomPoint(),
+        stat=StatUnique(),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 __all__ = [
     "GeomAbLine",
     "GeomArea",
     "GeomBar",
+    "GeomBlank",
     "GeomBoxplot",
     "GeomCol",
     "GeomContour",
@@ -1279,6 +1346,7 @@ __all__ = [
     "geom_area",
     "geom_bar",
     "geom_bin2d",
+    "geom_blank",
     "geom_boxplot",
     "geom_col",
     "geom_contour",
@@ -1331,4 +1399,5 @@ __all__ = [
     "stat_sum",
     "stat_summary",
     "stat_summary_bin",
+    "stat_unique",
 ]

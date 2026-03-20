@@ -93,6 +93,7 @@ def _map_aesthetics(
     after_scale_mappings: dict[str, str],
 ) -> None:
     """Map non-position aesthetics through scales. Mutates *data_dict* in-place."""
+    from plotten.scales._binned_position import ScaleBinnedPosition
     from plotten.scales._position import ScaleDiscrete
 
     for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype", "linewidth", "hatch"):
@@ -101,9 +102,13 @@ def _map_aesthetics(
             native_series = frame.get_column(aes_name).to_native()
             data_dict[aes_name] = scale.map_data(native_series)
 
-    # Map x/y through discrete scales for position adjustment
+    # Map x/y through discrete or binned position scales
     for pos in ("x", "y"):
-        if pos in data_dict and pos in scales and isinstance(scales[pos], ScaleDiscrete):
+        if (
+            pos in data_dict
+            and pos in scales
+            and isinstance(scales[pos], (ScaleDiscrete, ScaleBinnedPosition))
+        ):
             data_dict[pos] = scales[pos].map_data(frame.get_column(pos).to_native())
 
     # Apply after_scale mappings

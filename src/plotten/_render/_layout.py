@@ -60,7 +60,13 @@ def create_figure(
 
     # Plot margin via constrained_layout rect
     if theme.plot_margin is not None:
-        top, right, bottom, left = theme.plot_margin
+        from plotten.themes._elements import Margin
+
+        if isinstance(theme.plot_margin, Margin):
+            fig_w, fig_h = fig.get_size_inches()
+            top, right, bottom, left = theme.plot_margin.to_npc(fig_w, fig_h)
+        else:
+            top, right, bottom, left = theme.plot_margin
         engine = fig.get_layout_engine()
         if engine is not None:
             engine.set(rect=(left, bottom, 1.0 - left - right, 1.0 - top - bottom))  # type: ignore[arg-type]

@@ -19,6 +19,7 @@ from plotten.stats._quantile import StatQuantile
 from plotten.stats._smooth import StatSmooth
 from plotten.stats._summary import StatSummary
 from plotten.stats._summary_bin import StatSummaryBin
+from plotten.stats._unique import StatUnique
 from plotten.stats._violin import StatViolin
 
 __all__ = [
@@ -44,5 +45,6 @@ __all__ = [
     "StatSmooth",
     "StatSummary",
     "StatSummaryBin",
+    "StatUnique",
     "StatViolin",
 ]

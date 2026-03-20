@@ -5,7 +5,13 @@ from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
-    from plotten.themes._elements import ElementBlank, ElementLine, ElementRect, ElementText
+    from plotten.themes._elements import (
+        ElementBlank,
+        ElementLine,
+        ElementRect,
+        ElementText,
+        Margin,
+    )
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -126,7 +132,7 @@ class Theme:
 
     # Plot-level (ggplot2: plot.background, plot.margin)
     plot_background: ElementRect | ElementBlank | None = None
-    plot_margin: tuple[float, float, float, float] | None = None
+    plot_margin: Margin | tuple[float, float, float, float] | None = None
 
     # Aspect ratio (ggplot2: aspect.ratio)
     aspect_ratio: float | None = None

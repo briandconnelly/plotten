@@ -1548,3 +1548,134 @@ class TestSecAxis:
         ax = fig.axes[0]
         sec = self._find_sec_axis(ax)
         assert sec is None
+
+
+# --- ScaleSizeArea tests ---
+
+
+class TestScaleSizeArea:
+    def test_zero_maps_to_zero(self):
+        from plotten.scales._size import ScaleSizeArea
+
+        s = ScaleSizeArea(max_size=10)
+        s.train(pd.Series([0, 5, 10]))
+        mapped = s.map_data(pd.Series([0, 5, 10]))
+        assert mapped[0] == 0.0
+
+    def test_proportional(self):
+        from plotten.scales._size import ScaleSizeArea
+
+        s = ScaleSizeArea(max_size=20)
+        s.train(pd.Series([0, 10, 20]))
+        mapped = s.map_data(pd.Series([0, 10, 20]))
+        assert mapped[0] == 0.0
+        assert mapped[1] == pytest.approx(10.0)
+        assert mapped[2] == pytest.approx(20.0)
+
+    def test_negative_clamps_to_zero(self):
+        from plotten.scales._size import ScaleSizeArea
+
+        s = ScaleSizeArea(max_size=10)
+        s.train(pd.Series([-5, 0, 10]))
+        mapped = s.map_data(pd.Series([-5]))
+        assert mapped[0] == 0.0
+
+    def test_legend_entries(self):
+        from plotten.scales._size import ScaleSizeArea
+
+        s = ScaleSizeArea(max_size=10)
+        s.train(pd.Series([0, 10]))
+        entries = s.legend_entries()
+        assert len(entries) > 0
+        assert entries[0].size == pytest.approx(0.0, abs=0.1)
+
+    def test_factory(self):
+        from plotten import scale_size_area
+
+        s = scale_size_area(max_size=15)
+        assert isinstance(s, plotten.ScaleSizeArea)
+
+    def test_render(self):
+        from plotten import scale_size_area
+
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [0, 5, 10]})
+        p = ggplot(df, aes(x="x", y="y", size="v")) + geom_point() + scale_size_area()
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+# --- ScaleRadius tests ---
+
+
+class TestScaleRadius:
+    def test_linear_mapping(self):
+        from plotten.scales._size import ScaleRadius
+
+        s = ScaleRadius(range=(1, 10))
+        s.train(pd.Series([0, 10]))
+        mapped = s.map_data(pd.Series([0, 5, 10]))
+        assert mapped[0] == pytest.approx(1.0)
+        assert mapped[1] == pytest.approx(5.5)
+        assert mapped[2] == pytest.approx(10.0)
+
+    def test_factory(self):
+        from plotten import scale_radius
+
+        s = scale_radius(range=(2, 8))
+        assert isinstance(s, plotten.ScaleRadius)
+
+    def test_render(self):
+        from plotten import scale_radius
+
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "v": [10, 20, 30]})
+        p = ggplot(df, aes(x="x", y="y", size="v")) + geom_point() + scale_radius()
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+# --- ScaleBinnedPosition tests ---
+
+
+class TestScaleBinnedPosition:
+    def test_values_snap_to_centers(self):
+        from plotten.scales._binned_position import ScaleBinnedPosition
+
+        s = ScaleBinnedPosition(aesthetic="x", n_bins=2, limits=(0, 10))
+        s.train(pd.Series([0, 5, 10]))
+        mapped = s.map_data(pd.Series([1, 6, 9]))
+        # With 2 bins: edges at 0, 5, 10 → centers at 2.5, 7.5
+        assert mapped[0] == pytest.approx(2.5)
+        assert mapped[1] == pytest.approx(7.5)
+        assert mapped[2] == pytest.approx(7.5)
+
+    def test_labels_format(self):
+        from plotten.scales._binned_position import ScaleBinnedPosition
+
+        s = ScaleBinnedPosition(n_bins=3, limits=(0, 9))
+        labels = s.get_labels()
+        assert len(labels) == 3
+        assert labels[0].startswith("[")
+        assert labels[0].endswith(")")
+
+    def test_factory_x(self):
+        from plotten import scale_x_binned
+
+        s = scale_x_binned(n_bins=5)
+        assert s.aesthetic == "x"
+
+    def test_factory_y(self):
+        from plotten import scale_y_binned
+
+        s = scale_y_binned(n_bins=5)
+        assert s.aesthetic == "y"
+
+    def test_render(self):
+        from plotten import scale_x_binned
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4, 5], "y": [1, 4, 9, 16, 25]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_binned(n_bins=3)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
