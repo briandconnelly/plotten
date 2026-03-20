@@ -19,6 +19,13 @@ from plotten.scales._binned_position import (
     scale_x_binned,
     scale_y_binned,
 )
+from plotten.scales._breaks import (
+    breaks_integer,
+    breaks_log,
+    breaks_pretty,
+    breaks_quantile,
+    breaks_width,
+)
 from plotten.scales._brewer import (
     ScaleBrewerContinuous,
     ScaleBrewerDiscrete,
@@ -78,11 +85,22 @@ from plotten.scales._identity import (
     scale_size_identity,
 )
 from plotten.scales._labels import (
+    label_bytes,
     label_comma,
+    label_currency,
+    label_date,
+    label_date_short,
     label_dollar,
+    label_duration,
+    label_log,
     label_number,
+    label_number_auto,
+    label_ordinal,
     label_percent,
+    label_pvalue,
     label_scientific,
+    label_si,
+    label_wrap,
 )
 from plotten.scales._linetype import (
     ScaleLinetypeDiscrete,
@@ -97,6 +115,17 @@ from plotten.scales._linewidth import (
     scale_linewidth_manual,
 )
 from plotten.scales._log import ScaleLog, scale_x_log10, scale_y_log10
+from plotten.scales._oob import (
+    censor,
+    expand_range,
+    oob_censor,
+    oob_keep,
+    oob_squish,
+    rescale,
+    rescale_mid,
+    squish,
+    zero_range,
+)
 from plotten.scales._position import (
     ScaleContinuous,
     ScaleDiscrete,
@@ -161,12 +190,35 @@ __all__ = [
     "ScaleSqrt",
     "SecAxis",
     "auto_scale",
+    "breaks_integer",
+    "breaks_log",
+    "breaks_pretty",
+    "breaks_quantile",
+    "breaks_width",
+    "censor",
     "dup_axis",
+    "expand_range",
+    "label_bytes",
     "label_comma",
+    "label_currency",
+    "label_date",
+    "label_date_short",
     "label_dollar",
+    "label_duration",
+    "label_log",
     "label_number",
+    "label_number_auto",
+    "label_ordinal",
     "label_percent",
+    "label_pvalue",
     "label_scientific",
+    "label_si",
+    "label_wrap",
+    "oob_censor",
+    "oob_keep",
+    "oob_squish",
+    "rescale",
+    "rescale_mid",
     "scale_alpha_continuous",
     "scale_alpha_discrete",
     "scale_alpha_identity",
@@ -237,4 +289,6 @@ __all__ = [
     "scale_y_reverse",
     "scale_y_sqrt",
     "sec_axis",
+    "squish",
+    "zero_range",
 ]
