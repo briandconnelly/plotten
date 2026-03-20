@@ -146,6 +146,9 @@ class GeomTextRepel:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset(
+        {"color", "alpha", "size", "fontsize", "ha", "va", "family"}
+    )
 
     def __init__(
         self,
@@ -226,6 +229,9 @@ class GeomLabelRepel:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset(
+        {"fill", "color", "alpha", "size", "fontsize", "ha", "va", "family"}
+    )
 
     def __init__(
         self,

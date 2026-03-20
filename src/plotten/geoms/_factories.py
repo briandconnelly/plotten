@@ -6,6 +6,13 @@ from typing import TYPE_CHECKING, Any
 
 from plotten._aes import Aes
 from plotten._layer import Layer
+from plotten._validation import (
+    validate_aesthetic_value,
+    validate_alpha,
+    validate_color,
+    validate_geom_params,
+    validate_size,
+)
 from plotten.geoms._area import GeomArea
 from plotten.geoms._bar import GeomBar
 from plotten.geoms._boxplot import GeomBoxplot
@@ -61,17 +68,43 @@ def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
     return Aes(**aes_kwargs), params
 
 
+def _validate_layer_params(geom_name: str, geom_cls: type, params: dict[str, Any]) -> None:
+    """Validate fixed params against geom known_params and check aesthetic values."""
+    known = getattr(geom_cls, "known_params", None)
+    if known is not None:
+        validate_geom_params(geom_name, params, known)
+
+    for key, value in params.items():
+        if key in ("color", "fill"):
+            validate_color(value)
+        elif key == "alpha":
+            validate_alpha(value)
+        elif key == "size":
+            validate_size(value)
+        elif key in ("shape", "linetype", "hatch"):
+            validate_aesthetic_value(key, value)
+
+
 def _make_geom_factory(geom_cls: type, doc: str) -> Callable[..., Layer]:
     """Generate a standard geom factory: pop position, extract aes, return Layer."""
 
     def factory(**params: Any) -> Layer:
         position = params.pop("position", None)
         data = params.pop("data", None)
+        explicit_mapping = params.pop("mapping", None)
         mapping, params = _extract_aes(params)
+        if explicit_mapping is not None:
+            mapping = mapping | explicit_mapping
+        _validate_layer_params(factory.__name__, geom_cls, params)
         return Layer(geom=geom_cls(), mapping=mapping, params=params, position=position, data=data)
 
     factory.__doc__ = doc
-    factory.__qualname__ = f"geom_{geom_cls.__name__}"
+    factory.__name__ = (
+        f"geom_{geom_cls.__name__[4:].lower()}"
+        if geom_cls.__name__.startswith("Geom")
+        else geom_cls.__name__
+    )
+    factory.__qualname__ = factory.__name__
     return factory
 
 

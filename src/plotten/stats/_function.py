@@ -42,13 +42,10 @@ class StatFunction:
                 else:
                     xmin, xmax = 0.0, 1.0
             except (KeyError, TypeError) as e:
-                import warnings
+                from plotten._validation import plotten_warn
 
-                from plotten._validation import PlottenWarning
-
-                warnings.warn(
+                plotten_warn(
                     f"Could not determine x range from data: {e}; defaulting to [0, 1]",
-                    PlottenWarning,
                     stacklevel=2,
                 )
                 xmin, xmax = 0.0, 1.0

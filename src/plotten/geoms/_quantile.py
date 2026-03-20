@@ -15,6 +15,7 @@ class GeomQuantile:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
+    known_params: frozenset[str] = frozenset({"color", "alpha", "linetype"})
 
     def __init__(
         self,

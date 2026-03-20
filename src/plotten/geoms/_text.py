@@ -15,6 +15,9 @@ class GeomText:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset(
+        {"color", "alpha", "size", "fontsize", "ha", "va", "family", "weight", "style"}
+    )
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity
@@ -40,6 +43,9 @@ class GeomLabel:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset(
+        {"fill", "color", "alpha", "size", "fontsize", "ha", "va", "family", "weight", "style"}
+    )
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

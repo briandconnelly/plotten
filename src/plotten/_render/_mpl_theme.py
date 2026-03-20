@@ -255,7 +255,19 @@ def render_panel(
         # Inject theme defaults for text geoms
         draw_params = _inject_theme_text_defaults(layer.geom, draw_params, theme)
         artists_before = set(ax.get_children())
-        layer.geom.draw(draw_data, ax, draw_params)
+        try:
+            layer.geom.draw(draw_data, ax, draw_params)
+        except Exception as exc:
+            from plotten._validation import PlottenError
+
+            geom_cls = type(layer.geom).__name__
+            friendly = geom_cls.replace("Geom", "geom_").lower()
+            data_keys = sorted(draw_data.keys())
+            raise PlottenError(
+                f"Error rendering {friendly}: {exc}\n"
+                f"  Data keys: {data_keys}\n"
+                f"  Params: {dict(draw_params)}"
+            ) from exc
         # Bump zorder of newly added artists so later layers draw on top
         base_zorder = 2 + layer_idx
         for artist in ax.get_children():

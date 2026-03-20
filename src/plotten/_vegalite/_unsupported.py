@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import Any
 
-from plotten._validation import PlottenError, PlottenWarning
+from plotten._validation import PlottenError, plotten_warn
 
 
 def _get_unsupported_classes() -> tuple[type, ...]:
@@ -66,4 +65,4 @@ def warn_unsupported(feature: str, detail: str = "") -> None:
     msg = f"{feature} is not fully supported by Vega-Lite export."
     if detail:
         msg += f" {detail}"
-    warnings.warn(msg, PlottenWarning, stacklevel=3)
+    plotten_warn(msg, stacklevel=3)

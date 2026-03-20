@@ -15,6 +15,7 @@ class GeomDensity:
 
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = True
+    known_params: frozenset[str] = frozenset({"color", "fill", "alpha"})
 
     def __init__(self, fill: bool = True, alpha: float = 0.3) -> None:
         self._fill = fill

@@ -13,6 +13,7 @@ class GeomSummary:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset({"color", "fill", "alpha", "size"})
 
     def default_stat(self) -> Any:
         from plotten.stats._summary import StatSummary

@@ -3,13 +3,12 @@
 from __future__ import annotations
 
 import copy
-import warnings
 from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 
 from plotten._defaults import MAPPED_AESTHETICS, detect_backend
-from plotten._validation import PlottenWarning
+from plotten._validation import plotten_warn
 from plotten.scales._base import ScaleBase, auto_scale
 
 if TYPE_CHECKING:
@@ -60,9 +59,8 @@ def _train_scales(
             )
             scales[aes_name].train(series.to_native())
         except (TypeError, ValueError) as e:
-            warnings.warn(
+            plotten_warn(
                 f"Scale training skipped for '{aes_name}': {e}",
-                PlottenWarning,
                 stacklevel=2,
             )
             continue
@@ -79,9 +77,8 @@ def _train_scales(
                     scales[pos_aes] = auto_scale(pos_aes, native)
                 scales[pos_aes].train(native)
             except (TypeError, ValueError, KeyError) as e:
-                warnings.warn(
+                plotten_warn(
                     f"Scale training skipped for auxiliary '{aux_col}' → '{pos_aes}': {e}",
-                    PlottenWarning,
                     stacklevel=2,
                 )
                 continue

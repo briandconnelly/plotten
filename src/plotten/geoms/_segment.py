@@ -15,6 +15,9 @@ class GeomSegment:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "xend", "yend"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset(
+        {"color", "alpha", "linetype", "linewidth", "size", "arrow"}
+    )
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

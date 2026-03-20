@@ -15,6 +15,9 @@ class GeomStep:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
+    known_params: frozenset[str] = frozenset(
+        {"color", "alpha", "linetype", "linewidth", "direction", "size"}
+    )
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

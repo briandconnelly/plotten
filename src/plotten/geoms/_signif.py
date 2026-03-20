@@ -15,6 +15,7 @@ class GeomSignif:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset({"color", "size", "fontsize"})
 
     def __init__(
         self,

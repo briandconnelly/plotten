@@ -13,6 +13,7 @@ class GeomContour:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "z"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset({"color", "alpha", "linewidth"})
 
     def default_stat(self) -> Any:
         from plotten.stats._contour import StatContour
@@ -41,6 +42,7 @@ class GeomContourFilled:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "z"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset({"fill", "alpha"})
 
     def default_stat(self) -> Any:
         from plotten.stats._contour import StatContour

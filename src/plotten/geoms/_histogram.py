@@ -13,6 +13,7 @@ class GeomHistogram:
 
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "width", "hatch"})
 
     def default_stat(self) -> Any:
         from plotten.stats._bin import StatBin

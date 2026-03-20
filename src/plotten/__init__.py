@@ -39,7 +39,8 @@ from plotten._interaction import Interaction, interaction
 from plotten._labs import Labs, labs
 from plotten._limits import xlim, ylim
 from plotten._plot import Plot, ggplot
-from plotten._validation import PlottenError, PlottenWarning
+from plotten._spec import from_spec, from_spec_json, spec_schema
+from plotten._validation import PlottenError, PlottenWarning, set_strict
 from plotten._vegalite import to_html, to_vegalite
 from plotten._watermark import Watermark, watermark
 from plotten.coords import (
@@ -404,6 +405,8 @@ __all__ = [
     "expand_limits",
     "facet_grid",
     "facet_wrap",
+    "from_spec",
+    "from_spec_json",
     "geom_abline",
     "geom_area",
     "geom_bar",
@@ -559,6 +562,8 @@ __all__ = [
     "scale_y_reverse",
     "scale_y_sqrt",
     "sec_axis",
+    "set_strict",
+    "spec_schema",
     "stage",
     "stat_cor",
     "stat_density_2d",

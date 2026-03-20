@@ -18,6 +18,7 @@ class GeomBlank:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset()
 
     def default_stat(self):
         from plotten.stats._identity import StatIdentity

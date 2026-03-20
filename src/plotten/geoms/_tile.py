@@ -15,6 +15,9 @@ class GeomTile:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
+    known_params: frozenset[str] = frozenset(
+        {"fill", "color", "alpha", "width", "height", "hatch"}
+    )
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

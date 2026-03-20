@@ -4,6 +4,8 @@ import difflib
 import warnings
 from typing import Any
 
+_strict_mode: bool = False
+
 
 class PlottenError(Exception):
     """Custom exception with helpful messages for plotten users."""
@@ -11,6 +13,24 @@ class PlottenError(Exception):
 
 class PlottenWarning(UserWarning):
     """Warning category for recoverable plotten issues."""
+
+
+def set_strict(enabled: bool = True) -> None:
+    """Enable or disable strict mode.
+
+    In strict mode, all :class:`PlottenWarning` warnings are raised as
+    :class:`PlottenError` exceptions instead. This is useful for AI agents
+    and CI pipelines that need hard failures rather than silent warnings.
+    """
+    global _strict_mode
+    _strict_mode = enabled
+
+
+def plotten_warn(message: str, *, stacklevel: int = 2) -> None:
+    """Issue a :class:`PlottenWarning`, or raise :class:`PlottenError` in strict mode."""
+    if _strict_mode:
+        raise PlottenError(message)
+    warnings.warn(message, PlottenWarning, stacklevel=stacklevel + 1)
 
 
 def _suggest_columns(missing: set[str] | frozenset[str], data_columns: list[str]) -> str:
@@ -98,19 +118,17 @@ def validate_data_type(
     col_info = f" (column '{column_name}')" if column_name else ""
     if isinstance(scale, ScaleContinuous) and not s.dtype.is_numeric():
         if not s.dtype.is_temporal():
-            warnings.warn(
+            plotten_warn(
                 f"Continuous scale for '{aesthetic}'{col_info} received "
                 f"non-numeric data (dtype: {s.dtype}). "
                 f"Consider using a discrete scale.",
-                PlottenWarning,
                 stacklevel=4,
             )
     elif isinstance(scale, ScaleDiscrete) and s.dtype.is_numeric():
-        warnings.warn(
+        plotten_warn(
             f"Discrete scale for '{aesthetic}'{col_info} received "
             f"numeric data (dtype: {s.dtype}). "
             f"Consider using a continuous scale.",
-            PlottenWarning,
             stacklevel=4,
         )
 
@@ -121,4 +139,167 @@ def validate_breaks_labels(breaks: list | None, labels: list | None) -> None:
         raise PlottenError(
             f"breaks (length {len(breaks)}) and labels (length {len(labels)}) "
             f"must have the same length"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Geom parameter validation
+# ---------------------------------------------------------------------------
+
+_VALID_SHAPES: frozenset[str] = frozenset(
+    {
+        "o",
+        "v",
+        "^",
+        "<",
+        ">",
+        "s",
+        "p",
+        "P",
+        "*",
+        "h",
+        "H",
+        "+",
+        "x",
+        "X",
+        "D",
+        "d",
+        "|",
+        "_",
+        ".",
+        ",",
+        "1",
+        "2",
+        "3",
+        "4",
+        "8",
+    }
+)
+
+_VALID_LINETYPES: frozenset[str] = frozenset(
+    {"solid", "dashed", "dotted", "dashdot", "-", "--", "-.", ":", "none", "None", ""}
+)
+
+_VALID_HATCHES: frozenset[str] = frozenset(
+    {
+        "/",
+        "\\",
+        "|",
+        "-",
+        "+",
+        "x",
+        "o",
+        "O",
+        ".",
+        "*",
+        "//",
+        "\\\\",
+        "||",
+        "--",
+        "++",
+        "xx",
+        "oo",
+        "OO",
+        "..",
+        "**",
+    }
+)
+
+
+def validate_geom_params(
+    geom_name: str,
+    params: dict[str, Any],
+    known_params: frozenset[str],
+) -> None:
+    """Warn on unknown geom parameters with typo suggestions."""
+    unknown = set(params) - known_params
+    if not unknown:
+        return
+
+    parts: list[str] = []
+    for name in sorted(unknown):
+        matches = difflib.get_close_matches(name, sorted(known_params), n=2, cutoff=0.5)
+        if matches:
+            parts.append(f"  '{name}' — did you mean {matches}?")
+        else:
+            parts.append(f"  '{name}'")
+    plotten_warn(
+        f"{geom_name} received unknown parameter(s):\n"
+        + "\n".join(parts)
+        + f"\nValid parameters: {sorted(known_params)}",
+        stacklevel=3,
+    )
+
+
+def validate_aesthetic_value(name: str, value: Any) -> None:
+    """Warn if a fixed aesthetic value is invalid."""
+    if name == "shape" and isinstance(value, str) and value not in _VALID_SHAPES:
+        plotten_warn(
+            f"Invalid shape value: {value!r}. Valid shapes: {sorted(_VALID_SHAPES)}",
+            stacklevel=3,
+        )
+    elif name == "linetype" and isinstance(value, str) and value not in _VALID_LINETYPES:
+        matches = difflib.get_close_matches(value, sorted(_VALID_LINETYPES), n=2, cutoff=0.5)
+        hint = f" Did you mean {matches}?" if matches else ""
+        plotten_warn(
+            f"Invalid linetype value: {value!r}.{hint} "
+            f"Valid linetypes: {sorted(_VALID_LINETYPES)}",
+            stacklevel=3,
+        )
+    elif name == "hatch" and isinstance(value, str) and value not in _VALID_HATCHES:
+        plotten_warn(
+            f"Invalid hatch value: {value!r}. Valid hatches: {sorted(_VALID_HATCHES)}",
+            stacklevel=3,
+        )
+
+
+def validate_color(value: Any) -> None:
+    """Warn if a color value is not recognized by matplotlib."""
+    if not isinstance(value, str):
+        return
+    # Skip column-name-like strings (will be mapped later)
+    if value.isidentifier() and not value.startswith("#"):
+        # Could be a column name — defer to scale mapping.
+        # Only validate obvious color literals.
+        try:
+            from matplotlib.colors import CSS4_COLORS, to_rgba
+
+            to_rgba(value)
+        except ValueError:
+            matches = difflib.get_close_matches(value, list(CSS4_COLORS), n=3, cutoff=0.6)
+            hint = f" Did you mean {matches}?" if matches else ""
+            plotten_warn(
+                f"Invalid color value: {value!r}. "
+                f"Must be a named color, hex code, or RGB tuple.{hint}",
+                stacklevel=3,
+            )
+        return
+
+    if value.startswith("#") or value.startswith("rgb"):
+        try:
+            from matplotlib.colors import to_rgba
+
+            to_rgba(value)
+        except ValueError:
+            plotten_warn(
+                f"Invalid color value: {value!r}. Must be a named color, hex code, or RGB tuple.",
+                stacklevel=3,
+            )
+
+
+def validate_alpha(value: Any) -> None:
+    """Warn if alpha is outside [0, 1]."""
+    if isinstance(value, int | float) and not (0 <= value <= 1):
+        plotten_warn(
+            f"Alpha value {value} is outside the valid range [0, 1].",
+            stacklevel=3,
+        )
+
+
+def validate_size(value: Any) -> None:
+    """Warn if size is negative."""
+    if isinstance(value, int | float) and value < 0:
+        plotten_warn(
+            f"Size value {value} is negative.",
+            stacklevel=3,
         )
