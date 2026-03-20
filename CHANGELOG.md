@@ -2,6 +2,17 @@
 
 ## 1.0.0
 
+### v0.16.0 — Error Hierarchy & Validation
+
+- Introduce descriptive error hierarchy: `ValidationError`, `DataError`, `ScaleError`, `StatError`, `RenderError`, `ConfigError`, `FontError`, `ExportError`, `SpecError` — all subclasses of `PlottenError`
+- Replace all `ValueError`/`TypeError` raises with domain-specific error types
+- Wrap matplotlib draw errors with `RenderError` including geom name and params
+- Narrow bare `except Exception` blocks throughout the codebase
+- Add NaN/Inf detection in scale training pipeline
+- Validate geom parameters with typo suggestions at construction time
+- Validate aesthetic values (shape, linetype, hatch), colors, alpha range, and size
+- Strict mode (`set_strict(True)`) converts all `PlottenWarning` to errors
+
 ### v0.15.0 — API Polish & 1.0 Preparation
 
 - Add `colour` alias for `color` in `aes()`

@@ -144,10 +144,10 @@ def _resolve_layers(
         if after_stat_mappings:
             for aes_field, var_name in after_stat_mappings.items():
                 if var_name not in frame.columns:
-                    from plotten._validation import PlottenError
+                    from plotten._validation import DataError
 
                     available = sorted(frame.columns)
-                    raise PlottenError(
+                    raise DataError(
                         f"after_stat('{var_name}') references a column that "
                         f"does not exist in the stat output. "
                         f"Available computed columns: {available}"

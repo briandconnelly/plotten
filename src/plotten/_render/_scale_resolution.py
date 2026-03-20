@@ -49,6 +49,30 @@ def _train_scales(
         dtype = series.dtype
         if isinstance(dtype, (nw.List, nw.Array, nw.Object)):
             continue
+        # Filter NaN/Inf for numeric series before training
+        if dtype.is_numeric():
+            native = series.to_native()
+            try:
+                import numpy as np
+
+                arr = np.asarray(native)
+                non_finite_count = int(np.sum(~np.isfinite(arr)))
+                if non_finite_count > 0:
+                    plotten_warn(
+                        f"Column '{aes_name}' contains {non_finite_count} non-finite "
+                        f"value(s) (NaN/Inf). These will be dropped during scale training.",
+                        stacklevel=2,
+                    )
+                    finite_mask = np.isfinite(arr)
+                    if not np.any(finite_mask):
+                        plotten_warn(
+                            f"Scale training skipped for '{aes_name}': "
+                            f"all values are non-finite (NaN/Inf)",
+                            stacklevel=2,
+                        )
+                        continue
+            except (TypeError, ValueError):
+                pass  # Non-numeric-like; proceed normally
         if aes_name not in scales:
             native_series = series.to_native()
             scales[aes_name] = auto_scale(aes_name, native_series)

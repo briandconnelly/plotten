@@ -177,7 +177,14 @@ class Plot:
             from plotten._vegalite import to_html
 
             return to_html(self)
+        except ImportError:
+            return None
         except Exception:
+            import logging
+
+            logging.getLogger("plotten").debug(
+                "Vega-Lite conversion failed, falling back to PNG", exc_info=True
+            )
             return None
 
     def _repr_mimebundle_(
@@ -216,10 +223,18 @@ class Plot:
             from plotten._vegalite import to_html
 
             return (to_html(self), "text/html")
-        except Exception:
+        except ImportError:
             png_bytes = self._repr_png_()
-            data_uri = base64.b64encode(png_bytes).decode("ascii")
-            return (f'<img src="data:image/png;base64,{data_uri}" />', "text/html")
+        except Exception:
+            import logging
+
+            logging.getLogger("plotten").debug(
+                "Vega-Lite conversion failed, falling back to PNG", exc_info=True
+            )
+            png_bytes = self._repr_png_()
+
+        data_uri = base64.b64encode(png_bytes).decode("ascii")
+        return (f'<img src="data:image/png;base64,{data_uri}" />', "text/html")
 
 
 def ggplot(data: Any = None, mapping: Aes | None = None) -> Plot:

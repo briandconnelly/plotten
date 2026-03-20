@@ -69,6 +69,7 @@ from plotten import (
     sec_axis,
 )
 from plotten._render._mpl import render
+from plotten._validation import ScaleError
 from plotten.scales import (
     ScaleColorContinuous,
     ScaleColorDiscrete,
@@ -1108,7 +1109,7 @@ class TestGradientNScales:
         assert s._values == values
 
     def test_gradientn_values_length_mismatch_raises(self):
-        with pytest.raises(ValueError, match="Length of values"):
+        with pytest.raises(ScaleError, match="Length of values"):
             scale_color_gradientn(colors=["red", "blue"], values=[0.0, 0.5, 1.0])
 
     def test_gradientn_map_data(self):

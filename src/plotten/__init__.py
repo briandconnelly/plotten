@@ -40,7 +40,20 @@ from plotten._labs import Labs, labs
 from plotten._limits import xlim, ylim
 from plotten._plot import Plot, ggplot
 from plotten._spec import from_spec, from_spec_json, spec_schema
-from plotten._validation import PlottenError, PlottenWarning, set_strict
+from plotten._validation import (
+    ConfigError,
+    DataError,
+    ExportError,
+    FontError,
+    PlottenError,
+    PlottenWarning,
+    RenderError,
+    ScaleError,
+    SpecError,
+    StatError,
+    ValidationError,
+    set_strict,
+)
 from plotten._vegalite import to_html, to_vegalite
 from plotten._watermark import Watermark, watermark
 from plotten.coords import (
@@ -333,20 +346,24 @@ __all__ = [
     "AnnotationCoord",
     "AnnotationType",
     "Arrow",
+    "ConfigError",
     "CoordCartesian",
     "CoordEqual",
     "CoordFixed",
     "CoordFlip",
     "CoordPolar",
     "CoordTrans",
+    "DataError",
     "ElementBlank",
     "ElementLine",
     "ElementRect",
     "ElementText",
     "ExpandLimits",
+    "ExportError",
     "FacetGrid",
     "FacetScales",
     "FacetWrap",
+    "FontError",
     "GuideColorbar",
     "GuideLegend",
     "InsetElement",
@@ -370,6 +387,7 @@ __all__ = [
     "PositionNudge",
     "PositionStack",
     "Rel",
+    "RenderError",
     "ScaleAlphaContinuous",
     "ScaleAlphaDiscrete",
     "ScaleBinnedPosition",
@@ -381,6 +399,7 @@ __all__ = [
     "ScaleContinuous",
     "ScaleDateContinuous",
     "ScaleDiscrete",
+    "ScaleError",
     "ScaleFillBinned",
     "ScaleGradient",
     "ScaleGradient2",
@@ -403,7 +422,10 @@ __all__ = [
     "SecAxis",
     "SizeUnit",
     "SmoothMethod",
+    "SpecError",
+    "StatError",
     "Theme",
+    "ValidationError",
     "Watermark",
     "__version__",
     "accessibility_report",

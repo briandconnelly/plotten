@@ -260,7 +260,7 @@ def _check_colorblind_safety(plot: Any, report: AccessibilityReport) -> None:
     """Check if palette colors are distinguishable under color vision deficiencies."""
     try:
         colors = _extract_palette_colors(plot)
-    except Exception:
+    except (ValueError, TypeError, KeyError, AttributeError):
         return
 
     if len(colors) < 2:

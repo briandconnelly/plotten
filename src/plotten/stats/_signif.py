@@ -107,8 +107,10 @@ def _run_test(a: list[float], b: list[float], test: str) -> float:
         case "mann-whitney":
             _, p = sp_stats.mannwhitneyu(a, b, alternative="two-sided")
         case _:
-            msg = f"Unknown test: {test!r}. Use 't-test', 'wilcoxon', or 'mann-whitney'."
-            raise ValueError(msg)
+            from plotten._validation import StatError
+
+            msg = f"Unknown test: {test!r}. Valid tests: 't-test', 'wilcoxon', 'mann-whitney'."
+            raise StatError(msg)
 
     return float(p)
 
@@ -143,8 +145,12 @@ def _adjust_pvalues(pvalues: list[float], method: str | None) -> list[float]:
                 adjusted[orig_idx] = cummin
             return adjusted
         case _:
-            msg = f"Unknown p_adjust method: {method!r}. Use 'bonferroni', 'holm', or 'fdr'."
-            raise ValueError(msg)
+            from plotten._validation import StatError
+
+            msg = (
+                f"Unknown p_adjust method: {method!r}. Valid methods: 'bonferroni', 'holm', 'fdr'."
+            )
+            raise StatError(msg)
 
 
 def _format_pvalue(p: float) -> str:

@@ -8,8 +8,9 @@ import pandas as pd
 import pytest
 
 from plotten._validation import (
-    PlottenError,
     PlottenWarning,
+    RenderError,
+    ValidationError,
     plotten_warn,
     set_strict,
     validate_aesthetic_value,
@@ -36,7 +37,7 @@ class TestPlottenWarn:
     def test_strict_mode_raises(self):
         set_strict(True)
         try:
-            with pytest.raises(PlottenError, match="test error"):
+            with pytest.raises(ValidationError, match="test error"):
                 plotten_warn("test error")
         finally:
             set_strict(False)
@@ -92,7 +93,7 @@ class TestValidateGeomParams:
     def test_strict_mode_raises_for_unknown_param(self):
         set_strict(True)
         try:
-            with pytest.raises(PlottenError, match="siz"):
+            with pytest.raises(ValidationError, match="siz"):
                 validate_geom_params(
                     "geom_point",
                     {"siz": 50},
@@ -300,7 +301,7 @@ class TestDrawErrorWrapping:
 
         plot.layers[0].geom.draw = bad_draw  # type: ignore[attr-defined]
 
-        with pytest.raises(PlottenError, match="Error rendering geom_point"):
+        with pytest.raises(RenderError, match="Error rendering geom_point"):
             render(plot)
 
         plot.layers[0].geom.draw = original_draw  # type: ignore[attr-defined]

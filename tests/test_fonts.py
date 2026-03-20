@@ -25,7 +25,7 @@ from plotten import (
     theme,
 )
 from plotten._render._mpl import render
-from plotten._validation import PlottenError
+from plotten._validation import FontError
 from plotten.themes._text_props import text_props
 
 # ---- helpers ---------------------------------------------------------------
@@ -238,13 +238,13 @@ class TestLegendPropagation:
 
 class TestRegisterFont:
     def test_invalid_path(self):
-        with pytest.raises(PlottenError, match="not found"):
+        with pytest.raises(FontError, match="not found"):
             register_font("/nonexistent/font.ttf")
 
     def test_invalid_extension(self, tmp_path):
         bad = tmp_path / "font.txt"
         bad.write_text("not a font")
-        with pytest.raises(PlottenError, match="Unsupported font extension"):
+        with pytest.raises(FontError, match="Unsupported font extension"):
             register_font(bad)
 
 
@@ -288,20 +288,20 @@ class TestGoogleFonts:
             assert len(result) > 0
 
     def test_bad_family_raises(self):
-        """A network error raises PlottenError."""
+        """A network error raises FontError."""
         with patch("plotten.fonts.urlopen") as mock_urlopen:
             mock_urlopen.side_effect = Exception("HTTP 404")
-            with pytest.raises(PlottenError, match="Failed to fetch"):
+            with pytest.raises(FontError, match="Failed to fetch"):
                 register_google_font("NonExistentFontXYZ123")
 
     def test_no_font_urls_in_css_raises(self, tmp_path):
-        """CSS response with no font URLs raises PlottenError."""
+        """CSS response with no font URLs raises FontError."""
         mock_resp = MagicMock()
         mock_resp.read.return_value = b"/* empty CSS, no @font-face */"
         with (
             patch("plotten.fonts._CACHE_DIR", tmp_path),
             patch("plotten.fonts.urlopen", return_value=mock_resp),
-            pytest.raises(PlottenError, match="No font files found"),
+            pytest.raises(FontError, match="No font files found"),
         ):
             register_google_font("BogusFont")
 

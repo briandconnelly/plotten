@@ -7,8 +7,94 @@ from typing import Any
 _strict_mode: bool = False
 
 
+# ---------------------------------------------------------------------------
+# Error hierarchy
+# ---------------------------------------------------------------------------
+
+
 class PlottenError(Exception):
-    """Custom exception with helpful messages for plotten users."""
+    """Base exception for all plotten errors.
+
+    Catch this to handle any plotten error. Use subclasses for
+    fine-grained handling.
+    """
+
+
+class ValidationError(PlottenError):
+    """Invalid parameter values or aesthetic checks.
+
+    Raised when a geom receives an unknown parameter, an aesthetic value
+    is invalid (bad color, shape, linetype), or alpha/size are out of range.
+    """
+
+
+class DataError(PlottenError):
+    """Data-related errors.
+
+    Raised when mapped columns are missing from the data, required
+    aesthetics are not satisfiable, or data contains only non-finite values.
+    """
+
+
+class ScaleError(PlottenError):
+    """Scale configuration errors.
+
+    Raised for unknown scale options (e.g. viridis palette), mismatched
+    breaks/labels lengths, or conflicting scale parameters.
+    """
+
+
+class StatError(PlottenError):
+    """Statistical transformation errors.
+
+    Raised for unknown stat methods, summary functions, or statistical
+    test names.
+    """
+
+
+class RenderError(PlottenError):
+    """Errors during plot rendering.
+
+    Wraps matplotlib exceptions that occur during ``geom.draw()`` with
+    context about which geom, data keys, and params were involved.
+    """
+
+
+class ConfigError(PlottenError):
+    """Configuration and setup errors.
+
+    Raised for unknown theme properties, invalid margin units, unknown
+    arrow styles, annotation types, or conflicting aes arguments.
+    """
+
+
+class FontError(PlottenError):
+    """Font registration and loading errors.
+
+    Raised when a font file is not found, has an unsupported format,
+    or a Google Font download fails.
+    """
+
+
+class ExportError(PlottenError):
+    """Export-related errors.
+
+    Raised when a feature (geom, coord, mapping) is not supported by
+    the target export format (e.g. Vega-Lite).
+    """
+
+
+class SpecError(PlottenError):
+    """Spec format errors.
+
+    Raised when a plot spec dict has invalid structure, unknown registry
+    keys, or missing required fields.
+    """
+
+
+# ---------------------------------------------------------------------------
+# Warning infrastructure
+# ---------------------------------------------------------------------------
 
 
 class PlottenWarning(UserWarning):
@@ -19,7 +105,7 @@ def set_strict(enabled: bool = True) -> None:
     """Enable or disable strict mode.
 
     In strict mode, all :class:`PlottenWarning` warnings are raised as
-    :class:`PlottenError` exceptions instead. This is useful for AI agents
+    :class:`ValidationError` exceptions instead. This is useful for AI agents
     and CI pipelines that need hard failures rather than silent warnings.
     """
     global _strict_mode
@@ -27,10 +113,15 @@ def set_strict(enabled: bool = True) -> None:
 
 
 def plotten_warn(message: str, *, stacklevel: int = 2) -> None:
-    """Issue a :class:`PlottenWarning`, or raise :class:`PlottenError` in strict mode."""
+    """Issue a :class:`PlottenWarning`, or raise :class:`ValidationError` in strict mode."""
     if _strict_mode:
-        raise PlottenError(message)
+        raise ValidationError(message)
     warnings.warn(message, PlottenWarning, stacklevel=stacklevel + 1)
+
+
+# ---------------------------------------------------------------------------
+# Data validation helpers
+# ---------------------------------------------------------------------------
 
 
 def _suggest_columns(missing: set[str] | frozenset[str], data_columns: list[str]) -> str:
@@ -44,7 +135,7 @@ def _suggest_columns(missing: set[str] | frozenset[str], data_columns: list[str]
 
 
 def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -> None:
-    """Raise PlottenError if required aesthetics are not satisfiable."""
+    """Raise DataError if required aesthetics are not satisfiable."""
     required = getattr(geom, "required_aes", frozenset())
     if not required:
         return
@@ -64,7 +155,7 @@ def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -
         if friendly.startswith("_"):
             friendly = friendly[1:]
         hint = _suggest_columns(missing, data_columns)
-        raise PlottenError(
+        raise DataError(
             f"{friendly} requires aesthetics {required}, "
             f"but {missing} {'is' if len(missing) == 1 else 'are'} "
             f"not mapped or present in data{hint}"
@@ -76,7 +167,7 @@ def validate_mapped_columns(
     data_columns: list[str],
     required_aes: frozenset[str] | None = None,
 ) -> None:
-    """Raise PlottenError if mapped column names are not present in the data.
+    """Raise DataError if mapped column names are not present in the data.
 
     Only checks aesthetics listed in *required_aes* (if provided) to avoid
     false positives for literal values like ``aes(fill='steelblue')``.
@@ -99,7 +190,7 @@ def validate_mapped_columns(
         parts.append(
             f"  aes({aes_field}='{col_name}') — column '{col_name}' not found in data.{hint}"
         )
-    raise PlottenError(
+    raise DataError(
         "Column(s) referenced in aesthetic mapping not found in data:\n"
         + "\n".join(parts)
         + f"\nAvailable columns: {sorted(data_columns)}"
@@ -134,9 +225,9 @@ def validate_data_type(
 
 
 def validate_breaks_labels(breaks: list | None, labels: list | None) -> None:
-    """Raise PlottenError if breaks and labels have different lengths."""
+    """Raise ScaleError if breaks and labels have different lengths."""
     if breaks is not None and labels is not None and len(breaks) != len(labels):
-        raise PlottenError(
+        raise ScaleError(
             f"breaks (length {len(breaks)}) and labels (length {len(labels)}) "
             f"must have the same length"
         )
@@ -257,34 +348,21 @@ def validate_color(value: Any) -> None:
     """Warn if a color value is not recognized by matplotlib."""
     if not isinstance(value, str):
         return
-    # Skip column-name-like strings (will be mapped later)
-    if value.isidentifier() and not value.startswith("#"):
-        # Could be a column name — defer to scale mapping.
-        # Only validate obvious color literals.
-        try:
-            from matplotlib.colors import CSS4_COLORS, to_rgba
-
-            to_rgba(value)
-        except ValueError:
-            matches = difflib.get_close_matches(value, list(CSS4_COLORS), n=3, cutoff=0.6)
-            hint = f" Did you mean {matches}?" if matches else ""
-            plotten_warn(
-                f"Invalid color value: {value!r}. "
-                f"Must be a named color, hex code, or RGB tuple.{hint}",
-                stacklevel=3,
-            )
+    # Skip "none" (transparent) — always valid
+    if value.lower() == "none":
         return
+    try:
+        from matplotlib.colors import CSS4_COLORS, to_rgba
 
-    if value.startswith("#") or value.startswith("rgb"):
-        try:
-            from matplotlib.colors import to_rgba
-
-            to_rgba(value)
-        except ValueError:
-            plotten_warn(
-                f"Invalid color value: {value!r}. Must be a named color, hex code, or RGB tuple.",
-                stacklevel=3,
-            )
+        to_rgba(value)
+    except (ValueError, KeyError):
+        matches = difflib.get_close_matches(value, list(CSS4_COLORS), n=3, cutoff=0.6)
+        hint = f" Did you mean {matches}?" if matches else ""
+        plotten_warn(
+            f"Invalid color value: {value!r}. "
+            f"Must be a named color, hex code, or RGB tuple.{hint}",
+            stacklevel=3,
+        )
 
 
 def validate_alpha(value: Any) -> None:

@@ -251,10 +251,12 @@ class ScaleGradientN(ScaleColorContinuous):
         self._values = values
         if values is not None:
             if len(values) != len(colors):
+                from plotten._validation import ScaleError
+
                 msg = (
                     f"Length of values ({len(values)}) must match length of colors ({len(colors)})"
                 )
-                raise ValueError(msg)
+                raise ScaleError(msg)
             self._cmap = LinearSegmentedColormap.from_list(
                 "gradientn",
                 list(zip(values, [self._parse_color(c) for c in colors], strict=True)),
@@ -303,6 +305,11 @@ def scale_color_gradientn(
     **kwargs
         Passed to the underlying scale (e.g. ``breaks``, ``limits``).
 
+    Raises
+    ------
+    ScaleError
+        If *values* and *colors* have different lengths.
+
     Examples
     --------
     >>> import pandas as pd
@@ -330,6 +337,11 @@ def scale_fill_gradientn(
         evenly spaced.
     **kwargs
         Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Raises
+    ------
+    ScaleError
+        If *values* and *colors* have different lengths.
 
     Examples
     --------

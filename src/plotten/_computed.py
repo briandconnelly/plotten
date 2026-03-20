@@ -35,6 +35,11 @@ def stage(
     """Stage aesthetic mapping across the pipeline.
 
     Returns the latest-stage mapping provided.
+
+    Raises
+    ------
+    ConfigError
+        If no arguments are provided.
     """
     if after_scale is not None:
         if isinstance(after_scale, str):
@@ -46,5 +51,7 @@ def stage(
         return after_stat
     if start is not None:
         return start
-    msg = "stage() requires at least one argument"
-    raise ValueError(msg)
+    from plotten._validation import ConfigError
+
+    msg = "stage() requires at least one argument (start, after_stat, or after_scale)"
+    raise ConfigError(msg)

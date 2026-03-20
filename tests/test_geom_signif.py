@@ -9,6 +9,7 @@ matplotlib.use("Agg")
 
 from plotten import aes, geom_boxplot, ggplot
 from plotten._render._mpl import render
+from plotten._validation import StatError
 from plotten.geoms import geom_signif
 from plotten.stats._signif import StatSignif, _adjust_pvalues, _format_pvalue
 
@@ -55,7 +56,7 @@ class TestStatSignif:
 
     def test_unknown_test_raises(self):
         stat = StatSignif(comparisons=[("a", "b")], test="invalid")
-        with pytest.raises(ValueError, match="Unknown test"):
+        with pytest.raises(StatError, match="Unknown test"):
             stat.compute(self.df)
 
 
@@ -83,7 +84,7 @@ class TestPValueAdjustment:
         assert _adjust_pvalues(pvals, None) == pvals
 
     def test_unknown_method_raises(self):
-        with pytest.raises(ValueError, match="Unknown p_adjust"):
+        with pytest.raises(StatError, match="Unknown p_adjust"):
             _adjust_pvalues([0.05], "invalid")
 
 

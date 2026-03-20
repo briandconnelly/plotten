@@ -152,6 +152,11 @@ def geom_smooth(method: str = "loess", se: bool = True, degree: int = 2, **param
     **params
         Aesthetic mappings and fixed visual properties such as ``color``.
 
+    Raises
+    ------
+    StatError
+        If *method* is not a recognized smoothing method.
+
     Examples
     --------
     >>> import pandas as pd
@@ -1206,6 +1211,12 @@ def geom_signif(
     **params
         Additional visual properties such as ``color``, ``size``,
         ``fontsize``.
+
+    Raises
+    ------
+    StatError
+        If *test* is not a recognized statistical test, or if
+        *p_adjust* is not a recognized correction method.
 
     Examples
     --------

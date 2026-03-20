@@ -83,6 +83,16 @@ Text, segment, curve, rect, hline, vline, abline, and bracket annotations with c
 
 7 classic datasets available via `load_dataset()`: diamonds, mtcars, iris, faithful, tips, mpg, and penguins.
 
+### Validation & Error Handling
+
+Descriptive error hierarchy with 8 subclasses of `PlottenError`:
+`ValidationError`, `DataError`, `ScaleError`, `StatError`, `RenderError`, `ConfigError`, `FontError`, `ExportError`, and `SpecError`.
+
+- Typo detection for geom parameters, column names, theme properties, and color names via `difflib` suggestions
+- Aesthetic value validation (shape, linetype, hatch, color, alpha, size) at construction time
+- Scale/data type mismatch warnings with column name and dtype
+- Strict mode via `set_strict(True)` converts all warnings to errors (useful for AI agents and CI)
+
 ### Accessibility
 
 `accessibility_report()` audits a plot for colorblind safety, contrast ratios, and font sizes.

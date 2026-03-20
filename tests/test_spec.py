@@ -13,7 +13,7 @@ from plotten import (
     from_spec_json,
     spec_schema,
 )
-from plotten._validation import PlottenError
+from plotten._validation import SpecError
 
 
 @pytest.fixture
@@ -236,32 +236,32 @@ class TestFromSpec:
 
     def test_unknown_geom_raises(self, sample_df):
         spec = {"layers": [{"geom": "nonexistent"}]}
-        with pytest.raises(PlottenError, match="Unknown geom"):
+        with pytest.raises(SpecError, match="Unknown geom"):
             from_spec(spec, data=sample_df)
 
     def test_missing_geom_key_raises(self, sample_df):
         spec = {"layers": [{"color": "red"}]}
-        with pytest.raises(PlottenError, match="must have a 'geom' key"):
+        with pytest.raises(SpecError, match="must have a 'geom' key"):
             from_spec(spec, data=sample_df)
 
     def test_unknown_scale_raises(self, sample_df):
         spec = {"scales": [{"fn": "scale_nonexistent"}]}
-        with pytest.raises(PlottenError, match="Unknown scale"):
+        with pytest.raises(SpecError, match="Unknown scale"):
             from_spec(spec, data=sample_df)
 
     def test_unknown_coord_raises(self, sample_df):
         spec = {"coord": {"fn": "coord_nonexistent"}}
-        with pytest.raises(PlottenError, match="Unknown coord"):
+        with pytest.raises(SpecError, match="Unknown coord"):
             from_spec(spec, data=sample_df)
 
     def test_unknown_theme_raises(self, sample_df):
         spec = {"theme": {"base": "nonexistent"}}
-        with pytest.raises(PlottenError, match="Unknown theme"):
+        with pytest.raises(SpecError, match="Unknown theme"):
             from_spec(spec, data=sample_df)
 
     def test_unknown_recipe_raises(self, sample_df):
         spec = {"recipe": "nonexistent"}
-        with pytest.raises(PlottenError, match="Unknown recipe"):
+        with pytest.raises(SpecError, match="Unknown recipe"):
             from_spec(spec, data=sample_df)
 
 

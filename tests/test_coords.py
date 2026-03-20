@@ -28,6 +28,7 @@ from plotten import (
     theme,
 )
 from plotten._render._mpl import render
+from plotten._validation import ConfigError
 from plotten.coords._cartesian import CoordCartesian
 from plotten.coords._equal import CoordEqual, CoordFixed
 from plotten.coords._polar import CoordPolar
@@ -324,7 +325,7 @@ class TestCoordTrans:
 
     def test_unknown_transform_raises(self):
         ct = CoordTrans(x="bogus")
-        with pytest.raises(ValueError, match="Unknown transform"):
+        with pytest.raises(ConfigError, match="Unknown transform"):
             ct._apply([1, 2, 3], "bogus")
 
     def test_transform_data(self):

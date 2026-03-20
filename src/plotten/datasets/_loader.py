@@ -8,7 +8,7 @@ from __future__ import annotations
 import narwhals as nw
 
 from plotten._defaults import detect_backend
-from plotten._validation import PlottenError
+from plotten._validation import DataError
 
 _SMALL_DATASETS = frozenset({"mtcars", "iris", "faithful", "tips", "mpg", "penguins"})
 _ALL_DATASETS = sorted([*_SMALL_DATASETS, "diamonds"])
@@ -58,6 +58,11 @@ def load_dataset(name: str) -> nw.DataFrame:
         A narwhals DataFrame. Call ``.to_native()`` to unwrap to the
         underlying polars/pandas frame.
 
+    Raises
+    ------
+    DataError
+        If the dataset name is not recognized.
+
     Notes
     -----
     See ``plotten.datasets._data`` for full dataset citations and licenses.
@@ -73,6 +78,6 @@ def load_dataset(name: str) -> nw.DataFrame:
     else:
         available = ", ".join(_ALL_DATASETS)
         msg = f"Unknown dataset {name!r}. Available datasets: {available}"
-        raise PlottenError(msg)
+        raise DataError(msg)
 
     return nw.from_dict(data_dict, backend=detect_backend())

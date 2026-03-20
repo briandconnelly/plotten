@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 
 from matplotlib.font_manager import FontProperties, fontManager
 
-from plotten._validation import PlottenError
+from plotten._validation import FontError
 
 _FONT_EXTENSIONS = {".ttf", ".otf"}
 _CACHE_DIR = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "plotten" / "fonts"
@@ -39,16 +39,16 @@ def register_font(path: str | Path) -> str:
 
     Raises
     ------
-    PlottenError
+    FontError
         If the file does not exist or has an unsupported extension.
     """
     p = Path(path)
     if not p.exists():
         msg = f"Font file not found: {p}"
-        raise PlottenError(msg)
+        raise FontError(msg)
     if p.suffix.lower() not in _FONT_EXTENSIONS:
         msg = f"Unsupported font extension '{p.suffix}'. Use .ttf or .otf."
-        raise PlottenError(msg)
+        raise FontError(msg)
 
     fontManager.addfont(str(p))
     name = FontProperties(fname=str(p)).get_name()
@@ -81,7 +81,7 @@ def register_google_font(family: str, *, weight: str = "regular") -> str:
 
     Raises
     ------
-    PlottenError
+    FontError
         If the download fails or no font files are found.
     """
     cache_dir = _CACHE_DIR / family
@@ -106,7 +106,7 @@ def _download_google_font(family: str, cache_dir: Path) -> list[Path]:
         css = urlopen(req).read().decode()
     except Exception as exc:
         msg = f"Failed to fetch Google Font '{family}': {exc}"
-        raise PlottenError(msg) from exc
+        raise FontError(msg) from exc
 
     # Extract TTF/OTF URLs from the CSS @font-face blocks
     urls = re.findall(r"url\((https://[^)]+\.(?:ttf|otf))\)", css)
@@ -115,7 +115,7 @@ def _download_google_font(family: str, cache_dir: Path) -> list[Path]:
             f"No font files found for '{family}'. "
             "Check that the family name is spelled exactly as on fonts.google.com."
         )
-        raise PlottenError(msg)
+        raise FontError(msg)
 
     cache_dir.mkdir(parents=True, exist_ok=True)
 
@@ -127,7 +127,7 @@ def _download_google_font(family: str, cache_dir: Path) -> list[Path]:
             data = urlopen(url).read()
         except Exception as exc:
             msg = f"Failed to download font file from {url}: {exc}"
-            raise PlottenError(msg) from exc
+            raise FontError(msg) from exc
         dest.write_bytes(data)
         downloaded.append(dest)
 

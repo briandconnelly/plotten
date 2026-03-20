@@ -40,8 +40,15 @@ def arrow(style: str = "open", size: float = 1.0, angle: float = 20.0) -> Arrow:
         Relative size multiplier for the arrowhead.
     angle
         Arrow head angle in degrees.
+
+    Raises
+    ------
+    ConfigError
+        If *style* is not a recognized arrow style.
     """
     if style not in _ARROW_STYLES:
+        from plotten._validation import ConfigError
+
         msg = f"Unknown arrow style: {style!r}. Valid styles: {sorted(_ARROW_STYLES)}"
-        raise ValueError(msg)
+        raise ConfigError(msg)
     return Arrow(style=style, size=size, angle=angle)

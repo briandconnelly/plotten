@@ -4,7 +4,7 @@ import narwhals as nw
 import pytest
 
 from plotten import load_dataset
-from plotten._validation import PlottenError
+from plotten._validation import DataError
 
 
 class TestLoadDataset:
@@ -73,9 +73,9 @@ class TestLoadDataset:
         assert hasattr(native, "columns")
 
     def test_unknown_dataset(self):
-        with pytest.raises(PlottenError, match="Unknown dataset"):
+        with pytest.raises(DataError, match="Unknown dataset"):
             load_dataset("nonexistent")
 
     def test_unknown_suggests_available(self):
-        with pytest.raises(PlottenError, match="Available datasets"):
+        with pytest.raises(DataError, match="Available datasets"):
             load_dataset("foo")

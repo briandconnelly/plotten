@@ -47,7 +47,9 @@ def resolve(plot: Any) -> ResolvedPlot:
     from plotten._plot import Plot
 
     if not isinstance(plot, Plot):
-        raise TypeError(f"Expected Plot, got {type(plot).__name__}")
+        from plotten._validation import ConfigError
+
+        raise ConfigError(f"Expected Plot, got {type(plot).__name__}")
 
     # Collect explicit scales keyed by aesthetic
     explicit_scales: dict[str, ScaleBase] = {}

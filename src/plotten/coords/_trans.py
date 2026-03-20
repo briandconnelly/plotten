@@ -45,8 +45,10 @@ class CoordTrans:
         # Named transforms
         fn = _TRANSFORMS.get(trans)
         if fn is None:
+            from plotten._validation import ConfigError
+
             msg = f"Unknown transform: {trans!r}. Available: {sorted(_TRANSFORMS)}"
-            raise ValueError(msg)
+            raise ConfigError(msg)
         if isinstance(values, list):
             return [fn(v) for v in values]
         return fn(values)

@@ -64,7 +64,7 @@ from plotten._plot import Plot
 from plotten._protocols import Coord, Geom, Scale, Stat
 from plotten._render._mpl import render
 from plotten._render._resolve import _detect_group_key, _split_by_group, resolve
-from plotten._validation import PlottenError, _suggest_columns
+from plotten._validation import ConfigError, DataError, ScaleError, _suggest_columns
 from plotten.coords._cartesian import CoordCartesian
 from plotten.facets import FacetWrap
 from plotten.geoms._path import GeomPath
@@ -650,7 +650,7 @@ class TestContinuousExpand:
         assert hi == pytest.approx(16.0)
 
     def test_padding_and_expand_raises(self):
-        with pytest.raises(ValueError, match="Cannot specify both"):
+        with pytest.raises(ScaleError, match="Cannot specify both"):
             ScaleContinuous(padding=0.1, expand=(0.1, 0))
 
     def test_default_padding_with_expand_ok(self):
@@ -795,7 +795,7 @@ class TestColourAlias:
         assert mapping.x == "a"
 
     def test_colour_and_color_raises(self):
-        with pytest.raises(TypeError, match="Cannot specify both"):
+        with pytest.raises(ConfigError, match="Cannot specify both"):
             plotten.aes(color="a", colour="b")
 
     def test_color_still_works(self):
@@ -1554,7 +1554,7 @@ class TestViridisScales:
         assert _resolve_option("E") == "cividis"
 
     def test_viridis_invalid_option(self):
-        with pytest.raises(ValueError, match="Unknown viridis option"):
+        with pytest.raises(ScaleError, match="Unknown viridis option"):
             scale_color_viridis(option="nonexistent")
 
     def test_viridis_renders(self):
@@ -1634,7 +1634,7 @@ class TestAfterStat:
 
         df = pl.DataFrame({"x": [1, 2, 2, 3, 3, 3]})
         plot = ggplot(df, Aes(x="x", y=after_stat("nonexistent"))) + geom_histogram(bins=3)
-        with pytest.raises(PlottenError, match="does not exist in the stat output"):
+        with pytest.raises(DataError, match="does not exist in the stat output"):
             render(plot)
 
 

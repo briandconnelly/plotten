@@ -9,8 +9,8 @@ import polars as pl
 import pytest
 
 from plotten import (
+    ExportError,
     Plot,
-    PlottenError,
     PlottenWarning,
     aes,
     labs,
@@ -277,7 +277,7 @@ class TestUnsupported:
             mapping=aes(x="x", y="y"),
             layers=(Layer(geom=GeomContour()),),
         )
-        with pytest.raises(PlottenError, match="GeomContour is not supported"):
+        with pytest.raises(ExportError, match="GeomContour is not supported"):
             to_vegalite(p)
 
     def test_after_stat_raises(self) -> None:
@@ -286,7 +286,7 @@ class TestUnsupported:
             mapping=aes(x="x", y=AfterStat("count")),
             layers=(Layer(geom=GeomPoint()),),
         )
-        with pytest.raises(PlottenError, match="AfterStat"):
+        with pytest.raises(ExportError, match="AfterStat"):
             to_vegalite(p)
 
 
@@ -635,7 +635,7 @@ class TestCoords:
             layers=(Layer(geom=GeomPoint()),),
             coord=CoordPolar(),
         )
-        with pytest.raises(PlottenError, match="CoordPolar"):
+        with pytest.raises(ExportError, match="CoordPolar"):
             to_vegalite(p)
 
     def test_coord_equal_warns(self) -> None:
@@ -666,7 +666,7 @@ class TestCoords:
             layers=(Layer(geom=GeomPoint()),),
             coord=CoordTrans(x="log10", y="identity"),
         )
-        with pytest.raises(PlottenError, match="CoordTrans"):
+        with pytest.raises(ExportError, match="CoordTrans"):
             to_vegalite(p)
 
 

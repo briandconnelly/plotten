@@ -22,8 +22,10 @@ class StatCor:
         digits: int = 2,
     ) -> None:
         if method not in ("pearson", "spearman"):
-            msg = f"method must be 'pearson' or 'spearman', got {method!r}"
-            raise ValueError(msg)
+            from plotten._validation import StatError
+
+            msg = f"stat_cor method must be 'pearson' or 'spearman', got {method!r}"
+            raise StatError(msg)
         self.method = method
         self.label_x = label_x
         self.label_y = label_y

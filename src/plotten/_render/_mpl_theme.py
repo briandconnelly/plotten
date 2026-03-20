@@ -258,12 +258,12 @@ def render_panel(
         try:
             layer.geom.draw(draw_data, ax, draw_params)
         except Exception as exc:
-            from plotten._validation import PlottenError
+            from plotten._validation import RenderError
 
             geom_cls = type(layer.geom).__name__
             friendly = geom_cls.replace("Geom", "geom_").lower()
             data_keys = sorted(draw_data.keys())
-            raise PlottenError(
+            raise RenderError(
                 f"Error rendering {friendly}: {exc}\n"
                 f"  Data keys: {data_keys}\n"
                 f"  Params: {dict(draw_params)}"

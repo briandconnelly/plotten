@@ -34,6 +34,7 @@ from plotten import (
     theme_void,
 )
 from plotten._render._mpl import render
+from plotten._validation import ConfigError
 from plotten.themes import (
     theme_538,
     theme_default,
@@ -462,7 +463,7 @@ def test_theme_multiple_kwargs():
 
 
 def test_theme_invalid_kwarg():
-    with pytest.raises(TypeError, match="Unknown theme properties"):
+    with pytest.raises(ConfigError, match="Unknown theme properties"):
         theme(nonexistent_field=42)
 
 
@@ -912,7 +913,7 @@ class TestNewThemeFields:
         assert t.aspect_ratio == 1.0
 
     def test_theme_function_rejects_invalid_new_field(self):
-        with pytest.raises(TypeError, match="Unknown theme"):
+        with pytest.raises(ConfigError, match="Unknown theme"):
             theme(axis_ticks_length_z=5.0)
 
     def test_render_with_per_axis_elements(self):
@@ -1283,7 +1284,7 @@ class TestMargin:
         from plotten import margin
 
         m = margin(1, 1, 1, 1, unit="px")
-        with pytest.raises(ValueError, match="Unknown margin unit"):
+        with pytest.raises(ConfigError, match="Unknown margin unit"):
             m.to_npc(10, 8)
 
     def test_margin_in_theme(self):

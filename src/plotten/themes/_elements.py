@@ -134,8 +134,10 @@ class Margin:
         # Convert to inches first
         scale = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4}.get(self.unit)
         if scale is None:
+            from plotten._validation import ConfigError
+
             msg = f"Unknown margin unit: {self.unit!r}. Use 'npc', 'in', 'cm', or 'mm'."
-            raise ValueError(msg)
+            raise ConfigError(msg)
 
         return (
             self.top * scale / fig_height,

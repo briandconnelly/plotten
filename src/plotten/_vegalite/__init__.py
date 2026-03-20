@@ -32,7 +32,14 @@ _LABS_TO_CHANNEL: dict[str, str] = {
 
 
 def to_vegalite(plot: Plot) -> dict[str, Any]:
-    """Convert a plotten Plot to a Vega-Lite v5 specification dict."""
+    """Convert a plotten Plot to a Vega-Lite v5 specification dict.
+
+    Raises
+    ------
+    ExportError
+        If the plot contains features not supported by Vega-Lite
+        (e.g. unsupported geoms, coords, or computed aesthetics).
+    """
     spec: dict[str, Any] = {
         "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
     }

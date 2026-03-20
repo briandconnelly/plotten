@@ -22,11 +22,13 @@ _VIRIDIS_OPTIONS: dict[str, str] = {
 def _resolve_option(option: str) -> str:
     if option in _VIRIDIS_OPTIONS:
         return _VIRIDIS_OPTIONS[option]
+    from plotten._validation import ScaleError
+
     msg = (
         f"Unknown viridis option: {option!r}. "
         f"Valid options: {sorted(k for k in _VIRIDIS_OPTIONS if len(k) > 1)}"
     )
-    raise ValueError(msg)
+    raise ScaleError(msg)
 
 
 def scale_color_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuous:
@@ -39,6 +41,11 @@ def scale_color_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuo
         ``"plasma"``, or ``"cividis"`` (default ``"viridis"``).
     **kwargs
         Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Raises
+    ------
+    ScaleError
+        If *option* is not a recognized viridis palette name.
 
     Examples
     --------
@@ -61,6 +68,11 @@ def scale_fill_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuou
         ``"plasma"``, or ``"cividis"`` (default ``"viridis"``).
     **kwargs
         Passed to the underlying scale (e.g. ``breaks``, ``limits``).
+
+    Raises
+    ------
+    ScaleError
+        If *option* is not a recognized viridis palette name.
 
     Examples
     --------

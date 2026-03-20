@@ -14,6 +14,8 @@ import pandas as pd
 import polars as pl
 import pytest
 
+from plotten._validation import StatError
+
 matplotlib.use("Agg")
 
 import plotten
@@ -108,7 +110,7 @@ def test_stat_smooth_moving_average():
 def test_stat_smooth_unknown_method():
     df = pl.DataFrame({"x": [1, 2, 3], "y": [4, 5, 6]})
     stat = StatSmooth(method="nonexistent")
-    with pytest.raises(ValueError, match="Unknown smoothing method"):
+    with pytest.raises(StatError, match="Unknown smoothing method"):
         stat.compute(df)
 
 
@@ -378,7 +380,7 @@ class TestStatSummary:
         assert y_vals[0] == pytest.approx(6.0)
 
     def test_unknown_function_raises(self):
-        with pytest.raises(ValueError, match="Unknown summary function"):
+        with pytest.raises(StatError, match="Unknown summary function"):
             StatSummary(fun_y="nonexistent")
 
     def test_required_aes(self):
@@ -863,7 +865,7 @@ class TestStatCor:
         assert len(r_val.split(".")[1]) == 3
 
     def test_invalid_method_raises(self) -> None:
-        with pytest.raises(ValueError, match="method must be"):
+        with pytest.raises(StatError, match="method must be"):
             StatCor(method="kendall")
 
     def test_p_value_formatting_small(self) -> None:
@@ -1012,7 +1014,7 @@ class TestStatSummaryImprovements:
         assert abs(result_nw["ymax"][0] - 3.0) < 1e-6
 
     def test_unknown_fun_data_raises(self) -> None:
-        with pytest.raises(ValueError, match="Unknown fun_data"):
+        with pytest.raises(StatError, match="Unknown fun_data"):
             _resolve_fun_data("nonexistent")
 
     def test_stat_summary_factory_with_fun_data(self) -> None:

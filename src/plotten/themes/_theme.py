@@ -170,6 +170,12 @@ def theme(**kwargs: Any) -> Theme:
         ``background``, ``panel_background``, ``legend_position``,
         ``axis_text_x_rotation``, and ``panel_spacing``.
 
+    Raises
+    ------
+    ConfigError
+        If any keyword argument is not a valid Theme field.
+        Includes typo suggestions via ``difflib``.
+
     Examples
     --------
     >>> import pandas as pd
@@ -190,8 +196,10 @@ def theme(**kwargs: Any) -> Theme:
             else:
                 suggestions.append(f"  '{name}'")
         hint = "\n".join(suggestions)
+        from plotten._validation import ConfigError
+
         msg = f"Unknown theme properties:\n{hint}\nValid properties: {valid_list}"
-        raise TypeError(msg)
+        raise ConfigError(msg)
     return Theme(**kwargs)
 
 

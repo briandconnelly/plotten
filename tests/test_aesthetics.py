@@ -29,6 +29,7 @@ from plotten._computed import AfterScale as _AfterScale
 from plotten._computed import AfterStat as _AfterStat
 from plotten._interaction import Interaction, interaction
 from plotten._render._mpl import render
+from plotten._validation import ConfigError
 from plotten.stats._bin import StatBin
 from plotten.stats._count import StatCount
 
@@ -125,7 +126,7 @@ class TestStage:
         assert result.var == "fill"
 
     def test_stage_no_args(self):
-        with pytest.raises(ValueError, match="requires at least one"):
+        with pytest.raises(ConfigError, match="requires at least one"):
             stage()
 
     def test_stage_with_sentinel_objects(self):
@@ -251,7 +252,7 @@ class TestInteraction:
         assert inter.name == "a.b.c"
 
     def test_requires_at_least_two_columns(self):
-        with pytest.raises(ValueError, match="at least 2 columns"):
+        with pytest.raises(ConfigError, match="at least 2 columns"):
             interaction("only_one")
 
     def test_frozen_dataclass(self):

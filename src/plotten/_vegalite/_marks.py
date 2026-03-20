@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from plotten._validation import PlottenError
+from plotten._validation import ExportError
 from plotten._vegalite._unsupported import check_geom
 
 _PARAM_MAP: dict[str, str] = {
@@ -78,7 +78,7 @@ def _dispatch_mark(geom: Any) -> dict[str, Any]:
         f"{type(geom).__name__} is not supported by Vega-Lite export. "
         "Use render() or ggsave() for the matplotlib backend instead."
     )
-    raise PlottenError(msg)
+    raise ExportError(msg)
 
 
 def _apply_params(mark: dict[str, Any], params: dict[str, Any], geom: Any) -> None:

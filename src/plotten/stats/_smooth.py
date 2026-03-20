@@ -50,8 +50,13 @@ class StatSmooth:
             case SmoothMethod.POLY:
                 y_pred, ymin, ymax = self._poly(x_sorted, y_sorted, x_pred)
             case _:
-                msg = f"Unknown smoothing method: {self.method!r}"
-                raise ValueError(msg)
+                from plotten._validation import StatError
+
+                msg = (
+                    f"Unknown smoothing method: {self.method!r}. "
+                    f"Valid methods: 'ols', 'loess', 'moving_average', 'poly'."
+                )
+                raise StatError(msg)
 
         if not self.se:
             ymin = y_pred.copy()
@@ -87,7 +92,7 @@ class StatSmooth:
         try:
             from scipy.interpolate import UnivariateSpline
         except ImportError:
-            msg = "LOESS smoothing requires scipy. Install it with: pip install plotten[smooth]"
+            msg = "LOESS smoothing requires scipy. Install it with: uv add plotten[smooth]"
             raise ImportError(msg) from None
 
         # Use a smoothing spline as LOESS approximation

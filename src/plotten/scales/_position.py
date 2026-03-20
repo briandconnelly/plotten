@@ -40,8 +40,10 @@ class ScaleContinuous(ScaleBase):
             validate_breaks_labels(breaks, labels)
         super().__init__(aesthetic)
         if expand is not None and padding != 0.05:
+            from plotten._validation import ScaleError
+
             msg = "Cannot specify both 'padding' (non-default) and 'expand'"
-            raise ValueError(msg)
+            raise ScaleError(msg)
         self._expand = expand if expand is not None else (padding, 0)
         self._padding = padding
         self._breaks = breaks
@@ -175,6 +177,12 @@ def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:
     expand : tuple of float, optional
         Multiplicative and additive expansion ``(mult, add)``.
 
+    Raises
+    ------
+    ScaleError
+        If both ``padding`` and ``expand`` are specified.
+        If ``breaks`` and ``labels`` have different lengths.
+
     Examples
     --------
     >>> import pandas as pd
@@ -199,6 +207,12 @@ def scale_y_continuous(**kwargs: Any) -> ScaleContinuous:
         Tick labels corresponding to ``breaks``.
     expand : tuple of float, optional
         Multiplicative and additive expansion ``(mult, add)``.
+
+    Raises
+    ------
+    ScaleError
+        If both ``padding`` and ``expand`` are specified.
+        If ``breaks`` and ``labels`` have different lengths.
 
     Examples
     --------

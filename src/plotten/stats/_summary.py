@@ -42,8 +42,10 @@ def _resolve_fun(fun: str | Callable[[np.ndarray], float]) -> Callable[[np.ndarr
         return fun
     if fun in _BUILTIN_FUNS:
         return _BUILTIN_FUNS[fun]
-    msg = f"Unknown summary function: {fun!r}"
-    raise ValueError(msg)
+    from plotten._validation import StatError
+
+    msg = f"Unknown summary function: {fun!r}. Valid functions: {sorted(_BUILTIN_FUNS)}."
+    raise StatError(msg)
 
 
 def _resolve_fun_data(
@@ -53,8 +55,10 @@ def _resolve_fun_data(
         return fun_data
     if fun_data in _BUILTIN_FUN_DATA:
         return _BUILTIN_FUN_DATA[fun_data]
-    msg = f"Unknown fun_data function: {fun_data!r}"
-    raise ValueError(msg)
+    from plotten._validation import StatError
+
+    msg = f"Unknown fun_data function: {fun_data!r}. Valid functions: {sorted(_BUILTIN_FUN_DATA)}."
+    raise StatError(msg)
 
 
 def _normalize_fun_data_result(result: FunDataResult) -> tuple[float, float, float]:

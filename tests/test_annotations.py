@@ -10,6 +10,7 @@ matplotlib.use("Agg")
 from plotten import aes, annotate, arrow, geom_point, geom_segment, ggplot
 from plotten._arrow import _ARROW_STYLES, Arrow
 from plotten._render._mpl import render
+from plotten._validation import ConfigError
 
 # --- from test_v05_annotate.py ---
 
@@ -62,7 +63,7 @@ class TestAnnotateSegment:
 
 class TestAnnotateInvalid:
     def test_unknown_type_raises(self):
-        with pytest.raises(ValueError, match="Unknown annotation"):
+        with pytest.raises(ConfigError, match="Unknown annotation"):
             annotate("bogus", x=1, y=2)
 
 
@@ -86,7 +87,7 @@ class TestArrowStyles:
         assert "-|>" in style_str
 
     def test_arrow_invalid_style(self):
-        with pytest.raises(ValueError, match="Unknown arrow style"):
+        with pytest.raises(ConfigError, match="Unknown arrow style"):
             arrow(style="nonexistent")
 
     def test_all_styles_valid(self):
@@ -227,5 +228,5 @@ class TestBracketAnnotations:
         plt.close(fig)
 
     def test_invalid_annotation_type(self):
-        with pytest.raises(ValueError, match="Unknown annotation geom_type"):
+        with pytest.raises(ConfigError, match="Unknown annotation geom_type"):
             annotate("unknown_type", x=1, y=1)

@@ -8,7 +8,7 @@ import pytest
 
 matplotlib.use("Agg")
 
-from plotten import PlottenError, aes, geom_point, ggplot, scale_x_continuous
+from plotten import ConfigError, DataError, ScaleError, aes, geom_point, ggplot, scale_x_continuous
 from plotten._validation import validate_data_type
 from plotten.scales._position import ScaleContinuous, ScaleDiscrete
 from plotten.themes._theme import theme
@@ -22,13 +22,13 @@ class TestValidateRequiredAes:
     def test_missing_y_raises(self):
         df = pl.DataFrame({"x": [1, 2, 3]})
         p = ggplot(df, aes(x="x")) + geom_point()
-        with pytest.raises(PlottenError, match="not mapped or present in data"):
+        with pytest.raises(DataError, match="not mapped or present in data"):
             p._repr_png_()
 
     def test_missing_x_raises(self):
         df = pl.DataFrame({"y": [1, 2, 3]})
         p = ggplot(df, aes(y="y")) + geom_point()
-        with pytest.raises(PlottenError, match="not mapped or present in data"):
+        with pytest.raises(DataError, match="not mapped or present in data"):
             p._repr_png_()
 
     def test_valid_plot_no_error(self):
@@ -40,7 +40,7 @@ class TestValidateRequiredAes:
 
 class TestValidateBreaksLabels:
     def test_mismatched_lengths_raises(self):
-        with pytest.raises(PlottenError, match="must have the same length"):
+        with pytest.raises(ScaleError, match="must have the same length"):
             scale_x_continuous(breaks=[1, 2, 3], labels=["a", "b"])
 
     def test_matching_lengths_ok(self):
@@ -79,13 +79,13 @@ class TestMissingAestheticSuggestsColumns:
     def test_typo_column_suggests_correction(self):
         df = pl.DataFrame({"height": [1, 2, 3], "weight": [4, 5, 6]})
         p = ggplot(df, aes(x="heght", y="weight")) + geom_point()
-        with pytest.raises(PlottenError, match=r"(?i)did you mean.*height"):
+        with pytest.raises(DataError, match=r"(?i)did you mean.*height"):
             p._repr_png_()
 
     def test_typo_column_shows_available(self):
         df = pl.DataFrame({"height": [1, 2, 3], "weight": [4, 5, 6]})
         p = ggplot(df, aes(x="heght", y="weight")) + geom_point()
-        with pytest.raises(PlottenError, match=r"(?i)available columns"):
+        with pytest.raises(DataError, match=r"(?i)available columns"):
             p._repr_png_()
 
     def test_no_suggestion_when_column_exists(self):
@@ -131,15 +131,15 @@ class TestThemeTypoSuggestion:
     """2C: Theme property typo suggests correct property name."""
 
     def test_typo_suggests_correct_property(self):
-        with pytest.raises(TypeError, match=r"did you mean.*title_size"):
+        with pytest.raises(ConfigError, match=r"did you mean.*title_size"):
             theme(titel_size=20)
 
     def test_typo_suggests_closest_match(self):
-        with pytest.raises(TypeError, match=r"did you mean.*background"):
+        with pytest.raises(ConfigError, match=r"did you mean.*background"):
             theme(backgrund="#fff")
 
     def test_completely_wrong_name_no_suggestion(self):
-        with pytest.raises(TypeError, match="Unknown theme properties"):
+        with pytest.raises(ConfigError, match="Unknown theme properties"):
             theme(zzzzz_nonexistent=42)
 
     def test_valid_property_no_error(self):

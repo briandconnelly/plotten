@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from plotten._validation import PlottenError
+from plotten._validation import SpecError
 
 
 def spec_schema() -> dict[str, Any]:
@@ -580,17 +580,17 @@ def _resolve_position(pos_spec: str | dict[str, Any] | None) -> Any:
     if isinstance(pos_spec, str):
         factory = _POSITION_REGISTRY.get(pos_spec)
         if factory is None:
-            raise PlottenError(
+            raise SpecError(
                 f"Unknown position: {pos_spec!r}. Valid positions: {sorted(_POSITION_REGISTRY)}"
             )
         return factory()
     if isinstance(pos_spec, dict):
         pos_type = pos_spec.pop("type", None)
         if pos_type is None:
-            raise PlottenError("Position dict must have a 'type' key.")
+            raise SpecError("Position dict must have a 'type' key.")
         factory = _POSITION_REGISTRY.get(pos_type)
         if factory is None:
-            raise PlottenError(
+            raise SpecError(
                 f"Unknown position type: {pos_type!r}. "
                 f"Valid positions: {sorted(_POSITION_REGISTRY)}"
             )
@@ -675,6 +675,13 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
     Recipe shortcut (all non-recipe keys become kwargs)::
 
         from_spec({"recipe": "plot_waterfall", "x": "cat", "y": "val"}, data=df)
+
+    Raises
+    ------
+    SpecError
+        If the spec contains unknown geom, scale, coord, theme, facet,
+        guide, position, or recipe names, or if a layer dict is missing
+        the required ``"geom"`` key.
     """
     _build_registries()
     from plotten._aes import aes
@@ -687,7 +694,7 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         recipe_name = spec["recipe"]
         factory = _RECIPE_REGISTRY.get(recipe_name)
         if factory is None:
-            raise PlottenError(
+            raise SpecError(
                 f"Unknown recipe: {recipe_name!r}. Valid recipes: {sorted(_RECIPE_REGISTRY)}"
             )
         recipe_kwargs = {k: v for k, v in spec.items() if k != "recipe"}
@@ -703,12 +710,10 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         layer_spec = dict(layer_spec)  # don't mutate caller's dict
         geom_name = layer_spec.pop("geom", None)
         if geom_name is None:
-            raise PlottenError("Each layer must have a 'geom' key.")
+            raise SpecError("Each layer must have a 'geom' key.")
         factory = _GEOM_REGISTRY.get(geom_name)
         if factory is None:
-            raise PlottenError(
-                f"Unknown geom: {geom_name!r}. Valid geoms: {sorted(_GEOM_REGISTRY)}"
-            )
+            raise SpecError(f"Unknown geom: {geom_name!r}. Valid geoms: {sorted(_GEOM_REGISTRY)}")
         # Extract layer-level mapping
         layer_mapping = layer_spec.pop("mapping", None)
         # Handle position
@@ -727,12 +732,10 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         scale_spec = dict(scale_spec)
         fn_name = scale_spec.pop("fn", None)
         if fn_name is None:
-            raise PlottenError("Each scale must have an 'fn' key.")
+            raise SpecError("Each scale must have an 'fn' key.")
         factory = _SCALE_REGISTRY.get(fn_name)
         if factory is None:
-            raise PlottenError(
-                f"Unknown scale: {fn_name!r}. Valid scales: {sorted(_SCALE_REGISTRY)}"
-            )
+            raise SpecError(f"Unknown scale: {fn_name!r}. Valid scales: {sorted(_SCALE_REGISTRY)}")
         plot = plot + factory(**scale_spec)
 
     # --- Coord ---
@@ -741,12 +744,10 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         coord_spec = dict(coord_spec)
         fn_name = coord_spec.pop("fn", None)
         if fn_name is None:
-            raise PlottenError("Coord must have an 'fn' key.")
+            raise SpecError("Coord must have an 'fn' key.")
         factory = _COORD_REGISTRY.get(fn_name)
         if factory is None:
-            raise PlottenError(
-                f"Unknown coord: {fn_name!r}. Valid coords: {sorted(_COORD_REGISTRY)}"
-            )
+            raise SpecError(f"Unknown coord: {fn_name!r}. Valid coords: {sorted(_COORD_REGISTRY)}")
         plot = plot + factory(**coord_spec)
 
     # --- Facet ---
@@ -755,12 +756,10 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         facet_spec = dict(facet_spec)
         fn_name = facet_spec.pop("fn", None)
         if fn_name is None:
-            raise PlottenError("Facet must have an 'fn' key.")
+            raise SpecError("Facet must have an 'fn' key.")
         factory = _FACET_REGISTRY.get(fn_name)
         if factory is None:
-            raise PlottenError(
-                f"Unknown facet: {fn_name!r}. Valid facets: {sorted(_FACET_REGISTRY)}"
-            )
+            raise SpecError(f"Unknown facet: {fn_name!r}. Valid facets: {sorted(_FACET_REGISTRY)}")
         plot = plot + factory(**facet_spec)
 
     # --- Theme ---
@@ -770,7 +769,7 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         if base_name is not None:
             base_factory = _THEME_REGISTRY.get(base_name)
             if base_factory is None:
-                raise PlottenError(
+                raise SpecError(
                     f"Unknown theme: {base_name!r}. Valid themes: {sorted(_THEME_REGISTRY)}"
                 )
             plot = plot + base_factory()
@@ -797,9 +796,7 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
             elif guide_type == "colorbar":
                 guide_dict[aes_name] = guide_colorbar(**guide_spec)
             else:
-                raise PlottenError(
-                    f"Unknown guide type: {guide_type!r}. Use 'legend' or 'colorbar'."
-                )
+                raise SpecError(f"Unknown guide type: {guide_type!r}. Use 'legend' or 'colorbar'.")
         plot = plot + guides(**guide_dict)
 
     # --- Annotations ---

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from plotten._validation import PlottenError, plotten_warn
+from plotten._validation import ExportError, plotten_warn
 
 
 def _get_unsupported_classes() -> tuple[type, ...]:
@@ -50,14 +50,14 @@ def _get_unsupported_classes() -> tuple[type, ...]:
 
 
 def check_geom(geom: Any) -> None:
-    """Raise PlottenError if the geom has no Vega-Lite equivalent."""
+    """Raise ExportError if the geom has no Vega-Lite equivalent."""
     if isinstance(geom, _get_unsupported_classes()):
         name = type(geom).__name__
         msg = (
             f"{name} is not supported by Vega-Lite export. "
             "Use render() or ggsave() for the matplotlib backend instead."
         )
-        raise PlottenError(msg)
+        raise ExportError(msg)
 
 
 def warn_unsupported(feature: str, detail: str = "") -> None:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from plotten._validation import PlottenError
+from plotten._validation import ExportError
 from plotten._vegalite._unsupported import warn_unsupported
 
 
@@ -34,7 +34,7 @@ def translate_coord(
             "CoordPolar is not supported by Vega-Lite export. "
             "Use render() or ggsave() for the matplotlib backend instead."
         )
-        raise PlottenError(msg)
+        raise ExportError(msg)
 
     if isinstance(coord, CoordTrans):
         _check_coord_trans(coord)
@@ -87,4 +87,4 @@ def _check_coord_trans(coord: Any) -> None:
                 "by Vega-Lite export. Use render() or ggsave() for the "
                 "matplotlib backend instead."
             )
-            raise PlottenError(msg)
+            raise ExportError(msg)

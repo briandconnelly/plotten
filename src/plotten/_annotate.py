@@ -274,6 +274,11 @@ def annotate(
     **params
         Additional visual properties passed to the underlying geom.
 
+    Raises
+    ------
+    ConfigError
+        If *geom_type* is not a recognized annotation type.
+
     Examples
     --------
     >>> from plotten import annotate
@@ -364,8 +369,10 @@ def annotate(
             return Layer(geom=geom_b, mapping=Aes(), params={})
 
         case _:
+            from plotten._validation import ConfigError
+
             msg = (
                 f"Unknown annotation geom_type: {geom_type!r}. "
-                f"Use 'text', 'rect', 'segment', 'curve', or 'bracket'."
+                f"Valid types: 'text', 'rect', 'segment', 'curve', 'bracket'."
             )
-            raise ValueError(msg)
+            raise ConfigError(msg)

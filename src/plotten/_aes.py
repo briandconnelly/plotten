@@ -68,6 +68,11 @@ def aes(**kwargs: AesValue) -> Aes:
     group : str, optional
         Column name for grouping.
 
+    Raises
+    ------
+    ConfigError
+        If both ``color`` and ``colour`` are specified.
+
     Examples
     --------
     >>> from plotten import aes
@@ -77,7 +82,9 @@ def aes(**kwargs: AesValue) -> Aes:
     # Support British spelling alias
     if "colour" in kwargs:
         if "color" in kwargs:
-            msg = "Cannot specify both 'color' and 'colour' in aes()"
-            raise TypeError(msg)
+            from plotten._validation import ConfigError
+
+            msg = "Cannot specify both 'color' and 'colour' in aes(). Use one or the other."
+            raise ConfigError(msg)
         kwargs["color"] = kwargs.pop("colour")
     return Aes(**kwargs)

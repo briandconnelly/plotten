@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from plotten._validation import DataError
+
 
 class PositionStack:
     """Stack overlapping objects on top of each other."""
@@ -28,6 +30,12 @@ class PositionStack:
         new_ymin = [0.0] * len(ys)
 
         for i, (x, y, _g) in enumerate(zip(xs, ys, groups, strict=True)):
+            if not isinstance(y, (int, float)):
+                raise DataError(
+                    f"position_stack requires numeric y values, "
+                    f"got {type(y).__name__!r} at index {i}. "
+                    f"Check that 'y' maps to a numeric column."
+                )
             base = cumulative.get(x, 0.0)
             new_ymin[i] = base
             new_y[i] = base + y

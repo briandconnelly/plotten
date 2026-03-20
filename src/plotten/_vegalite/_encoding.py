@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any
 
 from plotten._computed import AfterScale, AfterStat
 from plotten._interaction import Interaction
-from plotten._validation import PlottenError
+from plotten._validation import ExportError
 
 if TYPE_CHECKING:
     from plotten._aes import Aes
@@ -69,7 +69,7 @@ def translate_aes(
                 "exported to Vega-Lite. Use a stat with a native VL equivalent or "
                 "the matplotlib backend."
             )
-            raise PlottenError(msg)
+            raise ExportError(msg)
         if isinstance(value, Interaction):
             # Use first column as detail
             if value.columns:
