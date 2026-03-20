@@ -168,6 +168,59 @@ class Plot:
         plt.close(fig)
         return buf.getvalue()
 
+    def _repr_html_(self) -> str | None:
+        """Jupyter integration — interactive Vega-Lite display.
+
+        Falls back to PNG (via ``_repr_png_``) if Vega-Lite conversion fails.
+        """
+        try:
+            from plotten._vegalite import to_html
+
+            return to_html(self)
+        except Exception:
+            return None
+
+    def _repr_mimebundle_(
+        self, *, include: set[str] | None = None, exclude: set[str] | None = None
+    ) -> dict[str, Any]:
+        """Jupyter MIME bundle — let the frontend pick the best format.
+
+        Provides ``text/html`` (interactive Vega-Lite) and ``image/png``
+        so that JupyterLab picks HTML while classic Notebook can fall back
+        to PNG.
+        """
+        bundle: dict[str, Any] = {}
+        wanted = include or {"text/html", "image/png"}
+        if exclude:
+            wanted -= exclude
+
+        if "text/html" in wanted:
+            html = self._repr_html_()
+            if html is not None:
+                bundle["text/html"] = html
+
+        if "image/png" in wanted:
+            bundle["image/png"] = self._repr_png_()
+
+        return bundle
+
+    def _mime_(self) -> tuple[str, str]:
+        """Marimo reactive notebook display protocol.
+
+        Returns ``(html_string, "text/html")`` for interactive Vega-Lite
+        rendering, or a PNG data-URI fallback.
+        """
+        import base64
+
+        try:
+            from plotten._vegalite import to_html
+
+            return (to_html(self), "text/html")
+        except Exception:
+            png_bytes = self._repr_png_()
+            data_uri = base64.b64encode(png_bytes).decode("ascii")
+            return (f'<img src="data:image/png;base64,{data_uri}" />', "text/html")
+
 
 def ggplot(data: Any = None, mapping: Aes | None = None) -> Plot:
     """Create a new plot.

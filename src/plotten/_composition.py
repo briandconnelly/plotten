@@ -133,6 +133,29 @@ class PlotGrid:
         plt.close(fig)
         return buf.getvalue()
 
+    def _repr_mimebundle_(
+        self, *, include: set[str] | None = None, exclude: set[str] | None = None
+    ) -> dict[str, Any]:
+        """Jupyter MIME bundle — provide PNG for format negotiation."""
+        bundle: dict[str, Any] = {}
+        wanted = include or {"image/png"}
+        if exclude:
+            wanted -= exclude
+        if "image/png" in wanted:
+            bundle["image/png"] = self._repr_png_()
+        return bundle
+
+    def _mime_(self) -> tuple[str, str]:
+        """Marimo reactive notebook display protocol.
+
+        Returns a PNG data-URI wrapped in an ``<img>`` tag.
+        """
+        import base64
+
+        png_bytes = self._repr_png_()
+        data_uri = base64.b64encode(png_bytes).decode("ascii")
+        return (f'<img src="data:image/png;base64,{data_uri}" />', "text/html")
+
 
 def plot_annotation(**kwargs: Any) -> PlotAnnotation:
     """Create a PlotAnnotation."""

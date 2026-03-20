@@ -230,6 +230,85 @@ def test_repr_png():
     assert png_bytes[:4] == b"\x89PNG"
 
 
+class TestReprHtml:
+    def test_plot_repr_html(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        html = p._repr_html_()
+        assert isinstance(html, str)
+        assert "vega" in html.lower()
+        assert "vegaEmbed" in html
+
+    def test_plot_repr_html_fallback(self):
+        """repr_html returns None when Vega-Lite conversion fails."""
+        p = ggplot()  # no data — Vega-Lite can't convert
+        # Should not raise; returns None so Jupyter falls back to PNG
+        result = p._repr_html_()
+        # Result is either None (fallback) or a string (if VL handles empty plots)
+        assert result is None or isinstance(result, str)
+
+
+class TestReprMimeBundle:
+    def test_plot_default_bundle(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        bundle = p._repr_mimebundle_()
+        assert "image/png" in bundle
+        assert bundle["image/png"][:4] == b"\x89PNG"
+        # HTML should also be present when VL succeeds
+        assert "text/html" in bundle
+
+    def test_plot_include_filter(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        bundle = p._repr_mimebundle_(include={"image/png"})
+        assert "image/png" in bundle
+        assert "text/html" not in bundle
+
+    def test_plot_exclude_filter(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        bundle = p._repr_mimebundle_(exclude={"text/html"})
+        assert "image/png" in bundle
+        assert "text/html" not in bundle
+
+    def test_grid_mimebundle(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        grid = p | p
+        bundle = grid._repr_mimebundle_()
+        assert "image/png" in bundle
+        assert bundle["image/png"][:4] == b"\x89PNG"
+
+
+class TestMarimoMime:
+    def test_plot_mime(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        content, mimetype = p._mime_()
+        assert mimetype == "text/html"
+        assert isinstance(content, str)
+        # Should be Vega-Lite HTML
+        assert "vegaEmbed" in content
+
+    def test_plot_mime_fallback(self):
+        """Marimo _mime_ returns PNG data-URI when VL fails."""
+        p = ggplot()  # no data
+        content, mimetype = p._mime_()
+        assert mimetype == "text/html"
+        assert isinstance(content, str)
+        # Either VL HTML or PNG data-URI fallback
+        assert "vegaEmbed" in content or "data:image/png;base64," in content
+
+    def test_grid_mime(self):
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        grid = p | p
+        content, mimetype = grid._mime_()
+        assert mimetype == "text/html"
+        assert "data:image/png;base64," in content
+
+
 # --- from test_v05_coverage.py ---
 
 """Additional tests to bring v0.5 coverage to 95%+."""
