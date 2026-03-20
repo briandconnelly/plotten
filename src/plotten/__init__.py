@@ -4,6 +4,7 @@ from importlib.metadata import version
 
 __version__ = version("plotten")
 
+from plotten._accessibility import AccessibilityReport, AccessibilityWarning, accessibility_report
 from plotten._aes import Aes, aes
 from plotten._annotate import annotate
 from plotten._arrow import Arrow, arrow
@@ -86,6 +87,7 @@ from plotten.geoms import (
     geom_hline,
     geom_jitter,
     geom_label,
+    geom_label_repel,
     geom_line,
     geom_linerange,
     geom_path,
@@ -104,6 +106,7 @@ from plotten.geoms import (
     geom_spoke,
     geom_step,
     geom_text,
+    geom_text_repel,
     geom_tile,
     geom_violin,
     geom_vline,
@@ -138,6 +141,7 @@ from plotten.positions import (
     position_nudge,
     position_stack,
 )
+from plotten.recipes import plot_dumbbell, plot_forest, plot_lollipop, plot_slope, plot_waterfall
 from plotten.scales import (
     LegendEntry,
     ScaleAlphaContinuous,
@@ -263,6 +267,8 @@ from plotten.themes import (
 )
 
 __all__ = [
+    "AccessibilityReport",
+    "AccessibilityWarning",
     "Aes",
     "AfterScale",
     "AfterStat",
@@ -333,6 +339,7 @@ __all__ = [
     "Theme",
     "Watermark",
     "__version__",
+    "accessibility_report",
     "aes",
     "after_scale",
     "after_stat",
@@ -375,6 +382,7 @@ __all__ = [
     "geom_hline",
     "geom_jitter",
     "geom_label",
+    "geom_label_repel",
     "geom_line",
     "geom_linerange",
     "geom_path",
@@ -393,6 +401,7 @@ __all__ = [
     "geom_spoke",
     "geom_step",
     "geom_text",
+    "geom_text_repel",
     "geom_tile",
     "geom_violin",
     "geom_vline",
@@ -414,7 +423,12 @@ __all__ = [
     "labs",
     "load_dataset",
     "plot_annotation",
+    "plot_dumbbell",
+    "plot_forest",
     "plot_grid",
+    "plot_lollipop",
+    "plot_slope",
+    "plot_waterfall",
     "position_beeswarm",
     "position_dodge",
     "position_dodge2",

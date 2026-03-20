@@ -66,6 +66,7 @@ from plotten.geoms._histogram import GeomHistogram
 from plotten.geoms._quantile import GeomQuantile
 from plotten.geoms._raster import GeomRaster
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
+from plotten.geoms._repel import GeomLabelRepel, GeomTextRepel
 from plotten.geoms._smooth import GeomSmooth
 from plotten.geoms._summary import GeomSummary
 
@@ -500,6 +501,80 @@ def geom_quantile(
     )
 
 
+def geom_text_repel(
+    max_iter: int = 500,
+    force: float = 1.0,
+    force_pull: float = 1.0,
+    box_padding: float = 0.25,
+    point_padding: float = 0.1,
+    nudge_x: float = 0.0,
+    nudge_y: float = 0.0,
+    segment_color: str = "#666666",
+    segment_size: float = 0.5,
+    seed: int | None = 42,
+    **params: Any,
+) -> Layer:
+    """Create a text layer with automatic label repulsion."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomTextRepel(
+            max_iter=max_iter,
+            force=force,
+            force_pull=force_pull,
+            box_padding=box_padding,
+            point_padding=point_padding,
+            nudge_x=nudge_x,
+            nudge_y=nudge_y,
+            segment_color=segment_color,
+            segment_size=segment_size,
+            seed=seed,
+        ),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
+def geom_label_repel(
+    max_iter: int = 500,
+    force: float = 1.0,
+    force_pull: float = 1.0,
+    box_padding: float = 0.25,
+    point_padding: float = 0.1,
+    nudge_x: float = 0.0,
+    nudge_y: float = 0.0,
+    segment_color: str = "#666666",
+    segment_size: float = 0.5,
+    seed: int | None = 42,
+    fill: str = "white",
+    label_alpha: float = 0.8,
+    **params: Any,
+) -> Layer:
+    """Create a label layer with background boxes and automatic label repulsion."""
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomLabelRepel(
+            max_iter=max_iter,
+            force=force,
+            force_pull=force_pull,
+            box_padding=box_padding,
+            point_padding=point_padding,
+            nudge_x=nudge_x,
+            nudge_y=nudge_y,
+            segment_color=segment_color,
+            segment_size=segment_size,
+            seed=seed,
+            fill=fill,
+            label_alpha=label_alpha,
+        ),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 def geom_density_ridges(
     bandwidth: float | None = None,
     n_points: int = 128,
@@ -541,6 +616,7 @@ __all__ = [
     "GeomHex",
     "GeomHistogram",
     "GeomLabel",
+    "GeomLabelRepel",
     "GeomLine",
     "GeomLinerange",
     "GeomPath",
@@ -558,6 +634,7 @@ __all__ = [
     "GeomStep",
     "GeomSummary",
     "GeomText",
+    "GeomTextRepel",
     "GeomTile",
     "GeomVLine",
     "GeomViolin",
@@ -583,6 +660,7 @@ __all__ = [
     "geom_hline",
     "geom_jitter",
     "geom_label",
+    "geom_label_repel",
     "geom_line",
     "geom_linerange",
     "geom_path",
@@ -601,6 +679,7 @@ __all__ = [
     "geom_spoke",
     "geom_step",
     "geom_text",
+    "geom_text_repel",
     "geom_tile",
     "geom_violin",
     "geom_vline",
