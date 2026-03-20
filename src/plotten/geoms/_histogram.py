@@ -36,5 +36,11 @@ class GeomHistogram:
         else:
             width = 1.0
         width = params.get("width", width)
+        hatch = data.get("hatch", params.get("hatch"))
+        if hatch is not None:
+            if isinstance(hatch, list):
+                hatch = hatch[0] if hatch else None
+            if hatch is not None:
+                kwargs["hatch"] = hatch
 
         ax.bar(x_vals, y_vals, width=width, **kwargs)

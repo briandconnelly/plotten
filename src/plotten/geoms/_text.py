@@ -28,6 +28,8 @@ class GeomText:
         kwargs: dict[str, Any] = {"color": color, "fontsize": fontsize, **font_kwargs}
         if bbox is not None:
             kwargs["bbox"] = bbox
+        if params.get("_transform") == "axes":
+            kwargs["transform"] = ax.transAxes
 
         for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(x, y, str(label), **kwargs)

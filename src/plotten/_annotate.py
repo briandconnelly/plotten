@@ -18,11 +18,20 @@ class _GeomAnnotRect:
 
     required_aes: frozenset[str] = frozenset()
 
-    def __init__(self, xmin: float, xmax: float, ymin: float, ymax: float, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        xmin: float,
+        xmax: float,
+        ymin: float,
+        ymax: float,
+        coord: str = "data",
+        **kwargs: Any,
+    ) -> None:
         self.xmin = xmin
         self.xmax = xmax
         self.ymin = ymin
         self.ymax = ymax
+        self._coord = coord
         self.kwargs = kwargs
 
     def default_stat(self) -> Any:
@@ -36,6 +45,7 @@ class _GeomAnnotRect:
         alpha = self.kwargs.get("alpha", params.get("alpha", 0.3))
         color = self.kwargs.get("color", params.get("color", "gray"))
         fill = self.kwargs.get("fill", params.get("fill", color))
+        transform = ax.transAxes if self._coord == "npc" else ax.transData
         rect = Rectangle(
             (self.xmin, self.ymin),
             self.xmax - self.xmin,
@@ -43,6 +53,7 @@ class _GeomAnnotRect:
             facecolor=fill,
             edgecolor=color,
             alpha=alpha,
+            transform=transform,
         )
         ax.add_patch(rect)
 
@@ -52,11 +63,14 @@ class _GeomAnnotSegment:
 
     required_aes: frozenset[str] = frozenset()
 
-    def __init__(self, x: float, y: float, xend: float, yend: float, **kwargs: Any) -> None:
+    def __init__(
+        self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
+    ) -> None:
         self._x = x
         self._y = y
         self._xend = xend
         self._yend = yend
+        self._coord = coord
         self.kwargs = kwargs
 
     def default_stat(self) -> Any:
@@ -77,10 +91,13 @@ class _GeomAnnotSegment:
                 arrowstyle = arrow_param.to_arrowstyle()
             else:
                 arrowstyle = "->"
+            xycoords = "axes fraction" if self._coord == "npc" else "data"
             ax.annotate(
                 "",
                 xy=(self._xend, self._yend),
                 xytext=(self._x, self._y),
+                xycoords=xycoords,
+                textcoords=xycoords,
                 arrowprops={
                     "arrowstyle": arrowstyle,
                     "color": color,
@@ -89,12 +106,14 @@ class _GeomAnnotSegment:
                 },
             )
         else:
+            transform = ax.transAxes if self._coord == "npc" else ax.transData
             ax.plot(
                 [self._x, self._xend],
                 [self._y, self._yend],
                 color=color,
                 linestyle=linestyle,
                 linewidth=linewidth,
+                transform=transform,
             )
 
 
@@ -103,11 +122,14 @@ class _GeomAnnotCurve:
 
     required_aes: frozenset[str] = frozenset()
 
-    def __init__(self, x: float, y: float, xend: float, yend: float, **kwargs: Any) -> None:
+    def __init__(
+        self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
+    ) -> None:
         self._x = x
         self._y = y
         self._xend = xend
         self._yend = yend
+        self._coord = coord
         self.kwargs = kwargs
 
     def default_stat(self) -> Any:
@@ -132,13 +154,18 @@ class _GeomAnnotCurve:
         else:
             arrowstyle = "-"
 
+        patch_kwargs: dict[str, Any] = {
+            "connectionstyle": f"arc3,rad={curvature}",
+            "arrowstyle": arrowstyle,
+            "color": color,
+            "linewidth": linewidth,
+        }
+        if self._coord == "npc":
+            patch_kwargs["transform"] = ax.transAxes
         patch = FancyArrowPatch(
             posA=(self._x, self._y),
             posB=(self._xend, self._yend),
-            connectionstyle=f"arc3,rad={curvature}",
-            arrowstyle=arrowstyle,
-            color=color,
-            linewidth=linewidth,
+            **patch_kwargs,
         )
         ax.add_patch(patch)
 
@@ -154,12 +181,14 @@ class _GeomAnnotBracket:
         xmax: float,
         y: float,
         label: str | None = None,
+        coord: str = "data",
         **kwargs: Any,
     ) -> None:
         self._xmin = xmin
         self._xmax = xmax
         self._y = y
         self._label = label
+        self._coord = coord
         self.kwargs = kwargs
 
     def default_stat(self) -> Any:
@@ -173,9 +202,15 @@ class _GeomAnnotBracket:
         direction = self.kwargs.get("direction", "up")
         tip_length = self.kwargs.get("tip_length", 0.02)
 
-        # Get axis range for tip_length scaling
-        ylo, yhi = ax.get_ylim()
-        tip = tip_length * (yhi - ylo) * (1 if direction == "up" else -1)
+        transform = ax.transAxes if self._coord == "npc" else ax.transData
+
+        if self._coord == "npc":
+            # In NPC mode, tip_length is already in axes fraction
+            tip = tip_length * (1 if direction == "up" else -1)
+        else:
+            # Get axis range for tip_length scaling
+            ylo, yhi = ax.get_ylim()
+            tip = tip_length * (yhi - ylo) * (1 if direction == "up" else -1)
 
         # Vertical ticks + horizontal bar
         ax.plot(
@@ -184,6 +219,7 @@ class _GeomAnnotBracket:
             color=color,
             linewidth=linewidth,
             clip_on=False,
+            transform=transform,
         )
 
         # Optional label centered above/below
@@ -198,6 +234,7 @@ class _GeomAnnotBracket:
                 va=va,
                 color=color,
                 fontsize=params.get("fontsize", 10),
+                transform=transform,
             )
 
 
@@ -210,11 +247,34 @@ def annotate(
     ymin: float | None = None,
     ymax: float | None = None,
     label: str | None = None,
+    coord: str = "data",
     **params: Any,
 ) -> Layer:
     """Create an annotation layer.
 
-    Supports geom_type="text", "rect", or "segment".
+    Parameters
+    ----------
+    geom_type : str
+        One of ``"text"``, ``"rect"``, ``"segment"``, ``"curve"``, or
+        ``"bracket"``.
+    x, y : float, optional
+        Position coordinates.
+    xmin, xmax, ymin, ymax : float, optional
+        Boundary coordinates for ``"rect"`` and ``"bracket"`` types.
+    label : str, optional
+        Text label for ``"text"`` and ``"bracket"`` types.
+    coord : str, optional
+        Coordinate system: ``"data"`` (default) uses data coordinates,
+        ``"npc"`` uses Normalized Panel Coordinates where (0, 0) is the
+        bottom-left and (1, 1) is the top-right of the panel.
+    **params
+        Additional visual properties passed to the underlying geom.
+
+    Examples
+    --------
+    >>> from plotten import annotate
+    >>> annotate("text", x=0.5, y=0.95, label="Top center", coord="npc")
+    Layer(...)
     """
     match geom_type:
         case AnnotationType.TEXT:
@@ -232,6 +292,9 @@ def annotate(
                 if box_color is not None:
                     bbox_props["edgecolor"] = box_color
                 params["bbox"] = bbox_props
+
+            if coord == "npc":
+                params["_transform"] = "axes"
 
             for _backend in ("polars", "pandas"):
                 try:
@@ -254,6 +317,7 @@ def annotate(
                 xmax=xmax or 0,
                 ymin=ymin or 0,
                 ymax=ymax or 0,
+                coord=coord,
                 **params,
             )
             return Layer(geom=geom, mapping=Aes(), params={})
@@ -266,6 +330,7 @@ def annotate(
                 y=y or 0,
                 xend=xend or 0,
                 yend=yend or 0,
+                coord=coord,
                 **params,
             )
             return Layer(geom=geom, mapping=Aes(), params={})
@@ -278,19 +343,21 @@ def annotate(
                 y=y or 0,
                 xend=xend or 0,
                 yend=yend or 0,
+                coord=coord,
                 **params,
             )
             return Layer(geom=geom, mapping=Aes(), params={})
 
         case AnnotationType.BRACKET:
-            geom = _GeomAnnotBracket(
+            geom_b = _GeomAnnotBracket(
                 xmin=xmin or 0,
                 xmax=xmax or 0,
                 y=y or 0,
                 label=label,
+                coord=coord,
                 **params,
             )
-            return Layer(geom=geom, mapping=Aes(), params={})
+            return Layer(geom=geom_b, mapping=Aes(), params={})
 
         case _:
             msg = (

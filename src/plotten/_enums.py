@@ -24,6 +24,11 @@ class AnnotationType(StrEnum):
     BRACKET = "bracket"
 
 
+class AnnotationCoord(StrEnum):
+    DATA = "data"
+    NPC = "npc"
+
+
 class SmoothMethod(StrEnum):
     OLS = "ols"
     LOESS = "loess"

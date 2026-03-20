@@ -67,6 +67,7 @@ from plotten.geoms._quantile import GeomQuantile
 from plotten.geoms._raster import GeomRaster
 from plotten.geoms._refline import GeomAbLine, GeomHLine, GeomVLine
 from plotten.geoms._repel import GeomLabelRepel, GeomTextRepel
+from plotten.geoms._signif import GeomSignif
 from plotten.geoms._smooth import GeomSmooth
 from plotten.geoms._summary import GeomSummary
 
@@ -289,6 +290,7 @@ def geom_density(
     from plotten.stats._density import StatDensity
 
     position = params.pop("position", None)
+    data = params.pop("data", None)
     mapping, params = _extract_aes(params)
     geom = GeomDensity(fill=fill, alpha=alpha)
     return Layer(
@@ -297,6 +299,7 @@ def geom_density(
         mapping=mapping,
         params=params,
         position=position,
+        data=data,
     )
 
 
@@ -1171,6 +1174,64 @@ def geom_density_ridges(
     )
 
 
+def geom_signif(
+    comparisons: list[tuple[str, str]],
+    test: str = "t-test",
+    step_increase: float = 0.1,
+    tip_length: float = 0.02,
+    text_format: str = "stars",
+    p_adjust: str | None = None,
+    **params: Any,
+) -> Layer:
+    """Add significance brackets with p-value annotations.
+
+    Parameters
+    ----------
+    comparisons : list of tuple of str
+        Pairs of group names to compare, e.g. ``[("a", "b"), ("b", "c")]``.
+    test : str, optional
+        Statistical test: ``"t-test"`` (default), ``"wilcoxon"``, or
+        ``"mann-whitney"``.
+    step_increase : float, optional
+        Fraction of the y-range to offset successive brackets (default 0.1).
+    tip_length : float, optional
+        Length of bracket tips as a fraction of y-range (default 0.02).
+    text_format : str, optional
+        ``"stars"`` (default) shows ``*``/``**``/``***``/``ns``, or
+        ``"p-value"`` shows the numeric p-value.
+    p_adjust : str or None, optional
+        Multiple testing correction: ``"bonferroni"``, ``"holm"``,
+        ``"fdr"``, or ``None`` (default).
+    **params
+        Additional visual properties such as ``color``, ``size``,
+        ``fontsize``.
+
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes, geom_boxplot
+    >>> from plotten.geoms import geom_signif
+    >>> df = pd.DataFrame({"g": ["a"]*10 + ["b"]*10, "v": list(range(10)) + list(range(5, 15))})
+    >>> p = ggplot(df, aes(x="g", y="v")) + geom_boxplot() + geom_signif(comparisons=[("a", "b")])
+    """
+    from plotten.stats._signif import StatSignif
+
+    position = params.pop("position", None)
+    mapping, params = _extract_aes(params)
+    return Layer(
+        geom=GeomSignif(tip_length=tip_length, text_format=text_format),
+        stat=StatSignif(
+            comparisons=comparisons,
+            test=test,
+            p_adjust=p_adjust,
+            step_increase=step_increase,
+        ),
+        mapping=mapping,
+        params=params,
+        position=position,
+    )
+
+
 __all__ = [
     "GeomAbLine",
     "GeomArea",
@@ -1204,6 +1265,7 @@ __all__ = [
     "GeomRibbon",
     "GeomRug",
     "GeomSegment",
+    "GeomSignif",
     "GeomSmooth",
     "GeomSpoke",
     "GeomStep",
@@ -1250,6 +1312,7 @@ __all__ = [
     "geom_ribbon",
     "geom_rug",
     "geom_segment",
+    "geom_signif",
     "geom_smooth",
     "geom_spoke",
     "geom_step",

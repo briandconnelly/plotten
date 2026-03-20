@@ -355,7 +355,14 @@ def _resolve_per_axis_text(
         kw["fontsize"] = 0
     elif isinstance(per_axis_element, ElementText):
         if per_axis_element.size is not None:
-            kw["fontsize"] = per_axis_element.size
+            from plotten.themes._elements import Rel
+
+            if isinstance(per_axis_element.size, Rel):
+                base = kw.get("fontsize")
+                if base is not None:
+                    kw["fontsize"] = per_axis_element.size.factor * base
+            else:
+                kw["fontsize"] = per_axis_element.size
         if per_axis_element.color is not None:
             kw["color"] = per_axis_element.color
         if per_axis_element.family is not None:

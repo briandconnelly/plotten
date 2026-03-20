@@ -3,11 +3,41 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
+@dataclass(frozen=True, slots=True)
+class Rel:
+    """Relative size multiplier.
+
+    When used as the ``size`` of an :class:`ElementText`, the final font
+    size is ``factor * default_size`` where *default_size* comes from the
+    theme hierarchy.
+    """
+
+    factor: float
+
+
+def rel(factor: float) -> Rel:
+    """Create a relative size multiplier.
+
+    Parameters
+    ----------
+    factor : float
+        Multiplicative factor applied to the parent element's default
+        size.  For example, ``rel(0.8)`` means 80 % of the default.
+
+    Examples
+    --------
+    >>> from plotten.themes import element_text, rel
+    >>> element_text(size=rel(1.2))
+    ElementText(size=Rel(factor=1.2), ...)
+    """
+    return Rel(factor)
+
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class ElementText:
     """Theme element for text."""
 
-    size: float | None = None
+    size: float | Rel | None = None
     color: str | None = None
     family: str | None = None
     weight: str | None = None

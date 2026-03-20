@@ -23,6 +23,7 @@ from plotten.geoms import (
     geom_rect,
     geom_segment,
     geom_text,
+    geom_tile,
     geom_vline,
 )
 from plotten.themes import theme_minimal
@@ -428,6 +429,128 @@ def plot_forest(
         + geom_point(color=color, size=point_size)
         + theme_minimal()
     )
+
+    if title is not None:
+        p = p + labs(title=title)
+
+    return p
+
+
+def plot_waffle(
+    data: Any,
+    *,
+    category: str,
+    value: str,
+    rows: int = 10,
+    cols: int = 10,
+    colors: dict[str, str] | list[str] | None = None,
+    title: str | None = None,
+    show_legend: bool = True,
+) -> Plot:
+    """Create a waffle chart — a grid of squares showing proportions.
+
+    Parameters
+    ----------
+    data : DataFrame
+        Input data (any narwhals-compatible frame).
+    category : str
+        Column with category labels.
+    value : str
+        Column with numeric counts or proportions.
+    rows : int
+        Number of rows in the waffle grid (default 10).
+    cols : int
+        Number of columns in the waffle grid (default 10).
+    colors : dict or list or None
+        Category-to-color mapping (dict), ordered color list, or None for defaults.
+    title : str or None
+        Plot title.
+    show_legend : bool
+        Whether to show a fill legend (default True).
+    """
+    from plotten.coords import coord_equal
+    from plotten.scales import scale_fill_manual, scale_x_continuous, scale_y_continuous
+    from plotten.themes import element_blank, theme
+
+    frame = nw.from_native(data)
+    backend = _get_backend(data)
+
+    cat_vals = frame.get_column(category).to_list()
+    num_vals = [float(v) for v in frame.get_column(value).to_list()]
+
+    total_cells = rows * cols
+    total_value = sum(num_vals)
+
+    # Allocate cells proportionally, ensuring they sum to total_cells
+    raw_shares = [v / total_value * total_cells for v in num_vals]
+    cell_counts = [int(s) for s in raw_shares]
+    remainder = total_cells - sum(cell_counts)
+    # Distribute remaining cells by largest fractional remainder
+    fractions = [s - int(s) for s in raw_shares]
+    for _ in range(remainder):
+        idx = max(range(len(fractions)), key=lambda i: fractions[i])
+        cell_counts[idx] += 1
+        fractions[idx] = -1  # don't pick again
+
+    # Build grid: fill left-to-right, bottom-to-top
+    grid_cats: list[str] = []
+    for cat, count in zip(cat_vals, cell_counts, strict=True):
+        grid_cats.extend([cat] * count)
+
+    x_positions: list[int] = []
+    y_positions: list[int] = []
+    fill_vals: list[str] = []
+
+    for i, cat in enumerate(grid_cats):
+        col_idx = i // rows
+        row_idx = i % rows
+        x_positions.append(col_idx)
+        y_positions.append(row_idx)
+        fill_vals.append(cat)
+
+    # Resolve colors
+    if colors is None:
+        color_map = None
+    elif isinstance(colors, dict):
+        color_map = colors
+    else:
+        color_map = dict(zip(cat_vals, colors, strict=True))
+
+    tile_data = nw.to_native(
+        nw.from_dict(
+            {"x": x_positions, "y": y_positions, "fill": fill_vals},
+            backend=backend,
+        )
+    )
+
+    p = (
+        ggplot(tile_data, aes(x="x", y="y", fill="fill"))
+        + geom_tile(color="white", width=0.9, height=0.9)
+        + coord_equal()
+    )
+
+    if color_map is not None:
+        p = p + scale_fill_manual(color_map)
+
+    p = p + scale_x_continuous(expand=(0, 0.5)) + scale_y_continuous(expand=(0, 0.5))
+
+    # Remove axes for a clean grid look
+    p = (
+        p
+        + theme_minimal()
+        + theme(
+            axis_title_x=element_blank(),
+            axis_title_y=element_blank(),
+            axis_text_x=element_blank(),
+            axis_text_y=element_blank(),
+            axis_ticks=element_blank(),
+            panel_grid_major=element_blank(),
+            panel_grid_minor=element_blank(),
+        )
+    )
+
+    if not show_legend:
+        p = p + theme(legend_position="none")
 
     if title is not None:
         p = p + labs(title=title)

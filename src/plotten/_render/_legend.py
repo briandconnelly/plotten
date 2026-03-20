@@ -35,7 +35,7 @@ def draw_legend(
 
     # Collect legend groups from scales that have legend entries
     legend_groups: list[tuple[str, str, ScaleBase]] = []
-    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
+    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype", "linewidth", "hatch"):
         if aes_name in scales:
             scale = scales[aes_name]
             entries = scale.legend_entries()
@@ -53,11 +53,32 @@ def draw_legend(
     if not legend_groups:
         return
 
-    # Space for legends is handled by constrained_layout rect adjustment
-    # in _mpl._apply_legend(). No manual axes shrinking needed.
+    # Compute total height of all legend groups so we can stack them vertically
+    group_heights: list[float] = []
+    for aes_name, _title, scale in legend_groups:
+        entries = scale.legend_entries() or []
+        guide_spec = guides.get(aes_name)
+        if guide_spec is not None:
+            entries = _apply_guide_overrides(entries, guide_spec)
+        if isinstance(scale, ScaleColorContinuous):
+            group_heights.append(0.6)  # continuous colorbar default height
+        else:
+            ncol = 1
+            if guide_spec is not None:
+                ncol = getattr(guide_spec, "ncol", None) or 1
+            n_entries = len(entries)
+            nrow_legend = -(-n_entries // ncol)
+            entry_height = 0.03 * (theme.legend_spacing / 4.0)
+            title_height = 0.04
+            margin_pad = 0.02 * (theme.legend_margin / 8.0)
+            group_heights.append(title_height + nrow_legend * entry_height + margin_pad)
 
-    # Draw each legend group
-    for aes_name, title, scale in legend_groups:
+    legend_gap = 0.02  # gap between stacked legend groups
+    total_all = sum(group_heights) + legend_gap * (len(group_heights) - 1)
+
+    # Draw each legend group, stacking vertically
+    y_cursor = 0.0  # cumulative offset from the top of the legend stack
+    for i, (aes_name, title, scale) in enumerate(legend_groups):
         entries = scale.legend_entries()
         if not entries:
             continue
@@ -69,9 +90,31 @@ def draw_legend(
             entries = _apply_guide_overrides(entries, guide_spec)
 
         if isinstance(scale, ScaleColorContinuous):
-            _draw_continuous_legend(fig, entries, title, scale, pos, theme, guide_spec, main_axes)
+            _draw_continuous_legend(
+                fig,
+                entries,
+                title,
+                scale,
+                pos,
+                theme,
+                guide_spec,
+                main_axes,
+                y_offset=y_cursor,
+                total_stack_height=total_all,
+            )
         else:
-            _draw_discrete_legend(fig, entries, title, pos, theme, guide_spec, main_axes)
+            _draw_discrete_legend(
+                fig,
+                entries,
+                title,
+                pos,
+                theme,
+                guide_spec,
+                main_axes,
+                y_offset=y_cursor,
+                total_stack_height=total_all,
+            )
+        y_cursor += group_heights[i] + legend_gap
 
 
 def _apply_guide_overrides(
@@ -134,6 +177,30 @@ def _draw_legend_entry(
             transform=legend_ax.transAxes,
             clip_on=False,
         )
+    elif (
+        getattr(entry, "linewidth", None) is not None
+        and entry.color is None
+        and entry.fill is None
+    ):
+        legend_ax.plot(
+            [0.03, 0.2],
+            [y, y],
+            color="black",
+            linewidth=entry.linewidth,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif getattr(entry, "hatch", None) is not None:
+        rect = Rectangle(
+            (0.05, y - step * 0.3),
+            0.15,
+            step * 0.6,
+            facecolor=entry.fill or entry.color or "#cccccc",
+            edgecolor="black",
+            hatch=entry.hatch,
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
     elif entry.alpha is not None and entry.color is None and entry.fill is None:
         rect = Rectangle(
             (0.05, y - step * 0.3),
@@ -267,6 +334,8 @@ def _draw_discrete_legend(
     theme: Theme,
     guide_spec: Any = None,
     main_axes: list[Axes] | None = None,
+    y_offset: float = 0.0,
+    total_stack_height: float = 0.0,
 ) -> None:
     """Draw a discrete legend with colored rectangles and text labels."""
     # Determine number of columns from guide spec
@@ -284,6 +353,9 @@ def _draw_discrete_legend(
     total_height = title_height + nrow_legend * entry_height + margin_pad
     legend_width = 0.12 * ncol
 
+    # Use total_stack_height for centering when multiple legend groups exist
+    effective_height = total_stack_height if total_stack_height > 0 else total_height
+
     if isinstance(position, tuple):
         # Tuple coords are axes-relative (like ggplot2's c(x, y))
         lx, ly = position
@@ -291,22 +363,24 @@ def _draw_discrete_legend(
             # Convert axes-relative to figure-relative
             ax_bbox = main_axes[0].get_position()
             x0 = ax_bbox.x0 + lx * ax_bbox.width
-            y0 = ax_bbox.y0 + ly * ax_bbox.height - total_height
+            y0 = ax_bbox.y0 + ly * ax_bbox.height - total_height - y_offset
         else:
             x0 = lx
-            y0 = max(ly - total_height, 0.0)
+            y0 = max(ly - total_height - y_offset, 0.0)
     elif position == LegendPosition.RIGHT:
         x0 = 0.88
-        y0 = max(0.5 - total_height / 2, 0.05)
+        stack_top = 0.5 + effective_height / 2
+        y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.LEFT:
         x0 = 0.01
-        y0 = max(0.5 - total_height / 2, 0.05)
+        stack_top = 0.5 + effective_height / 2
+        y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.TOP:
         x0 = 0.5 - legend_width / 2
-        y0 = 0.88
+        y0 = 0.88 - y_offset
     else:  # bottom
         x0 = 0.5 - legend_width / 2
-        y0 = 0.01
+        y0 = 0.01 + y_offset
 
     legend_ax = fig.add_axes((x0, y0, legend_width, total_height))
     legend_ax.set_xlim(0, 1)
@@ -409,6 +483,8 @@ def _draw_continuous_legend(
     theme: Theme,
     guide_spec: Any = None,
     main_axes: list[Axes] | None = None,
+    y_offset: float = 0.0,
+    total_stack_height: float = 0.0,
 ) -> None:
     """Draw a continuous colorbar legend."""
     # Determine dimensions from guide spec or defaults
@@ -420,23 +496,29 @@ def _draw_continuous_legend(
         barwidth = getattr(guide_spec, "barwidth", None)
         barheight = getattr(guide_spec, "barheight", None)
 
+    effective_height = total_stack_height if total_stack_height > 0 else 0.6
+
     if isinstance(position, tuple):
         lx, ly = position
         if main_axes:
             ax_bbox = main_axes[0].get_position()
             x0 = ax_bbox.x0 + lx * ax_bbox.width
-            y0 = ax_bbox.y0 + ly * ax_bbox.height - 0.6
+            y0 = ax_bbox.y0 + ly * ax_bbox.height - 0.6 - y_offset
             w, h = 0.03, 0.6
         else:
-            x0, y0, w, h = lx, max(ly - 0.6, 0.0), 0.03, 0.6
+            x0, y0, w, h = lx, max(ly - 0.6 - y_offset, 0.0), 0.03, 0.6
     elif position == LegendPosition.RIGHT:
-        x0, y0, w, h = 0.89, 0.15, 0.03, 0.6
+        stack_top = 0.5 + effective_height / 2
+        x0, w, h = 0.89, 0.03, 0.6
+        y0 = max(stack_top - y_offset - h, 0.05)
     elif position == LegendPosition.LEFT:
-        x0, y0, w, h = 0.02, 0.15, 0.03, 0.6
+        stack_top = 0.5 + effective_height / 2
+        x0, w, h = 0.02, 0.03, 0.6
+        y0 = max(stack_top - y_offset - h, 0.05)
     elif position == LegendPosition.TOP:
-        x0, y0, w, h = 0.2, 0.92, 0.5, 0.03
+        x0, y0, w, h = 0.2, 0.92 - y_offset, 0.5, 0.03
     else:  # bottom
-        x0, y0, w, h = 0.2, 0.02, 0.5, 0.03
+        x0, y0, w, h = 0.2, 0.02 + y_offset, 0.5, 0.03
 
     if barwidth is not None:
         w = barwidth

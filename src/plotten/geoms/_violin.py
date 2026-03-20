@@ -39,12 +39,18 @@ class GeomViolin:
                 continue
 
             # Mirror the density around the position
+            fill_kw: dict[str, Any] = {
+                "alpha": alpha,
+                "color": fill_color,
+                "edgecolor": line_color,
+                "linewidth": 1,
+            }
+            hatch = params.get("hatch")
+            if hatch is not None:
+                fill_kw["hatch"] = hatch
             ax.fill_betweenx(
                 y_grid,
                 [pos - d for d in density],
                 [pos + d for d in density],
-                alpha=alpha,
-                color=fill_color,
-                edgecolor=line_color,
-                linewidth=1,
+                **fill_kw,
             )

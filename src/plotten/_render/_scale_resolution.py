@@ -68,11 +68,15 @@ def _train_scales(
 
     # Widen position scales with auxiliary columns (ymin/ymax → y, xmin/xmax → x)
     for aux_col, pos_aes in _AUX_TO_POSITION.items():
-        if aux_col in data_dict and pos_aes in scales:
+        if aux_col in data_dict:
             try:
                 aux_series = frame.get_column(aux_col)
-                if not isinstance(aux_series.dtype, (nw.List, nw.Array, nw.Object)):
-                    scales[pos_aes].train(aux_series.to_native())
+                if isinstance(aux_series.dtype, (nw.List, nw.Array, nw.Object)):
+                    continue
+                native = aux_series.to_native()
+                if pos_aes not in scales:
+                    scales[pos_aes] = auto_scale(pos_aes, native)
+                scales[pos_aes].train(native)
             except (TypeError, ValueError, KeyError) as e:
                 warnings.warn(
                     f"Scale training skipped for auxiliary '{aux_col}' → '{pos_aes}': {e}",
@@ -91,7 +95,7 @@ def _map_aesthetics(
     """Map non-position aesthetics through scales. Mutates *data_dict* in-place."""
     from plotten.scales._position import ScaleDiscrete
 
-    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype"):
+    for aes_name in ("color", "fill", "size", "alpha", "shape", "linetype", "linewidth", "hatch"):
         if aes_name in data_dict and aes_name in scales:
             scale = scales[aes_name]
             native_series = frame.get_column(aes_name).to_native()

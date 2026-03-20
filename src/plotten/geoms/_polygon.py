@@ -42,8 +42,17 @@ class GeomPolygon:
 
         alpha = params.get("alpha", 0.5)
 
-        patch = Polygon(
-            vertices, closed=True, facecolor=fill_color, edgecolor=edge_color, alpha=alpha
-        )
+        hatch = data.get("hatch", params.get("hatch"))
+        if isinstance(hatch, list):
+            hatch = scalar(hatch)
+        patch_kwargs: dict[str, Any] = {
+            "closed": True,
+            "facecolor": fill_color,
+            "edgecolor": edge_color,
+            "alpha": alpha,
+        }
+        if hatch is not None:
+            patch_kwargs["hatch"] = hatch
+        patch = Polygon(vertices, **patch_kwargs)
         ax.add_patch(patch)
         ax.autoscale_view()

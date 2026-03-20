@@ -17,6 +17,8 @@ class LegendEntry:
     alpha: float | None = None
     shape: str | None = None
     linetype: str | None = None
+    linewidth: float | None = None
+    hatch: str | None = None
 
 
 class ScaleBase:
@@ -166,6 +168,21 @@ def auto_scale(aesthetic: str, series: Any) -> ScaleBase:
 
         case "linetype":
             return ScaleLinetypeDiscrete(aesthetic=aesthetic)
+
+        case "linewidth":
+            from plotten.scales._linewidth import (
+                ScaleLinewidthContinuous,
+                ScaleLinewidthDiscrete,
+            )
+
+            if s.dtype.is_numeric():
+                return ScaleLinewidthContinuous(aesthetic=aesthetic)
+            return ScaleLinewidthDiscrete(aesthetic=aesthetic)
+
+        case "hatch":
+            from plotten.scales._hatch import ScaleHatchDiscrete
+
+            return ScaleHatchDiscrete(aesthetic=aesthetic)
 
     # Detect temporal dtypes before numeric check
     if s.dtype.is_temporal():

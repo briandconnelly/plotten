@@ -43,14 +43,20 @@ class GeomTile:
             else:
                 fc = params.get("fill", "#4C72B0")
 
+            rect_kwargs: dict[str, Any] = {
+                "facecolor": fc,
+                "alpha": alpha,
+                "edgecolor": params.get("color", "white"),
+                "linewidth": params.get("linewidth", 0.5),
+            }
+            hatch = data.get("hatch", params.get("hatch"))
+            if hatch is not None:
+                rect_kwargs["hatch"] = hatch[i] if isinstance(hatch, list) else hatch
             rect = Rectangle(
                 (x - width / 2, y - height / 2),
                 width,
                 height,
-                facecolor=fc,
-                alpha=alpha,
-                edgecolor=params.get("color", "white"),
-                linewidth=params.get("linewidth", 0.5),
+                **rect_kwargs,
             )
             ax.add_patch(rect)
 

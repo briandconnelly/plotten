@@ -34,7 +34,13 @@ def text_props(
 
     if isinstance(element, ElementText):
         if element.size is not None:
-            props["fontsize"] = element.size
+            from plotten.themes._elements import Rel
+
+            if isinstance(element.size, Rel):
+                if default_size is not None:
+                    props["fontsize"] = element.size.factor * default_size
+            else:
+                props["fontsize"] = element.size
         if element.color is not None:
             props["color"] = element.color
         if element.family is not None:

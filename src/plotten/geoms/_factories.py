@@ -35,15 +35,29 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+_PASSTHROUGH_AESTHETICS = frozenset({"hatch"})
+
+
 def _extract_aes(params: dict[str, Any]) -> tuple[Aes, dict[str, Any]]:
-    """Split params into Aes fields and remaining params."""
+    """Split params into Aes fields and remaining params.
+
+    Aesthetics in ``_PASSTHROUGH_AESTHETICS`` are only extracted when the
+    value is an ``AfterStat`` or ``AfterScale`` — plain strings are kept
+    as fixed params since they represent literal values (e.g. hatch
+    patterns), not column names.
+    """
     from plotten._computed import AfterScale, AfterStat
 
-    aes_kwargs = {
-        k: params.pop(k)
-        for k in list(params)
-        if hasattr(Aes, k) and isinstance(params[k], str | AfterStat | AfterScale)
-    }
+    aes_kwargs = {}
+    for k in list(params):
+        if not hasattr(Aes, k):
+            continue
+        val = params[k]
+        if k in _PASSTHROUGH_AESTHETICS:
+            if isinstance(val, AfterStat | AfterScale):
+                aes_kwargs[k] = params.pop(k)
+        elif isinstance(val, str | AfterStat | AfterScale):
+            aes_kwargs[k] = params.pop(k)
     return Aes(**aes_kwargs), params
 
 

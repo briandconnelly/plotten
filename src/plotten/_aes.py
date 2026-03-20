@@ -33,6 +33,8 @@ class Aes:
     z: str | AfterStat | AfterScale | Interaction | None = None
     angle: str | AfterStat | AfterScale | Interaction | None = None
     radius: str | AfterStat | AfterScale | Interaction | None = None
+    linewidth: str | AfterStat | AfterScale | Interaction | None = None
+    hatch: str | AfterStat | AfterScale | Interaction | None = None
 
     def __or__(self, other: Aes) -> Self:
         """Merge aesthetics. other's non-None fields win."""

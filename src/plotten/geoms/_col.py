@@ -27,5 +27,11 @@ class GeomCol:
             kwargs["color"] = data["color"]
         if "alpha" in params:
             kwargs["alpha"] = params["alpha"]
+        hatch = data.get("hatch", params.get("hatch"))
+        if hatch is not None:
+            if isinstance(hatch, list):
+                hatch = hatch[0] if hatch else None
+            if hatch is not None:
+                kwargs["hatch"] = hatch
         width = params.get("width", 0.8)
         ax.bar(data["x"], data["y"], width=width, **kwargs)

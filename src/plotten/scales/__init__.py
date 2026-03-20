@@ -62,6 +62,7 @@ from plotten.scales._grey import (
     scale_fill_grey,
     scale_fill_grey_continuous,
 )
+from plotten.scales._hatch import ScaleHatchDiscrete, scale_hatch_discrete, scale_hatch_manual
 from plotten.scales._identity import (
     ScaleIdentity,
     scale_alpha_identity,
@@ -82,6 +83,13 @@ from plotten.scales._linetype import (
     ScaleLinetypeDiscrete,
     scale_linetype_discrete,
     scale_linetype_manual,
+)
+from plotten.scales._linewidth import (
+    ScaleLinewidthContinuous,
+    ScaleLinewidthDiscrete,
+    scale_linewidth_continuous,
+    scale_linewidth_discrete,
+    scale_linewidth_manual,
 )
 from plotten.scales._log import ScaleLog, scale_x_log10, scale_y_log10
 from plotten.scales._position import (
@@ -128,8 +136,11 @@ __all__ = [
     "ScaleGradientN",
     "ScaleGreyContinuous",
     "ScaleGreyDiscrete",
+    "ScaleHatchDiscrete",
     "ScaleIdentity",
     "ScaleLinetypeDiscrete",
+    "ScaleLinewidthContinuous",
+    "ScaleLinewidthDiscrete",
     "ScaleLog",
     "ScaleReverse",
     "ScaleShapeDiscrete",
@@ -180,9 +191,14 @@ __all__ = [
     "scale_fill_manual",
     "scale_fill_steps",
     "scale_fill_viridis",
+    "scale_hatch_discrete",
+    "scale_hatch_manual",
     "scale_linetype_discrete",
     "scale_linetype_identity",
     "scale_linetype_manual",
+    "scale_linewidth_continuous",
+    "scale_linewidth_discrete",
+    "scale_linewidth_manual",
     "scale_shape_discrete",
     "scale_shape_identity",
     "scale_shape_manual",

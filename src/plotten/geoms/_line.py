@@ -36,7 +36,12 @@ class GeomLine:
             kwargs["linestyle"] = scalar(lt) if isinstance(lt, list) else lt
         elif "linetype" in params:
             kwargs["linestyle"] = params["linetype"]
-        if "size" in data:
+        if "linewidth" in data:
+            lw = data["linewidth"]
+            kwargs["linewidth"] = scalar(lw) if isinstance(lw, list) else lw
+        elif "linewidth" in params:
+            kwargs["linewidth"] = params["linewidth"]
+        elif "size" in data:
             size = data["size"]
             kwargs["linewidth"] = scalar(size) if isinstance(size, list) else size
         elif "size" in params:

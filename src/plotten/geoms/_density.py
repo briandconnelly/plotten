@@ -35,4 +35,8 @@ class GeomDensity:
 
         ax.plot(data["x"], data["y"], color=color)
         if fill:
-            ax.fill_between(data["x"], data["y"], 0, alpha=alpha, color=color)
+            fill_kw: dict[str, Any] = {"alpha": alpha, "color": color}
+            hatch = data.get("hatch", params.get("hatch"))
+            if hatch is not None:
+                fill_kw["hatch"] = scalar(hatch) if isinstance(hatch, list) else hatch
+            ax.fill_between(data["x"], data["y"], 0, **fill_kw)

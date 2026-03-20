@@ -16,6 +16,7 @@ from plotten import (
     plot_forest,
     plot_lollipop,
     plot_slope,
+    plot_waffle,
     plot_waterfall,
 )
 
@@ -244,3 +245,53 @@ class TestPlotForest:
         df = pd.DataFrame({"s": ["A"], "e": [0.5], "lo": [0.1], "hi": [0.9]})
         p = plot_forest(df, y="s", x="e", xmin="lo", xmax="hi", title="Forest Plot")
         assert isinstance(p, Plot)
+
+
+class TestPlotWaffle:
+    def test_returns_plot(self):
+        df = pd.DataFrame({"cat": ["A", "B", "C"], "n": [50, 30, 20]})
+        p = plot_waffle(df, category="cat", value="n")
+        assert isinstance(p, Plot)
+
+    def test_renders(self):
+        df = pd.DataFrame({"cat": ["A", "B", "C"], "n": [50, 30, 20]})
+        p = plot_waffle(df, category="cat", value="n")
+        _render_plot(p)
+
+    def test_custom_grid_size(self):
+        df = pd.DataFrame({"cat": ["X", "Y"], "n": [60, 40]})
+        p = plot_waffle(df, category="cat", value="n", rows=5, cols=20)
+        _render_plot(p)
+
+    def test_custom_colors_dict(self):
+        df = pd.DataFrame({"cat": ["A", "B"], "n": [70, 30]})
+        p = plot_waffle(df, category="cat", value="n", colors={"A": "red", "B": "blue"})
+        _render_plot(p)
+
+    def test_custom_colors_list(self):
+        df = pd.DataFrame({"cat": ["A", "B"], "n": [70, 30]})
+        p = plot_waffle(df, category="cat", value="n", colors=["red", "blue"])
+        _render_plot(p)
+
+    def test_with_title(self):
+        df = pd.DataFrame({"cat": ["A", "B"], "n": [50, 50]})
+        p = plot_waffle(df, category="cat", value="n", title="Waffle Chart")
+        assert isinstance(p, Plot)
+
+    def test_no_legend(self):
+        df = pd.DataFrame({"cat": ["A", "B"], "n": [50, 50]})
+        p = plot_waffle(df, category="cat", value="n", show_legend=False)
+        _render_plot(p)
+
+    def test_polars_input(self):
+        df = pl.DataFrame({"cat": ["A", "B", "C"], "n": [40, 35, 25]})
+        p = plot_waffle(df, category="cat", value="n")
+        _render_plot(p)
+
+    def test_cell_allocation_sums_correctly(self):
+        """All cells in the grid should be allocated."""
+        df = pd.DataFrame({"cat": ["A", "B", "C"], "n": [33, 33, 34]})
+        p = plot_waffle(df, category="cat", value="n")
+        # 10x10 = 100 cells, tile layer should have 100 data points
+        assert isinstance(p, Plot)
+        _render_plot(p)

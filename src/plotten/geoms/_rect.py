@@ -34,6 +34,7 @@ class GeomRect:
         fill_vals = data.get("fill")
         color_vals = data.get("color")
         alpha_vals = data.get("alpha")
+        hatch_vals = data.get("hatch", params.get("hatch"))
 
         for i in range(len(xmins)):
             fc = fill_vals[i] if isinstance(fill_vals, list) else (fill_vals or default_fill)
@@ -43,13 +44,19 @@ class GeomRect:
             width = xmaxs[i] - xmins[i]
             height = ymaxs[i] - ymins[i]
 
+            rect_kwargs: dict[str, Any] = {
+                "facecolor": fc,
+                "edgecolor": ec,
+                "alpha": a,
+            }
+            if hatch_vals is not None:
+                h = hatch_vals[i] if isinstance(hatch_vals, list) else hatch_vals
+                rect_kwargs["hatch"] = h
             rect = Rectangle(
                 (xmins[i], ymins[i]),
                 width,
                 height,
-                facecolor=fc,
-                edgecolor=ec,
-                alpha=a,
+                **rect_kwargs,
             )
             ax.add_patch(rect)
 

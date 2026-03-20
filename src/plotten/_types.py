@@ -28,6 +28,8 @@ class GeomDrawData(TypedDict, total=False):
     angle: list[float]
     radius: list[float]
     z: list[float]
+    linewidth: list[float] | float
+    hatch: list[str] | str
     upper: list[float]
     lower: list[float]
     middle: list[float]
@@ -58,4 +60,5 @@ class GeomParams(TypedDict, total=False):
     linestyle: str
     padding: float
     style: str
+    hatch: str
     weight: str

@@ -42,15 +42,21 @@ class GeomBoxplot:
             hw = width / 2
 
             # Box body
+            bar_kw: dict[str, Any] = {
+                "color": fill_color,
+                "alpha": alpha,
+                "edgecolor": line_color,
+                "linewidth": 1,
+            }
+            hatch = params.get("hatch")
+            if hatch is not None:
+                bar_kw["hatch"] = hatch
             ax.bar(
                 pos,
                 upper - lower,
                 bottom=lower,
                 width=width,
-                color=fill_color,
-                alpha=alpha,
-                edgecolor=line_color,
-                linewidth=1,
+                **bar_kw,
             )
 
             # Median line

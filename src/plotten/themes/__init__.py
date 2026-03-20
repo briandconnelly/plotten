@@ -18,10 +18,12 @@ from plotten.themes._elements import (
     ElementLine,
     ElementRect,
     ElementText,
+    Rel,
     element_blank,
     element_line,
     element_rect,
     element_text,
+    rel,
 )
 from plotten.themes._theme import Theme, theme, theme_get, theme_set, theme_update
 
@@ -30,11 +32,13 @@ __all__ = [
     "ElementLine",
     "ElementRect",
     "ElementText",
+    "Rel",
     "Theme",
     "element_blank",
     "element_line",
     "element_rect",
     "element_text",
+    "rel",
     "theme",
     "theme_538",
     "theme_bw",
