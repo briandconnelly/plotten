@@ -11,6 +11,12 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
+from plotten.geoms._text_helpers import (
+    draw_repel_connectors,
+    extract_label_data,
+    extract_text_params,
+)
+
 
 def _get_text_extent(
     ax: Axes,
@@ -176,24 +182,9 @@ class GeomTextRepel:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        color = params.get("color", "black")
-        fontsize = params.get("size", 10)
-        ha = params.get("ha", "center")
-        va = params.get("va", "center")
+        color, fontsize, font_kwargs = extract_text_params(params)
+        xs, ys, labels_list = extract_label_data(data)
 
-        font_kwargs: dict[str, Any] = {"ha": ha, "va": va}
-        if params.get("family") is not None:
-            font_kwargs["fontfamily"] = params["family"]
-        if params.get("weight") is not None:
-            font_kwargs["fontweight"] = params["weight"]
-        if params.get("style") is not None:
-            font_kwargs["fontstyle"] = params["style"]
-
-        xs = list(data["x"])
-        ys = list(data["y"])
-        labels_list = [str(v) for v in data["label"]]
-
-        # Need the figure drawn to measure text extents
         fig = ax.get_figure()
         if fig is not None:
             fig.canvas.draw()
@@ -215,23 +206,18 @@ class GeomTextRepel:
             font_kwargs=font_kwargs,
         )
 
-        transform = ax.transData
-        for i, (adj_x, adj_y) in enumerate(adjusted):
-            # Draw connector segment
-            orig = transform.transform((xs[i], ys[i]))
-            dest = transform.transform((adj_x, adj_y))
-            seg_len = np.linalg.norm(np.array(orig) - np.array(dest))
-            if seg_len > self.min_segment_length:
-                ax.plot(
-                    [xs[i], adj_x],
-                    [ys[i], adj_y],
-                    color=self.segment_color,
-                    linewidth=self.segment_size,
-                    alpha=self.segment_alpha,
-                    zorder=1,
-                )
+        draw_repel_connectors(
+            ax,
+            xs,
+            ys,
+            adjusted,
+            segment_color=self.segment_color,
+            segment_size=self.segment_size,
+            segment_alpha=self.segment_alpha,
+            min_segment_length=self.min_segment_length,
+        )
 
-            # Draw text
+        for i, (adj_x, adj_y) in enumerate(adjusted):
             ax.text(adj_x, adj_y, labels_list[i], color=color, fontsize=fontsize, **font_kwargs)
 
 
@@ -280,24 +266,10 @@ class GeomLabelRepel:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        color = params.get("color", "black")
-        fontsize = params.get("size", 10)
-        ha = params.get("ha", "center")
-        va = params.get("va", "center")
+        color, fontsize, font_kwargs = extract_text_params(params)
         bg_color = params.get("fill", self.fill)
         alpha = params.get("alpha", self.label_alpha)
-
-        font_kwargs: dict[str, Any] = {"ha": ha, "va": va}
-        if params.get("family") is not None:
-            font_kwargs["fontfamily"] = params["family"]
-        if params.get("weight") is not None:
-            font_kwargs["fontweight"] = params["weight"]
-        if params.get("style") is not None:
-            font_kwargs["fontstyle"] = params["style"]
-
-        xs = list(data["x"])
-        ys = list(data["y"])
-        labels_list = [str(v) for v in data["label"]]
+        xs, ys, labels_list = extract_label_data(data)
 
         fig = ax.get_figure()
         if fig is not None:
@@ -327,21 +299,18 @@ class GeomLabelRepel:
             "edgecolor": color,
         }
 
-        transform = ax.transData
-        for i, (adj_x, adj_y) in enumerate(adjusted):
-            orig = transform.transform((xs[i], ys[i]))
-            dest = transform.transform((adj_x, adj_y))
-            seg_len = np.linalg.norm(np.array(orig) - np.array(dest))
-            if seg_len > self.min_segment_length:
-                ax.plot(
-                    [xs[i], adj_x],
-                    [ys[i], adj_y],
-                    color=self.segment_color,
-                    linewidth=self.segment_size,
-                    alpha=self.segment_alpha,
-                    zorder=1,
-                )
+        draw_repel_connectors(
+            ax,
+            xs,
+            ys,
+            adjusted,
+            segment_color=self.segment_color,
+            segment_size=self.segment_size,
+            segment_alpha=self.segment_alpha,
+            min_segment_length=self.min_segment_length,
+        )
 
+        for i, (adj_x, adj_y) in enumerate(adjusted):
             ax.text(
                 adj_x,
                 adj_y,

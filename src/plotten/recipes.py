@@ -234,7 +234,7 @@ def plot_lollipop(
     y: str,
     color: str = "#3498db",
     point_size: float = 50,
-    stem_size: float = 0.8,
+    stem_size: float = 1.5,
     horizontal: bool = False,
     baseline: float = 0.0,
     title: str | None = None,

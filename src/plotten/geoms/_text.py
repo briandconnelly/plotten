@@ -7,6 +7,8 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
+from plotten.geoms._text_helpers import extract_text_params
+
 
 class GeomText:
     """Draw text at each point."""
@@ -20,21 +22,12 @@ class GeomText:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        color = params.get("color", "black")
-        fontsize = params.get("size", 10)
-        ha = params.get("ha", "center")
-        va = params.get("va", "center")
+        color, fontsize, font_kwargs = extract_text_params(params)
         bbox = params.get("bbox")
 
-        kwargs: dict[str, Any] = {"color": color, "fontsize": fontsize, "ha": ha, "va": va}
+        kwargs: dict[str, Any] = {"color": color, "fontsize": fontsize, **font_kwargs}
         if bbox is not None:
             kwargs["bbox"] = bbox
-        if params.get("family") is not None:
-            kwargs["fontfamily"] = params["family"]
-        if params.get("weight") is not None:
-            kwargs["fontweight"] = params["weight"]
-        if params.get("style") is not None:
-            kwargs["fontstyle"] = params["style"]
 
         for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(x, y, str(label), **kwargs)
@@ -52,27 +45,16 @@ class GeomLabel:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        color = params.get("color", "black")
-        fontsize = params.get("size", 10)
-        ha = params.get("ha", "center")
-        va = params.get("va", "center")
+        color, fontsize, font_kwargs = extract_text_params(params)
         bg_color = params.get("fill", "white")
         alpha = params.get("alpha", 0.8)
 
-        bbox = dict(
-            boxstyle="round,pad=0.3",
-            facecolor=bg_color,
-            alpha=alpha,
-            edgecolor=color,
-        )
-
-        extra: dict[str, Any] = {}
-        if params.get("family") is not None:
-            extra["fontfamily"] = params["family"]
-        if params.get("weight") is not None:
-            extra["fontweight"] = params["weight"]
-        if params.get("style") is not None:
-            extra["fontstyle"] = params["style"]
+        bbox = {
+            "boxstyle": "round,pad=0.3",
+            "facecolor": bg_color,
+            "alpha": alpha,
+            "edgecolor": color,
+        }
 
         for x, y, label in zip(data["x"], data["y"], data["label"], strict=True):
             ax.text(
@@ -81,8 +63,6 @@ class GeomLabel:
                 str(label),
                 color=color,
                 fontsize=fontsize,
-                ha=ha,
-                va=va,
                 bbox=bbox,
-                **extra,
+                **font_kwargs,
             )
