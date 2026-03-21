@@ -87,17 +87,11 @@ def _repel_labels(
 
     point_pad_px = point_padding * fontsize
 
-    # Use figure bounds (not axis bounds) so labels can spill into margins,
-    # matching ggrepel's behaviour for dense clusters.
-    from matplotlib.figure import SubFigure
-
-    fig = ax.get_figure()
-    root_fig: Any = fig
-    while isinstance(root_fig, SubFigure):
-        root_fig = root_fig.figure
-    fig_w, fig_h = root_fig.get_size_inches() * root_fig.dpi
-    x_lo, x_hi = 0.0, float(fig_w)
-    y_lo, y_hi = 0.0, float(fig_h)
+    # Clip labels to axis bounds, matching ggrepel's default (xlim/ylim = plot area).
+    # This prevents bbox_inches="tight" from cropping labels at the figure edge.
+    ax_bbox = ax.get_window_extent(renderer)
+    x_lo, x_hi = ax_bbox.x0, ax_bbox.x1
+    y_lo, y_hi = ax_bbox.y0, ax_bbox.y1
 
     forces = np.zeros((n, 2))
 
@@ -151,6 +145,12 @@ def _repel_labels(
         # Keep labels inside the figure bounds
         positions[:, 0] = np.clip(positions[:, 0], x_lo + half[:, 0], x_hi - half[:, 0])
         positions[:, 1] = np.clip(positions[:, 1], y_lo + half[:, 1], y_hi - half[:, 1])
+
+    # Unconditional clip: handles the early-exit case where labels don't overlap
+    # each other (loop breaks before the per-iteration clip runs), but nudge or
+    # jitter has pushed a label outside the axis bounds.
+    positions[:, 0] = np.clip(positions[:, 0], x_lo + half[:, 0], x_hi - half[:, 0])
+    positions[:, 1] = np.clip(positions[:, 1], y_lo + half[:, 1], y_hi - half[:, 1])
 
     # Convert back to data coords
     inv = transform.inverted()
@@ -211,8 +211,12 @@ class _RepelArtist(Artist):
         self.min_segment_length = min_segment_length
         self.bbox_props = bbox_props
 
+    def get_window_extent(self, renderer: Any = None) -> Any:  # type: ignore[override]
+        from matplotlib.transforms import Bbox
+
+        return Bbox.null()
+
     def draw(self, renderer: Any) -> None:  # type: ignore[override]
-        # Compute repelled positions using the actual render renderer.
         adjusted = _repel_labels(
             self.xs,
             self.ys,
@@ -270,10 +274,6 @@ class _RepelArtist(Artist):
             t.set_figure(fig)
             t.draw(renderer)
 
-    def get_window_extent(self, renderer: Any = None) -> Any:  # type: ignore[override]
-        from matplotlib.transforms import Bbox
-
-        return Bbox.null()
 
 
 class GeomTextRepel:

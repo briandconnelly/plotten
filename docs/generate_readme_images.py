@@ -15,15 +15,11 @@ from plotten import (
     facet_wrap,
     geom_density_ridges,
     geom_histogram,
-    geom_label_repel,
     geom_point,
     geom_smooth,
     geom_text_repel,
     ggplot,
     labs,
-    plot_annotation,
-    scale_color_brewer,
-    theme,
     theme_bw,
     theme_minimal,
 )
@@ -39,12 +35,12 @@ hero = (
     ggplot(mpg, aes(x="displ", y="hwy", color="class"))
     + geom_point(alpha=0.7)
     + geom_smooth(method="ols")
-    + scale_color_brewer(palette="Set2")
     + labs(
         title="Engine displacement vs. highway MPG",
+        subtitle="Seven vehicle classes, model years 1999–2008",
+        caption="Source: ggplot2::mpg",
         x="Displacement (L)",
         y="Highway MPG",
-        color="Vehicle class",
     )
     + theme_minimal()
 )
@@ -63,12 +59,11 @@ repel_df = pl.DataFrame(
 )
 
 repel = (
-    ggplot(repel_df, aes(x="x", y="y"))
+    ggplot(repel_df, aes(x="x", y="y", label="name"))
     + geom_point(size=30, color="#2c3e50")
-    + geom_label_repel(label="name", fill="lightyellow", color="#34495e",
-                       size=8, segment_color="#95a5a6")
+    + geom_text_repel()
     + theme_minimal()
-    + labs(title="geom_label_repel — boxed labels with connectors", x="X", y="Y")
+    + labs(title="geom_text_repel — automatic label placement", x="X", y="Y")
 )
 repel.save(f"{OUT}/label_repel.png", width=6, height=4, dpi=150)
 print(f"Saved {OUT}/label_repel.png")
@@ -94,31 +89,12 @@ print(f"Saved {OUT}/computed_aesthetics.png")
 
 # ── Faceted scatter ───────────────────────────────────────────────────────────
 
-study_df = pl.DataFrame(
-    {
-        "study_hours": [1, 2, 3, 4, 5, 6, 7, 8] * 3,
-        "score": [
-            45, 52, 58, 65, 70, 78, 82, 90,
-            50, 55, 62, 68, 75, 80, 88, 95,
-            40, 48, 55, 60, 64, 72, 76, 85,
-        ],
-        "subject": ["Math"] * 8 + ["Science"] * 8 + ["English"] * 8,
-    }
-)
-
 faceted = (
-    ggplot(study_df, aes(x="study_hours", y="score"))
-    + geom_point(size=40, alpha=0.7)
-    + geom_smooth(method="ols", se=True)
-    + facet_wrap("subject", ncol=3)
+    ggplot(mpg, aes(x="displ", y="hwy"))
+    + geom_point(mapping=aes(color="drv"), alpha=0.6)
+    + geom_smooth(method="loess")
+    + facet_wrap("class", ncol=3)
     + theme_bw()
-    + theme(strip_background="#E8EAF6", strip_text_color="#283593")
-    + labs(
-        title="Study hours vs. test scores",
-        subtitle="Faceted by subject",
-        x="Hours studied per day",
-        y="Test score",
-    )
 )
 faceted.save(f"{OUT}/faceted_scatter.png", width=9, height=7, dpi=150)
 print(f"Saved {OUT}/faceted_scatter.png")
@@ -127,15 +103,8 @@ print(f"Saved {OUT}/faceted_scatter.png")
 
 ridge = (
     ggplot(mpg, aes(x="hwy", y="class"))
-    + geom_density_ridges(alpha=0.7, fill="#4C72B0")
-    + labs(
-        title="Highway MPG by vehicle class",
-        subtitle="Ridge plot — one distribution per class",
-        x="Highway MPG",
-        y=None,
-    )
+    + geom_density_ridges(alpha=0.8)
     + theme_minimal()
-    + theme(axis_text_y_size=11)
 )
 ridge.save(f"{OUT}/ridge_plot.png", width=8, height=5, dpi=150)
 print(f"Saved {OUT}/ridge_plot.png")
@@ -145,7 +114,6 @@ print(f"Saved {OUT}/ridge_plot.png")
 p1 = (
     ggplot(mpg, aes(x="displ", y="hwy", color="class"))
     + geom_point(alpha=0.6)
-    + scale_color_brewer(palette="Set2")
     + labs(title="Displacement vs MPG", x="Displacement (L)", y="Highway MPG")
     + theme_minimal()
 )
@@ -157,9 +125,6 @@ p2 = (
     + theme_minimal()
 )
 
-composition = (p1 | p2) + plot_annotation(
-    title="plotten — composable plots",
-    tag_levels="A",
-)
+composition = p1 | p2
 composition.save(f"{OUT}/composition.png", width=12, height=5, dpi=150)
 print(f"Saved {OUT}/composition.png")
