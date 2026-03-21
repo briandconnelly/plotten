@@ -20,6 +20,8 @@ mpg = load_dataset("mpg")
 )
 ```
 
+![Hero plot](docs/images/hero.png)
+
 ## Installation
 
 ```bash
@@ -51,17 +53,21 @@ Custom and Google Fonts are supported out of the box via `register_font()` / `re
 
 ### 45+ Geometry layers
 
-Point, line, bar, col, histogram, density, boxplot, violin, ribbon, area, tile, hex, bin2d, contour, segment, curve, spoke, dotplot, errorbar, errorbarh, crossbar, pointrange, linerange, polygon, rug, step, text, label, raster, refline, freqpoly, density ridges, QQ, quantile, jitter, count, and more.
+Point, line, bar, col, histogram, density, boxplot, violin, ribbon, area, tile, hex, bin2d, contour, segment, curve, spoke, dotplot, errorbar, errorbarh, crossbar, pointrange, linerange, polygon, rug, step, text, label, raster, refline, freqpoly, QQ, quantile, jitter, count, and more.
+`geom_density_ridges()` for ridge/joy plots, inspired by [ggridges](https://github.com/wilkelab/ggridges).
 
 ### Automatic label repelling
 
 `geom_text_repel()` and `geom_label_repel()` automatically reposition overlapping labels and draw connector segments — no manual nudging.
+Inspired by [ggrepel](https://github.com/slowkow/ggrepel).
 
 ```python
 from plotten import geom_text_repel
 
 ggplot(df, aes(x="x", y="y", label="name")) + geom_text_repel()
 ```
+
+![Label repel](docs/images/label_repel.png)
 
 ### 10 statistical layers
 
@@ -80,6 +86,8 @@ diamonds = load_dataset("diamonds")
 # Fill histogram bars by their density instead of count
 ggplot(diamonds, aes(x="carat", y=after_stat("density"))) + geom_histogram()
 ```
+
+![Computed aesthetics](docs/images/computed_aesthetics.png)
 
 ### 50+ scales
 
@@ -189,6 +197,8 @@ mpg = load_dataset("mpg")
 )
 ```
 
+![Faceted scatter](docs/images/faceted_scatter.png)
+
 **Ridge plot**
 
 ```python
@@ -205,6 +215,8 @@ mpg = load_dataset("mpg")
 )
 ```
 
+![Ridge plot](docs/images/ridge_plot.png)
+
 **Composition**
 
 ```python
@@ -212,6 +224,8 @@ from plotten import plot_grid
 
 plot_grid([p1, p2, p3], ncol=2, guides="collect")
 ```
+
+![Composition](docs/images/composition.png)
 
 **Publication-quality export**
 

@@ -1,7 +1,7 @@
 """Ridge plot — stacked density distributions by group."""
 
 import numpy as np
-import pandas as pd
+import polars as pl
 
 from plotten import (
     aes,
@@ -14,12 +14,14 @@ from plotten import (
 
 rng = np.random.default_rng(42)
 months = ["January", "February", "March", "April", "May", "June"]
-data = []
+month_col: list[str] = []
+temp_col: list[float] = []
 for i, month in enumerate(months):
-    temps = rng.normal(loc=5 + i * 3, scale=3 + i * 0.3, size=200)
-    data.extend({"month": month, "temperature": t} for t in temps)
+    temps = rng.normal(loc=5 + i * 3, scale=3 + i * 0.3, size=200).tolist()
+    month_col.extend([month] * 200)
+    temp_col.extend(temps)
 
-df = pd.DataFrame(data)
+df = pl.DataFrame({"month": month_col, "temperature": temp_col})
 
 p = (
     ggplot(df, aes(x="temperature", y="month"))
