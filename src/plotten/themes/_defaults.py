@@ -156,5 +156,34 @@ def theme_linedraw() -> Theme:
     )
 
 
+def theme_light() -> Theme:
+    """Light theme — light grey lines and axes, directing attention to the data."""
+    return Theme(
+        panel_background="#ffffff",
+        grid_color="#d9d9d9",
+        grid_line_width=0.3,
+        panel_border_color="#999999",
+        panel_border_width=0.5,
+        axis_line_width=0.3,
+        strip_background="#d9d9d9",
+        strip_text_color="#333333",
+    )
+
+
+def theme_test() -> Theme:
+    """Theme for visual unit tests — white background, black border, no grid."""
+    return Theme(
+        background="#ffffff",
+        panel_background="#ffffff",
+        grid_major_x=False,
+        grid_major_y=False,
+        grid_minor_x=False,
+        grid_minor_y=False,
+        panel_border_color="#000000",
+        panel_border_width=0.5,
+        axis_line_width=0.5,
+    )
+
+
 # American spelling alias
 theme_gray = theme_grey

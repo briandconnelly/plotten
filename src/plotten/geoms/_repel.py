@@ -68,7 +68,9 @@ def _repel_labels(
     # Get bounding box sizes in display coords, including the frame for label geoms
     sizes = np.array(
         [
-            _get_text_extent(ax, xs[i], ys[i], labels[i], fontsize, font_kwargs, renderer, bbox_props)
+            _get_text_extent(
+                ax, xs[i], ys[i], labels[i], fontsize, font_kwargs, renderer, bbox_props
+            )
             for i in range(n)
         ]
     )
@@ -162,7 +164,7 @@ class _RepelArtist(Artist):
 
     By deferring to ``draw(renderer)``, text extents are measured at the correct
     DPI (the final output DPI), not the interactive display DPI.  This avoids the
-    2× mismatch that occurs on macOS Retina where the interactive figure uses
+    2x mismatch that occurs on macOS Retina where the interactive figure uses
     200 DPI but ``savefig(dpi=150)`` renders at 150 DPI.
     """
 
@@ -211,12 +213,12 @@ class _RepelArtist(Artist):
         self.min_segment_length = min_segment_length
         self.bbox_props = bbox_props
 
-    def get_window_extent(self, renderer: Any = None) -> Any:  # type: ignore[override]
+    def get_window_extent(self, renderer: Any = None) -> Any:
         from matplotlib.transforms import Bbox
 
         return Bbox.null()
 
-    def draw(self, renderer: Any) -> None:  # type: ignore[override]
+    def draw(self, renderer: Any) -> None:
         adjusted = _repel_labels(
             self.xs,
             self.ys,
@@ -240,6 +242,7 @@ class _RepelArtist(Artist):
         from matplotlib.text import Text as MplText
 
         fig = self.ax.get_figure()
+        assert fig is not None
         transform = self.ax.transData
 
         # Draw connector segments — create Line2D directly, no add to ax
@@ -273,7 +276,6 @@ class _RepelArtist(Artist):
             t = MplText(adj_x, adj_y, self.labels[i], **kwargs)
             t.set_figure(fig)
             t.draw(renderer)
-
 
 
 class GeomTextRepel:
@@ -344,7 +346,7 @@ class GeomTextRepel:
             segment_alpha=self.segment_alpha,
             min_segment_length=self.min_segment_length,
         )
-        artist.set_figure(ax.get_figure())
+        artist.set_figure(ax.get_figure())  # type: ignore[arg-type]
         ax.add_artist(artist)
 
 
@@ -430,5 +432,5 @@ class GeomLabelRepel:
             min_segment_length=self.min_segment_length,
             bbox_props=bbox_props,
         )
-        artist.set_figure(ax.get_figure())
+        artist.set_figure(ax.get_figure())  # type: ignore[arg-type]
         ax.add_artist(artist)

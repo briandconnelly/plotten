@@ -7,15 +7,11 @@ import tempfile
 import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
-import pytest
 
 from plotten import Plot, aes, geom_label_repel, geom_point, geom_text_repel, ggplot, ggsave
 from plotten.geoms._repel import GeomLabelRepel, GeomTextRepel
 
 matplotlib.use("Agg")
-
-import numpy as np
-
 
 
 class TestGeomClasses:

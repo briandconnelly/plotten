@@ -767,6 +767,8 @@ def test_top_level_imports():
     assert callable(plotten.theme_economist)
     assert callable(plotten.theme_tufte)
     assert callable(plotten.theme_seaborn)
+    assert callable(plotten.theme_light)
+    assert callable(plotten.theme_test)
 
 
 # ---------------------------------------------------------------------------
@@ -1087,6 +1089,88 @@ class TestThemeLinedraw:
 
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_linedraw()
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestThemeLight:
+    """theme_light() — light grey axes directing attention to data."""
+
+    def test_light_exists(self):
+        from plotten import theme_light
+
+        t = theme_light()
+        assert isinstance(t, Theme)
+
+    def test_light_has_white_panel(self):
+        from plotten import theme_light
+
+        t = theme_light()
+        assert t.panel_background == "#ffffff"
+
+    def test_light_has_grey_border(self):
+        from plotten import theme_light
+
+        t = theme_light()
+        assert t.panel_border_color == "#999999"
+
+    def test_light_composable(self):
+        from plotten import theme_light
+
+        combined = theme_light() + Theme(title_size=20)
+        assert combined.title_size == 20
+        assert combined.panel_border_color == "#999999"
+
+    def test_light_renders(self):
+        from plotten import theme_light
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_light()
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestThemeTest:
+    """theme_test() — stable theme for visual unit tests."""
+
+    def test_test_exists(self):
+        from plotten import theme_test
+
+        t = theme_test()
+        assert isinstance(t, Theme)
+
+    def test_test_has_white_background(self):
+        from plotten import theme_test
+
+        t = theme_test()
+        assert t.panel_background == "#ffffff"
+        assert t.background == "#ffffff"
+
+    def test_test_no_grid(self):
+        from plotten import theme_test
+
+        t = theme_test()
+        assert t.grid_major_x is False
+        assert t.grid_major_y is False
+
+    def test_test_has_border(self):
+        from plotten import theme_test
+
+        t = theme_test()
+        assert t.panel_border_color == "#000000"
+
+    def test_test_composable(self):
+        from plotten import theme_test
+
+        combined = theme_test() + Theme(title_size=20)
+        assert combined.title_size == 20
+        assert combined.panel_border_color == "#000000"
+
+    def test_test_renders(self):
+        from plotten import theme_test
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_test()
         fig = render(p)
         plt.close(fig)
 
