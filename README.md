@@ -72,8 +72,13 @@ ggplot(df, aes(x="x", y="y", label="name")) + geom_text_repel()
 Map aesthetics to values computed *after* statistics (`after_stat`) or *after* scale mapping (`after_scale`), just like ggplot2:
 
 ```python
+from plotten import ggplot, aes, geom_histogram, after_stat
+from plotten.datasets import load_dataset
+
+diamonds = load_dataset("diamonds")
+
 # Fill histogram bars by their density instead of count
-ggplot(df, aes(x="value", y=after_stat("density"))) + geom_histogram()
+ggplot(diamonds, aes(x="carat", y=after_stat("density"))) + geom_histogram()
 ```
 
 ### 50+ scales
@@ -143,7 +148,10 @@ plotten raises domain-specific errors (`ValidationError`, `DataError`, `ScaleErr
 Turn all warnings into errors for CI and AI agents with `set_strict(True)`.
 
 ```python
-ggplot(df, aes(x="displcement", y="hwy"))
+from plotten.datasets import load_dataset
+
+mpg = load_dataset("mpg")
+ggplot(mpg, aes(x="displcement", y="hwy"))
 # DataError: column 'displcement' not found. Did you mean 'displ'?
 ```
 
@@ -185,9 +193,12 @@ mpg = load_dataset("mpg")
 
 ```python
 from plotten import ggplot, aes, geom_density_ridges, scale_fill_viridis, theme_minimal
+from plotten.datasets import load_dataset
+
+mpg = load_dataset("mpg")
 
 (
-    ggplot(df, aes(x="value", y="group", fill="group"))
+    ggplot(mpg, aes(x="hwy", y="class", fill="class"))
     + geom_density_ridges(alpha=0.8)
     + scale_fill_viridis(discrete=True)
     + theme_minimal()
