@@ -442,6 +442,15 @@ def _draw_discrete_legend(
     effective_text_size = lt_kw.get("fontsize", legend_text_size)
     effective_text_family = lt_kw.get("fontfamily", theme.font_family)
 
+    # Resolve effective key size (width/height override key_size)
+    effective_key_w = theme.legend_key_width or theme.legend_key_size
+    effective_key_h = theme.legend_key_height or theme.legend_key_size
+
+    # Resolve legend direction: guide_spec ncol > 1 implies horizontal when
+    # theme.legend_direction is "horizontal", but we also support the theme
+    # field directly.
+    direction = theme.legend_direction or "vertical"
+
     legend_ax.text(
         _SWATCH_LEFT,
         0.95,
@@ -455,36 +464,54 @@ def _draw_discrete_legend(
     step = entry_height / total_height
     col_width = 1.0 / ncol
 
-    for i, entry in enumerate(entries):
-        row_idx = i // ncol
-        col_idx = i % ncol
-        y = y_start - (row_idx + 0.5) * step
-        if ncol > 1:
-            # Offset x positions for multi-column layout
-            x_offset = col_idx * col_width
+    if direction == "horizontal" and ncol == 1:
+        # Horizontal layout: all entries in a single row
+        h_col_width = 1.0 / max(len(entries), 1)
+        for i, entry in enumerate(entries):
+            x_offset = i * h_col_width
+            y = y_start - 0.5 * step
             _draw_legend_entry_at(
                 legend_ax,
                 entry,
                 x_offset,
-                col_width,
+                h_col_width,
                 y,
                 step,
                 effective_text_size,
                 effective_text_family,
                 text_kw=entry_text_kw or None,
-                key_size=theme.legend_key_size,
+                key_size=effective_key_w,
             )
-        else:
-            _draw_legend_entry(
-                legend_ax,
-                entry,
-                y,
-                step,
-                effective_text_size,
-                effective_text_family,
-                text_kw=entry_text_kw or None,
-                key_size=theme.legend_key_size,
-            )
+    else:
+        for i, entry in enumerate(entries):
+            row_idx = i // ncol
+            col_idx = i % ncol
+            y = y_start - (row_idx + 0.5) * step
+            if ncol > 1:
+                x_offset = col_idx * col_width
+                _draw_legend_entry_at(
+                    legend_ax,
+                    entry,
+                    x_offset,
+                    col_width,
+                    y,
+                    step,
+                    effective_text_size,
+                    effective_text_family,
+                    text_kw=entry_text_kw or None,
+                    key_size=effective_key_w,
+                )
+            else:
+                _draw_legend_entry(
+                    legend_ax,
+                    entry,
+                    y,
+                    step,
+                    effective_text_size,
+                    effective_text_family,
+                    text_kw=entry_text_kw or None,
+                    key_size=effective_key_h,
+                )
 
 
 def _draw_continuous_legend(

@@ -162,20 +162,28 @@ def _render_header(
     title_text = labs.title
     subtitle_text = labs.subtitle
 
+    # Resolve title x-alignment from plot_title_position
+    title_ha = "center"
+    title_x = 0.5
+    if theme.plot_title_position == "plot":
+        title_ha = "left"
+        title_x = 0.0
+
     if has_title and has_subtitle and title_text is not None and subtitle_text is not None:
-        header.suptitle(title_text, y=0.95, va="top", **title_kw)
+        header.suptitle(title_text, x=title_x, ha=title_ha, y=0.95, va="top", **title_kw)
+        sub_ha = subtitle_kw.pop("ha", title_ha)
         header.text(
-            0.5,
+            title_x,
             0.25,
             subtitle_text,
-            ha=subtitle_kw.pop("ha", "center"),
+            ha=sub_ha,
             va=subtitle_kw.pop("va", "top"),
             **subtitle_kw,
         )
     elif has_title and title_text is not None:
-        header.suptitle(title_text, **title_kw)
+        header.suptitle(title_text, x=title_x, ha=title_ha, **title_kw)
     elif has_subtitle and subtitle_text is not None:
-        header.suptitle(subtitle_text, **subtitle_kw)
+        header.suptitle(subtitle_text, x=title_x, ha=title_ha, **subtitle_kw)
 
 
 def render_caption(
@@ -201,11 +209,18 @@ def render_caption(
         default_size=theme.tick_size,
         default_color="#000000",
     )
+    # Resolve caption x-alignment from plot_caption_position
+    if theme.plot_caption_position == "plot":
+        cap_x = 0.0
+        cap_ha = "left"
+    else:
+        cap_x = 0.99
+        cap_ha = "right"
     caption_subfig.text(
-        0.99,
+        cap_x,
         0.5,
         labs.caption,
-        ha=caption_kw.pop("ha", "right"),
+        ha=caption_kw.pop("ha", cap_ha),
         va=caption_kw.pop("va", "center"),
         **caption_kw,
     )

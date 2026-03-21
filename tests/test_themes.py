@@ -1258,6 +1258,247 @@ class TestGeomLabelThemeAware:
         plt.close(fig)
 
 
+class TestCompleteThemeFields:
+    """Tests for new ggplot2 gap-closure fields."""
+
+    def test_all_new_fields_exist_with_defaults(self):
+        t = Theme()
+        # Per-position axis variants
+        assert t.axis_title_x_top is None
+        assert t.axis_title_x_bottom is None
+        assert t.axis_title_y_left is None
+        assert t.axis_title_y_right is None
+        assert t.axis_text_x_top is None
+        assert t.axis_text_x_bottom is None
+        assert t.axis_text_y_left is None
+        assert t.axis_text_y_right is None
+        assert t.axis_ticks_x_top is None
+        assert t.axis_ticks_x_bottom is None
+        assert t.axis_ticks_y_left is None
+        assert t.axis_ticks_y_right is None
+        assert t.axis_ticks_length is None
+        assert t.axis_ticks_length_x_top is None
+        assert t.axis_ticks_length_x_bottom is None
+        assert t.axis_ticks_length_y_left is None
+        assert t.axis_ticks_length_y_right is None
+        assert t.axis_line_x_element is None
+        assert t.axis_line_y_element is None
+        assert t.axis_line_x_top is None
+        assert t.axis_line_x_bottom is None
+        assert t.axis_line_y_left is None
+        assert t.axis_line_y_right is None
+        # Polar
+        assert t.axis_text_theta is None
+        assert t.axis_text_r is None
+        assert t.axis_ticks_theta is None
+        assert t.axis_ticks_r is None
+        assert t.axis_line_theta is None
+        assert t.axis_line_r is None
+        # Minor ticks
+        assert t.axis_minor_ticks is None
+        assert t.axis_minor_ticks_x is None
+        assert t.axis_minor_ticks_y is None
+        assert t.axis_minor_ticks_length is None
+        assert t.axis_minor_ticks_length_x is None
+        assert t.axis_minor_ticks_length_y is None
+        # Legend layout
+        assert t.legend_direction is None
+        assert t.legend_byrow is False
+        assert t.legend_justification is None
+        assert t.legend_position_inside is None
+        assert t.legend_box is None
+        assert t.legend_box_just is None
+        assert t.legend_box_margin is None
+        assert t.legend_box_background is None
+        assert t.legend_box_spacing is None
+        assert t.legend_text_position is None
+        assert t.legend_title_position is None
+        assert t.legend_frame is None
+        assert t.legend_ticks is None
+        assert t.legend_ticks_length is None
+        assert t.legend_axis_line is None
+        assert t.legend_key_spacing is None
+        assert t.legend_key_spacing_x is None
+        assert t.legend_key_spacing_y is None
+        # Plot tags
+        assert t.plot_tag is None
+        assert t.plot_tag_position is None
+        assert t.plot_tag_location is None
+        # Plot title/caption position
+        assert t.plot_title_position is None
+        assert t.plot_caption_position is None
+        # Panel control
+        assert t.panel_ontop is False
+        assert t.panel_widths is None
+        assert t.panel_heights is None
+        # Strip refinements
+        assert t.strip_clip == "inherit"
+        assert t.strip_text_x_top is None
+        assert t.strip_text_x_bottom is None
+        assert t.strip_text_y_left is None
+        assert t.strip_text_y_right is None
+        assert t.strip_switch_pad_grid is None
+        assert t.strip_switch_pad_wrap is None
+        # Base element inheritance
+        assert t.line is None
+        assert t.rect is None
+        assert t.text is None
+        assert t.title is None
+        assert t.spacing is None
+        assert t.margins is None
+        # Function control
+        assert t.complete is False
+        assert t.validate is True
+
+    def test_new_fields_preserved_through_add(self):
+        t1 = Theme(panel_ontop=True, legend_direction="horizontal")
+        t2 = Theme(plot_title_position="plot")
+        combined = t1 + t2
+        assert combined.panel_ontop is True
+        assert combined.legend_direction == "horizontal"
+        assert combined.plot_title_position == "plot"
+
+    def test_theme_function_accepts_new_fields(self):
+        t = theme(
+            panel_ontop=True,
+            legend_direction="horizontal",
+            plot_title_position="plot",
+            plot_caption_position="plot",
+            strip_clip="on",
+        )
+        assert t.panel_ontop is True
+        assert t.legend_direction == "horizontal"
+
+    def test_theme_function_rejects_typos_in_new_fields(self):
+        with pytest.raises(ConfigError, match="Unknown theme"):
+            theme(panel_on_top=True)
+
+
+class TestCompleteFlag:
+    """complete=True theme replaces rather than merges."""
+
+    def test_complete_theme_replaces(self):
+        base = Theme(title_size=20, panel_ontop=True)
+        complete = Theme(title_size=16, complete=True)
+        result = base + complete
+        assert result.title_size == 16
+        assert result.panel_ontop is False  # default, not from base
+        assert result.complete is True
+
+    def test_incomplete_theme_merges(self):
+        base = Theme(title_size=20)
+        overlay = Theme(label_size=16)
+        result = base + overlay
+        assert result.title_size == 20
+        assert result.label_size == 16
+
+    def test_predefined_themes_are_complete(self):
+        assert theme_default().complete is True
+        assert theme_bw().complete is True
+        assert theme_classic().complete is True
+        assert theme_dark().complete is True
+        assert theme_void().complete is True
+        assert theme_grey().complete is True
+        assert theme_538().complete is True
+        assert theme_economist().complete is True
+        assert theme_tufte().complete is True
+        assert theme_seaborn().complete is True
+        assert theme_minimal().complete is True
+
+    def test_complete_theme_overrides_custom(self):
+        custom = Theme(title_size=30, background="#ff0000")
+        result = custom + theme_bw()
+        assert result.title_size == theme_bw().title_size
+        assert result.background == theme_bw().background
+
+
+class TestPanelOntop:
+    """panel_ontop wiring into rendering."""
+
+    def test_panel_ontop_false_default(self):
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        fig = render(p)
+        ax = fig.axes[0]
+        assert ax.get_axisbelow() is True
+        plt.close(fig)
+
+    def test_panel_ontop_true(self):
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(panel_ontop=True)
+        fig = render(p)
+        ax = fig.axes[0]
+        assert ax.get_axisbelow() is not True
+        plt.close(fig)
+
+
+class TestLegendDirection:
+    """legend_direction wiring into rendering."""
+
+    def test_horizontal_legend_renders(self):
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "c"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + theme(legend_direction="horizontal")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_vertical_legend_renders(self):
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "c"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + theme(legend_direction="vertical")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
+class TestPlotTitlePosition:
+    """plot_title_position wiring into rendering."""
+
+    def test_title_position_panel(self):
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(title="Centered")
+            + theme(plot_title_position="panel")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_title_position_plot(self):
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(title="Left-aligned")
+            + theme(plot_title_position="plot")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_caption_position_plot(self):
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(caption="Left caption")
+            + theme(plot_caption_position="plot")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
 class TestStripPlacement:
     """Fix 4 (partial): strip_placement is wired into rendering."""
 

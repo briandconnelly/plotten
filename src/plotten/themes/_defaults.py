@@ -6,7 +6,7 @@ from plotten.themes._theme import Theme
 
 def theme_default() -> Theme:
     """Clean theme with a light gray panel background (all defaults)."""
-    return Theme()
+    return Theme(complete=True)
 
 
 def theme_minimal() -> Theme:
@@ -16,6 +16,7 @@ def theme_minimal() -> Theme:
         grid_color="#cccccc",
         axis_line_width=0.0,
         grid_line_width=0.3,
+        complete=True,
     )
 
 
@@ -30,6 +31,7 @@ def theme_dark() -> Theme:
         strip_text_color="#e0e0e0",
         axis_text=ElementText(color="#cccccc"),
         axis_title=ElementText(color="#e0e0e0"),
+        complete=True,
     )
 
 
@@ -41,6 +43,7 @@ def theme_bw() -> Theme:
         grid_line_width=0.3,
         panel_border_color="#000000",
         panel_border_width=1.0,
+        complete=True,
     )
 
 
@@ -53,6 +56,7 @@ def theme_classic() -> Theme:
         grid_minor_x=False,
         grid_minor_y=False,
         axis_line_width=1.0,
+        complete=True,
     )
 
 
@@ -70,6 +74,7 @@ def theme_void() -> Theme:
         axis_line_width=0.0,
         tick_length=0.0,
         tick_size=0,
+        complete=True,
     )
 
 
@@ -84,6 +89,7 @@ def theme_grey() -> Theme:
         panel_border_color="#000000",
         panel_border_width=0.5,
         strip_background="#d9d9d9",
+        complete=True,
     )
 
 
@@ -100,6 +106,7 @@ def theme_538() -> Theme:
         axis_line_y=False,
         title_size=18,
         font_family="sans-serif",
+        complete=True,
     )
 
 
@@ -112,6 +119,7 @@ def theme_economist() -> Theme:
         grid_minor_x=False,
         grid_minor_y=False,
         title_size=16,
+        complete=True,
     )
 
 
@@ -126,6 +134,7 @@ def theme_tufte() -> Theme:
         grid_minor_y=False,
         axis_line_width=0.3,
         font_family="serif",
+        complete=True,
     )
 
 
@@ -140,6 +149,7 @@ def theme_seaborn() -> Theme:
         axis_line_y=False,
         panel_border_color="#cccccc",
         panel_border_width=1.0,
+        complete=True,
     )
 
 
@@ -153,6 +163,7 @@ def theme_linedraw() -> Theme:
         panel_border_width=0.5,
         axis_line_width=0.5,
         strip_background="#d9d9d9",
+        complete=True,
     )
 
 
@@ -167,6 +178,7 @@ def theme_light() -> Theme:
         axis_line_width=0.3,
         strip_background="#d9d9d9",
         strip_text_color="#333333",
+        complete=True,
     )
 
 
@@ -182,6 +194,7 @@ def theme_test() -> Theme:
         panel_border_color="#000000",
         panel_border_width=0.5,
         axis_line_width=0.5,
+        complete=True,
     )
 
 

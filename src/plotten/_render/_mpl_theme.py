@@ -122,7 +122,7 @@ def render_panel(
             ax.yaxis.grid(
                 True, which="minor", color=minor_grid_color_y, linewidth=minor_grid_width_y
             )
-    ax.set_axisbelow(True)
+    ax.set_axisbelow(not theme.panel_ontop)
 
     # Spine styling (polar axes have different spine names)
     is_polar_ax = ax.name == "polar"

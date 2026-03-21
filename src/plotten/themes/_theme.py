@@ -137,14 +137,116 @@ class Theme:
     # Aspect ratio (ggplot2: aspect.ratio)
     aspect_ratio: float | None = None
 
+    # --- Per-position axis variants (ggplot2: axis.title.x.top, etc.) ---
+    axis_title_x_top: ElementText | ElementBlank | None = None
+    axis_title_x_bottom: ElementText | ElementBlank | None = None
+    axis_title_y_left: ElementText | ElementBlank | None = None
+    axis_title_y_right: ElementText | ElementBlank | None = None
+    axis_text_x_top: ElementText | ElementBlank | None = None
+    axis_text_x_bottom: ElementText | ElementBlank | None = None
+    axis_text_y_left: ElementText | ElementBlank | None = None
+    axis_text_y_right: ElementText | ElementBlank | None = None
+    axis_ticks_x_top: ElementLine | ElementBlank | None = None
+    axis_ticks_x_bottom: ElementLine | ElementBlank | None = None
+    axis_ticks_y_left: ElementLine | ElementBlank | None = None
+    axis_ticks_y_right: ElementLine | ElementBlank | None = None
+    axis_ticks_length: float | None = None
+    axis_ticks_length_x_top: float | None = None
+    axis_ticks_length_x_bottom: float | None = None
+    axis_ticks_length_y_left: float | None = None
+    axis_ticks_length_y_right: float | None = None
+    axis_line_x_element: ElementLine | ElementBlank | None = None
+    axis_line_y_element: ElementLine | ElementBlank | None = None
+    axis_line_x_top: ElementLine | ElementBlank | None = None
+    axis_line_x_bottom: ElementLine | ElementBlank | None = None
+    axis_line_y_left: ElementLine | ElementBlank | None = None
+    axis_line_y_right: ElementLine | ElementBlank | None = None
+
+    # --- Polar axis (ggplot2: axis.text.theta, etc.) ---
+    axis_text_theta: ElementText | ElementBlank | None = None
+    axis_text_r: ElementText | ElementBlank | None = None
+    axis_ticks_theta: ElementLine | ElementBlank | None = None
+    axis_ticks_r: ElementLine | ElementBlank | None = None
+    axis_line_theta: ElementLine | ElementBlank | None = None
+    axis_line_r: ElementLine | ElementBlank | None = None
+
+    # --- Minor ticks (ggplot2: axis.minor.ticks, etc.) ---
+    axis_minor_ticks: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_x: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_y: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_length: float | None = None
+    axis_minor_ticks_length_x: float | None = None
+    axis_minor_ticks_length_y: float | None = None
+
+    # --- Legend layout (ggplot2: legend.direction, etc.) ---
+    legend_direction: str | None = None
+    legend_byrow: bool = False
+    legend_justification: str | tuple[float, float] | None = None
+    legend_position_inside: tuple[float, float] | None = None
+    legend_box: str | None = None
+    legend_box_just: str | None = None
+    legend_box_margin: Margin | tuple[float, float, float, float] | None = None
+    legend_box_background: ElementRect | ElementBlank | None = None
+    legend_box_spacing: float | None = None
+    legend_text_position: str | None = None
+    legend_title_position: str | None = None
+    legend_frame: ElementRect | ElementBlank | None = None
+    legend_ticks: ElementLine | ElementBlank | None = None
+    legend_ticks_length: float | None = None
+    legend_axis_line: ElementLine | ElementBlank | None = None
+    legend_key_spacing: float | None = None
+    legend_key_spacing_x: float | None = None
+    legend_key_spacing_y: float | None = None
+
+    # --- Plot tags (ggplot2: plot.tag, etc.) ---
+    plot_tag: ElementText | ElementBlank | None = None
+    plot_tag_position: str | tuple[float, float] | None = None
+    plot_tag_location: str | None = None
+
+    # --- Plot title/caption position (ggplot2: plot.title.position, etc.) ---
+    plot_title_position: str | None = None
+    plot_caption_position: str | None = None
+
+    # --- Panel control (ggplot2: panel.ontop, etc.) ---
+    panel_ontop: bool = False
+    panel_widths: tuple[float, ...] | None = None
+    panel_heights: tuple[float, ...] | None = None
+
+    # --- Strip refinements (ggplot2: strip.clip, etc.) ---
+    strip_clip: str = "inherit"
+    strip_text_x_top: ElementText | ElementBlank | None = None
+    strip_text_x_bottom: ElementText | ElementBlank | None = None
+    strip_text_y_left: ElementText | ElementBlank | None = None
+    strip_text_y_right: ElementText | ElementBlank | None = None
+    strip_switch_pad_grid: float | None = None
+    strip_switch_pad_wrap: float | None = None
+
+    # --- Base element inheritance (ggplot2: line, rect, text, title) ---
+    line: ElementLine | None = None
+    rect: ElementRect | None = None
+    text: ElementText | None = None
+    title: ElementText | None = None
+    spacing: float | None = None
+    margins: Margin | None = None
+
+    # --- Function control (ggplot2: complete, validate) ---
+    complete: bool = False
+    validate: bool = True
+
     def __add__(self, other: Theme) -> Self:
         """Layer *other* on top of *self*.
 
         For each field, if *other*'s value differs from the class default the
         value from *other* is used; otherwise the value from *self* is kept.
+
+        If *other* is a complete theme (``complete=True``), it replaces *self*
+        entirely rather than merging.
         """
         if not isinstance(other, Theme):
             return NotImplemented
+
+        if other.complete:
+            return other  # type: ignore[return-value]
 
         kwargs: dict[str, Any] = {}
         for f in fields(self):
