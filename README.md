@@ -21,6 +21,7 @@ mpg = load_dataset("mpg")
         caption="Source: ggplot2::mpg",
         x="Displacement (L)",
         y="Highway MPG",
+        color="Vehicle class",
     )
     + theme_minimal()
 )
