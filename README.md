@@ -15,7 +15,13 @@ mpg = load_dataset("mpg")
     ggplot(mpg, aes(x="displ", y="hwy", color="class"))
     + geom_point(alpha=0.7)
     + geom_smooth(method="ols")
-    + labs(title="Engine displacement vs. highway MPG", x="Displacement (L)", y="Highway MPG")
+    + labs(
+        title="Engine displacement vs. highway MPG",
+        subtitle="Seven vehicle classes, model years 1999–2008",
+        caption="Source: ggplot2::mpg",
+        x="Displacement (L)",
+        y="Highway MPG",
+    )
     + theme_minimal()
 )
 ```
@@ -202,15 +208,14 @@ mpg = load_dataset("mpg")
 **Ridge plot**
 
 ```python
-from plotten import ggplot, aes, geom_density_ridges, scale_fill_viridis, theme_minimal
+from plotten import ggplot, aes, geom_density_ridges, theme_minimal
 from plotten.datasets import load_dataset
 
 mpg = load_dataset("mpg")
 
 (
-    ggplot(mpg, aes(x="hwy", y="class", fill="class"))
+    ggplot(mpg, aes(x="hwy", y="class"))
     + geom_density_ridges(alpha=0.8)
-    + scale_fill_viridis(discrete=True)
     + theme_minimal()
 )
 ```
