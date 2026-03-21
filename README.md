@@ -1,6 +1,24 @@
 # plotten
 
-A grammar-of-graphics plotting library for Python, inspired by ggplot2.
+**A grammar-of-graphics plotting library for Python — ggplot2's API, Python's ecosystem.**
+
+If you've used ggplot2 in R, plotten will feel immediately familiar.
+If you haven't, the grammar of graphics is a composable, layered approach to building charts: you describe *what* your data is and *how* it should be encoded visually, and the library handles the rest.
+
+```python
+from plotten import ggplot, aes, geom_point, geom_smooth, labs, theme_minimal
+from plotten.datasets import load_dataset
+
+mpg = load_dataset("mpg")
+
+(
+    ggplot(mpg, aes(x="displ", y="hwy", color="class"))
+    + geom_point(alpha=0.7)
+    + geom_smooth(method="ols")
+    + labs(title="Engine displacement vs. highway MPG", x="Displacement (L)", y="Highway MPG")
+    + theme_minimal()
+)
+```
 
 ## Installation
 
@@ -8,110 +26,202 @@ A grammar-of-graphics plotting library for Python, inspired by ggplot2.
 pip install plotten
 ```
 
-## Quick Start
+## Why plotten?
 
-```python
-import pandas as pd
-from plotten import aes, geom_point, geom_smooth, ggplot, labs, theme_minimal
+### For R/ggplot2 users
 
-df = pd.DataFrame({"x": range(50), "y": [v**2 + v for v in range(50)]})
+plotten is a faithful Python port of the ggplot2 mental model.
+The same layered grammar, the same `aes()` mappings, the same `+` composition, and many of the same function names (`geom_point`, `facet_wrap`, `scale_color_brewer`, `theme_minimal`, `ggsave`, ...).
+You can also use `colour=` as an alias for `color=` everywhere.
 
-p = (
-    ggplot(df, aes(x="x", y="y"))
-    + geom_point(alpha=0.6)
-    + geom_smooth(method="ols")
-    + labs(title="Quick Start", x="X", y="Y")
-    + theme_minimal()
-)
-p.save("plot.png")
-```
+### For data analysts
+
+plotten works with both **pandas** and **polars** out of the box via [narwhals](https://github.com/narwhals-dev/narwhals) — no conversion needed.
+Fifty-plus scales, nine position adjustments, and a full faceting system cover the long tail of real-world chart types without reaching for matplotlib directly.
+
+### For scientists and publication authors
+
+`ggsave()` defaults to **300 DPI** and accepts `width`/`height` in inches, centimeters, or millimeters.
+The accessibility auditor (`accessibility_report()`) checks colorblind safety, contrast ratios, and font sizes before you submit.
+Custom and Google Fonts are supported out of the box via `register_font()` / `register_google_font()`.
+
+---
 
 ## Features
 
-### Geoms
+### 45+ Geometry layers
 
-45 geometry layers including point, line, bar, histogram, density, boxplot, violin, ribbon, area, tile, hex, contour, segment, curve, spoke, dotplot, errorbar, crossbar, pointrange, polygon, rug, step, text, label, raster, refline, col, freqpoly, errorbarh, density ridges, QQ, quantile, bin2d, jitter, count, and more.
-10 stat layers: `stat_ecdf`, `stat_summary`, `stat_summary_bin`, `stat_function`, `stat_density_2d`, `stat_ellipse`, `stat_cor`, `stat_poly_eq`, and more.
+Point, line, bar, col, histogram, density, boxplot, violin, ribbon, area, tile, hex, bin2d, contour, segment, curve, spoke, dotplot, errorbar, errorbarh, crossbar, pointrange, linerange, polygon, rug, step, text, label, raster, refline, freqpoly, density ridges, QQ, quantile, jitter, count, and more.
 
-### Repel Geoms
+### Automatic label repelling
 
-`geom_text_repel()` and `geom_label_repel()` automatically reposition overlapping labels with connector segments.
+`geom_text_repel()` and `geom_label_repel()` automatically reposition overlapping labels and draw connector segments — no manual nudging.
 
-### Scales
+```python
+from plotten import geom_text_repel
 
-50+ scales across color, fill, size, shape, alpha, linetype, position, and date aesthetics.
+ggplot(df, aes(x="x", y="y", label="name")) + geom_text_repel()
+```
+
+### 10 statistical layers
+
+`stat_ecdf`, `stat_summary`, `stat_summary_bin`, `stat_function`, `stat_density_2d`, `stat_ellipse`, `stat_cor`, `stat_poly_eq`, `stat_sum`, `stat_unique` — computed on the fly from your raw data.
+
+### Computed aesthetics
+
+Map aesthetics to values computed *after* statistics (`after_stat`) or *after* scale mapping (`after_scale`), just like ggplot2:
+
+```python
+# Fill histogram bars by their density instead of count
+ggplot(df, aes(x="value", y=after_stat("density"))) + geom_histogram()
+```
+
+### 50+ scales
+
+Color, fill, size, shape, alpha, linetype, linewidth, hatch, and position scales.
 Includes manual, identity, grey, viridis, Brewer, gradient, log, sqrt, reverse, binned, and discrete variants.
 Secondary axes via `sec_axis()` and `dup_axis()`.
 
-### Coordinates
+### Full faceting
 
-Cartesian, polar, flipped, equal, fixed, and arbitrary transformations via `coord_trans()`.
-
-### Positions
-
-9 position adjustments: identity, dodge, dodge2, stack, fill, jitter, jitterdodge, nudge, and beeswarm.
-
-### Facets
-
-`facet_wrap()` and `facet_grid()` with free/fixed scales, custom labellers, and configurable strip position.
+`facet_wrap()` and `facet_grid()` with free/fixed scales, custom labellers (`labeller_both`, `labeller_wrap`), and configurable strip position.
 
 ### Themes
 
-Built-in themes (grey, bw, minimal, classic, dark, void, light) with full customization via `theme()`.
-Global theme management with `theme_set()`, `theme_get()`, `theme_update()`.
+Built-in themes for every taste: `theme_grey`, `theme_bw`, `theme_minimal`, `theme_classic`, `theme_dark`, `theme_void`, `theme_linedraw`, `theme_light`, `theme_tufte`, `theme_economist`, `theme_538`, `theme_seaborn`.
+Customise any element with `theme()` and manage global defaults with `theme_set()` / `theme_get()` / `theme_update()`.
 
-### Font Support
+### Plot composition
 
-Register custom or Google Fonts with `register_font()` and `register_google_font()`.
-List available fonts with `available_fonts()`.
+Combine plots with `|` (side by side) and `/` (stacked), or use `plot_grid()` for arbitrary grids with collected legends and shared annotations.
+Embed one plot inside another with `inset_element()`.
 
-### Plot Recipes
+```python
+(scatter | histogram) / residuals
+```
 
-High-level chart types built on the grammar: `plot_waterfall()`, `plot_dumbbell()`, `plot_lollipop()`, `plot_slope()`, `plot_forest()`.
+### Plot recipes
 
-### Composition
+High-level constructors for common patterns: `plot_waterfall()`, `plot_dumbbell()`, `plot_lollipop()`, `plot_slope()`, `plot_forest()`, `plot_waffle()`.
 
-Combine plots with `|` (side by side) and `/` (stacked).
-Grid layouts via `plot_grid()` with collected legends and shared annotations.
-Inset plots via `inset_element()`.
+### Declarative spec API
 
-### Annotations
+Build plots from plain Python dicts (or JSON) with `from_spec()`.
+A JSON Schema is available via `spec_schema()` — useful for validating specs programmatically or feeding into AI agents:
 
-Text, segment, curve, rect, hline, vline, abline, and bracket annotations with configurable arrow styles.
+```python
+import json
+from plotten import spec_schema, from_spec
 
-### Built-in Datasets
+# Validate before rendering
+schema = spec_schema()   # full enum lists for geoms, scales, themes, …
+plot = from_spec({"geom": "point", "mapping": {"x": "hp", "y": "mpg"}}, data=df)
+```
 
-7 classic datasets available via `load_dataset()`: diamonds, mtcars, iris, faithful, tips, mpg, and penguins.
+### Vega-Lite export
 
-### Validation & Error Handling
+Convert any plot to a Vega-Lite specification or a self-contained HTML file:
 
-Descriptive error hierarchy with 8 subclasses of `PlottenError`:
-`ValidationError`, `DataError`, `ScaleError`, `StatError`, `RenderError`, `ConfigError`, `FontError`, `ExportError`, and `SpecError`.
+```python
+vl_spec = plot.to_vegalite()
+plot.to_html("chart.html")
+```
 
-- Typo detection for geom parameters, column names, theme properties, and color names via `difflib` suggestions
-- Aesthetic value validation (shape, linetype, hatch, color, alpha, size) at construction time
-- Scale/data type mismatch warnings with column name and dtype
-- Strict mode via `set_strict(True)` converts all warnings to errors (useful for AI agents and CI)
+### Accessibility auditing
 
-### Accessibility
+```python
+report = accessibility_report(plot)
+print(report)
+# Accessibility Report — ISSUES FOUND (1 item(s))
+#   [WARN] [colorblind] Palette may be indistinguishable under deuteranopia
+#          Suggestion: use scale_color_viridis() or a colorblind-safe Brewer palette
+```
 
-`accessibility_report()` audits a plot for colorblind safety, contrast ratios, and font sizes.
+### Helpful error messages
 
-### Vega-Lite Export
+plotten raises domain-specific errors (`ValidationError`, `DataError`, `ScaleError`, `RenderError`, …) with typo suggestions for geom parameters, column names, theme properties, and color names.
+Turn all warnings into errors for CI and AI agents with `set_strict(True)`.
 
-Convert plots to Vega-Lite specs with `to_vegalite()` or self-contained HTML with `to_html()`.
+```python
+ggplot(df, aes(x="displcement", y="hwy"))
+# DataError: column 'displcement' not found. Did you mean 'displ'?
+```
 
-### Output
+### Font support
 
-Save to any format via `Plot.save()` with publication-quality defaults.
-Jupyter notebook integration via `_repr_png_()`.
+```python
+from plotten import register_google_font, available_fonts
+
+register_google_font("Lato")
+available_fonts()  # lists all registered fonts
+```
+
+### Built-in datasets
+
+Seven classic datasets via `load_dataset()`: `diamonds`, `mtcars`, `iris`, `faithful`, `tips`, `mpg`, `penguins`.
+
+---
+
+## Quick examples
+
+**Scatter with smooth + facets**
+
+```python
+from plotten import ggplot, aes, geom_point, geom_smooth, facet_wrap, theme_bw
+from plotten.datasets import load_dataset
+
+mpg = load_dataset("mpg")
+
+(
+    ggplot(mpg, aes(x="displ", y="hwy"))
+    + geom_point(aes(color="drv"), alpha=0.6)
+    + geom_smooth(method="loess")
+    + facet_wrap("class", ncol=3)
+    + theme_bw()
+)
+```
+
+**Ridge plot**
+
+```python
+from plotten import ggplot, aes, geom_density_ridges, scale_fill_viridis, theme_minimal
+
+(
+    ggplot(df, aes(x="value", y="group", fill="group"))
+    + geom_density_ridges(alpha=0.8)
+    + scale_fill_viridis(discrete=True)
+    + theme_minimal()
+)
+```
+
+**Composition**
+
+```python
+from plotten import plot_grid
+
+plot_grid([p1, p2, p3], ncol=2, guides="collect")
+```
+
+**Publication-quality export**
+
+```python
+from plotten import ggsave
+
+ggsave(plot, "figure1.pdf", width=180, height=120, units="mm", dpi=300)
+```
+
+---
 
 ## Dependencies
 
-- **narwhals** — dataframe abstraction (works with pandas, polars, and other backends)
-- **matplotlib** >= 3.8
-- **numpy** >= 1.24
-- **scipy** (optional) — for smooth geoms, confidence ellipses, and correlation p-values
+| Package | Role |
+|---|---|
+| **narwhals** | DataFrame abstraction — works with pandas, polars, and more |
+| **matplotlib** ≥ 3.8 | Rendering backend |
+| **numpy** ≥ 1.24 | Numerical operations |
+| **scipy** *(optional)* | Smooth geoms, confidence ellipses, correlation p-values |
+
+---
 
 ## License
 
