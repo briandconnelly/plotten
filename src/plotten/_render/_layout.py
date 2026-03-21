@@ -34,6 +34,10 @@ def create_figure(
 
     Returns (fig, main_subfig, caption_subfig).
     caption_subfig is None when no caption is present.
+
+    When *legend_position* is ``"top"`` and a header is present, a dedicated
+    legend region is inserted between the header and main content so the
+    legend renders below the subtitle.
     """
     labs = resolved.labs
     has_title = labs is not None and labs.title is not None
@@ -71,19 +75,25 @@ def create_figure(
         if engine is not None:
             engine.set(rect=(left, bottom, 1.0 - left - right, 1.0 - top - bottom))  # type: ignore[arg-type]
 
-    # Plot background element
-    from plotten.themes._elements import ElementRect
+    # Plot background element — inherit from theme.rect
+    from plotten.themes._elements import ElementRect, merge_rect
 
+    base_rect = theme.rect if isinstance(theme.rect, ElementRect) else None
     if isinstance(theme.plot_background, ElementRect):
-        if theme.plot_background.fill is not None:
-            fig.patch.set_facecolor(theme.plot_background.fill)
-        if theme.plot_background.color is not None:
-            fig.patch.set_edgecolor(theme.plot_background.color)
-            fig.patch.set_linewidth(theme.plot_background.size or 1.0)
+        resolved_bg = merge_rect(theme.plot_background, base_rect)
+        if resolved_bg is not None:
+            if resolved_bg.fill is not None:
+                fig.patch.set_facecolor(resolved_bg.fill)
+            if resolved_bg.color is not None:
+                fig.patch.set_edgecolor(resolved_bg.color)
+                fig.patch.set_linewidth(resolved_bg.size or 1.0)
 
     # Determine layout structure
     regions: list[str] = []
     ratios: list[float] = []
+
+    # Check if legend needs a dedicated top region
+    legend_top = isinstance(theme.legend_position, str) and theme.legend_position == "top"
 
     if has_title or has_subtitle:
         header_h = 0.06
@@ -91,6 +101,10 @@ def create_figure(
             header_h = 0.09
         regions.append("header")
         ratios.append(header_h)
+
+    if legend_top:
+        regions.append("legend_top")
+        ratios.append(0.05)
 
     regions.append("main")
     ratios.append(1.0)
@@ -114,6 +128,10 @@ def create_figure(
     if "header" in regions:
         header_subfig = subfigs[regions.index("header")]
         _render_header(header_subfig, resolved, theme)
+
+    # Stash legend subfig on the figure for draw_legend to use
+    if "legend_top" in regions:
+        fig._plotten_legend_subfig = subfigs[regions.index("legend_top")]  # type: ignore[attr-defined]
 
     return fig, main_subfig, caption_subfig
 
@@ -148,12 +166,14 @@ def _render_header(
         theme,
         default_size=theme.title_size,
         default_color=theme.title_color,
+        is_title=True,
     )
     subtitle_kw = text_props(
         theme.plot_subtitle,
         theme,
         default_size=theme.subtitle_size or theme.label_size,
         default_color=theme.subtitle_color,
+        is_title=True,
     )
 
     has_subtitle = labs.subtitle is not None
@@ -275,6 +295,7 @@ def apply_facet_decorations(
         theme,
         default_size=theme.strip_text_size or theme.label_size,
         default_color=theme.strip_text_color,
+        is_title=True,
     )
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
@@ -286,6 +307,7 @@ def apply_facet_decorations(
             theme,
             default_size=theme.strip_text_size or theme.label_size,
             default_color=theme.strip_text_color,
+            is_title=True,
         )
         if theme.strip_text_x is not None
         else strip_kw
@@ -348,6 +370,7 @@ def apply_facet_decorations(
         theme,
         default_size=theme.label_size,
         default_color="#000000",
+        is_title=True,
     )
     # Per-axis size overrides
     ax_x_kw = dict(axis_title_kw)

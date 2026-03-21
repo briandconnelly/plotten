@@ -15,6 +15,7 @@ def text_props(
     *,
     default_size: float | None = None,
     default_color: str = "#000000",
+    is_title: bool = False,
 ) -> dict[str, Any]:
     """Build matplotlib text kwargs from ElementText + theme fallbacks.
 
@@ -22,8 +23,20 @@ def text_props(
     ``fontweight``, ``fontstyle``, ``rotation``, ``ha``, ``va`` — only
     including non-None values.  Falls back to *theme.font_family* for
     family and the provided *default_size* / *default_color* for size/color.
+
+    When *is_title* is True, the element also inherits from ``theme.title``
+    (which itself inherits from ``theme.text``).
     """
-    from plotten.themes._elements import ElementText
+    from plotten.themes._elements import ElementText, merge_text
+
+    # Build the inheritance chain: theme.text → theme.title (if title) → element
+    base = theme.text if isinstance(theme.text, ElementText) else None
+    if is_title and isinstance(theme.title, ElementText):
+        base = merge_text(theme.title, base)
+    if isinstance(element, ElementText):
+        element = merge_text(element, base)
+    elif base is not None:
+        element = base
 
     props: dict[str, Any] = {}
 

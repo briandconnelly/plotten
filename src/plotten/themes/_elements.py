@@ -92,6 +92,50 @@ def element_blank() -> ElementBlank:
     return ElementBlank()
 
 
+def merge_text(element: ElementText | None, base: ElementText | None) -> ElementText | None:
+    """Merge a text element with a base, using the base for any None fields."""
+    if element is None:
+        return base
+    if base is None:
+        return element
+    return ElementText(
+        size=element.size if element.size is not None else base.size,
+        color=element.color if element.color is not None else base.color,
+        family=element.family if element.family is not None else base.family,
+        weight=element.weight if element.weight is not None else base.weight,
+        style=element.style if element.style is not None else base.style,
+        rotation=element.rotation if element.rotation is not None else base.rotation,
+        ha=element.ha if element.ha is not None else base.ha,
+        va=element.va if element.va is not None else base.va,
+    )
+
+
+def merge_line(element: ElementLine | None, base: ElementLine | None) -> ElementLine | None:
+    """Merge a line element with a base, using the base for any None fields."""
+    if element is None:
+        return base
+    if base is None:
+        return element
+    return ElementLine(
+        color=element.color if element.color is not None else base.color,
+        size=element.size if element.size is not None else base.size,
+        linetype=element.linetype if element.linetype is not None else base.linetype,
+    )
+
+
+def merge_rect(element: ElementRect | None, base: ElementRect | None) -> ElementRect | None:
+    """Merge a rect element with a base, using the base for any None fields."""
+    if element is None:
+        return base
+    if base is None:
+        return element
+    return ElementRect(
+        fill=element.fill if element.fill is not None else base.fill,
+        color=element.color if element.color is not None else base.color,
+        size=element.size if element.size is not None else base.size,
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class Margin:
     """Margin specification with optional unit.

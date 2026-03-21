@@ -15,6 +15,11 @@ class Labs:
     color: str | None = None
     fill: str | None = None
     size: str | None = None
+    alpha: str | None = None
+    shape: str | None = None
+    linetype: str | None = None
+    linewidth: str | None = None
+    hatch: str | None = None
     caption: str | None = None
 
     def __add__(self, other: Labs) -> Self:
@@ -42,7 +47,7 @@ def labs(**kwargs: str) -> Labs:
         Plot subtitle.
     x, y : str, optional
         Axis labels.
-    color, fill, size : str, optional
+    color, fill, size, alpha, shape, linetype, linewidth, hatch : str, optional
         Legend titles for the corresponding aesthetic.
     caption : str, optional
         Caption text below the plot.

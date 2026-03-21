@@ -29,6 +29,7 @@ def apply_axis_labs(ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
         theme,
         default_size=theme.label_size,
         default_color="#000000",
+        is_title=True,
     )
     # Remove ha/va/rotation — set_xlabel/set_ylabel don't use them directly
     for k in ("ha", "va", "rotation"):

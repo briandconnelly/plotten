@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import DEFAULT_POINT_SIZE
+from plotten._shapes import resolve_shape
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -26,7 +29,7 @@ class GeomPoint:
 
         # Per-point shapes require grouping by shape
         if "shape" in data and isinstance(data["shape"], list):
-            shapes = data["shape"]
+            shapes = [resolve_shape(s) for s in data["shape"]]
             unique_shapes = sorted(set(shapes))
             for shape in unique_shapes:
                 indices = [i for i, s in enumerate(shapes) if s == shape]
@@ -45,6 +48,8 @@ class GeomPoint:
                         kwargs["s"] = data["size"]
                 elif "size" in params:
                     kwargs["s"] = params["size"]
+                else:
+                    kwargs["s"] = DEFAULT_POINT_SIZE
                 if "alpha" in data:
                     if isinstance(data["alpha"], list):
                         kwargs["alpha"] = [data["alpha"][i] for i in indices]
@@ -55,12 +60,18 @@ class GeomPoint:
                 ax.scatter(gx, gy, **kwargs)
         else:
             kwargs = {}
+            if "shape" in data and isinstance(data["shape"], str):
+                kwargs["marker"] = resolve_shape(data["shape"])
+            elif "shape" in params:
+                kwargs["marker"] = resolve_shape(params["shape"])
             if "color" in data:
                 kwargs["c"] = data["color"]
             if "size" in data:
                 kwargs["s"] = data["size"]
             elif "size" in params:
                 kwargs["s"] = params["size"]
+            else:
+                kwargs["s"] = DEFAULT_POINT_SIZE
             if "alpha" in data:
                 kwargs["alpha"] = data["alpha"]
             elif "alpha" in params:

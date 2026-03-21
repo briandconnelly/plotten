@@ -389,8 +389,17 @@ def _draw_discrete_legend(
         stack_top = 0.5 + effective_height / 2
         y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.TOP:
-        x0 = 0.5 - legend_width / 2
-        y0 = _LEGEND_RIGHT_X - y_offset
+        from matplotlib.figure import SubFigure
+
+        if isinstance(fig, SubFigure):
+            # Drawing in a dedicated legend subfig — fill it
+            legend_width = max(legend_width, 0.5)
+            x0 = 0.5 - legend_width / 2
+            y0 = 0.0
+            total_height = 1.0
+        else:
+            x0 = 0.5 - legend_width / 2
+            y0 = _LEGEND_RIGHT_X - y_offset
     else:  # bottom
         x0 = 0.5 - legend_width / 2
         y0 = _LEGEND_LEFT_X + y_offset
@@ -419,6 +428,7 @@ def _draw_discrete_legend(
         theme,
         default_size=legend_title_size,
         default_color="#000000",
+        is_title=True,
     )
     title_kw.pop("ha", None)
     title_kw.setdefault("fontweight", "bold")
@@ -450,6 +460,53 @@ def _draw_discrete_legend(
     # theme.legend_direction is "horizontal", but we also support the theme
     # field directly.
     direction = theme.legend_direction or "vertical"
+
+    from matplotlib.figure import SubFigure
+
+    in_subfig = isinstance(fig, SubFigure)
+
+    from matplotlib.figure import SubFigure
+
+    in_subfig = isinstance(fig, SubFigure)
+
+    if in_subfig:
+        # In a dedicated legend subfig — single-line layout
+        # Title on the left, entries flowing right, all vertically centered
+        n = len(entries)
+        # Compact centered layout: title + entries together
+        # Each entry needs ~8% width, title needs ~15-20%
+        entry_w = 0.08
+        title_frac = min(max(len(title) * 0.015 + 0.05, 0.10), 0.25)
+        total_content_w = title_frac + n * entry_w
+        # Center the whole group
+        start_x = max(0.5 - total_content_w / 2, 0.02)
+        entry_zone_start = start_x + title_frac
+        h_col_width = entry_w
+
+        legend_ax.text(
+            start_x + title_frac - 0.01,
+            0.5,
+            title,
+            horizontalalignment="right",
+            verticalalignment="center",
+            transform=legend_ax.transAxes,
+            **title_kw,
+        )
+        for i, entry in enumerate(entries):
+            x_offset = entry_zone_start + i * h_col_width
+            _draw_legend_entry_at(
+                legend_ax,
+                entry,
+                x_offset,
+                h_col_width,
+                0.5,
+                0.8,  # step for swatch height
+                effective_text_size,
+                effective_text_family,
+                text_kw=entry_text_kw or None,
+                key_size=effective_key_w,
+            )
+        return
 
     legend_ax.text(
         _SWATCH_LEFT,
@@ -596,6 +653,7 @@ def _draw_continuous_legend(
         theme,
         default_size=legend_title_size,
         default_color="#000000",
+        is_title=True,
     )
     for k in ("ha", "va", "rotation"):
         cbar_title_kw.pop(k, None)

@@ -27,6 +27,7 @@ class GeomRug:
         length = params.get("length", 0.03)
         alpha = params.get("alpha", 0.5)
         color = params.get("color", "black")
+        linewidth = params.get("linewidth", 0.5)
 
         if "color" in data and isinstance(data["color"], str):
             color = data["color"]
@@ -41,7 +42,7 @@ class GeomRug:
                     transform=trans,
                     color=color,
                     alpha=alpha,
-                    linewidth=0.5,
+                    linewidth=linewidth,
                 )
             elif side == "t" and "x" in data:
                 trans = blended_transform_factory(ax.transData, ax.transAxes)
@@ -52,7 +53,7 @@ class GeomRug:
                     transform=trans,
                     color=color,
                     alpha=alpha,
-                    linewidth=0.5,
+                    linewidth=linewidth,
                 )
             elif side == "l" and "y" in data:
                 trans = blended_transform_factory(ax.transAxes, ax.transData)
@@ -63,7 +64,7 @@ class GeomRug:
                     transform=trans,
                     color=color,
                     alpha=alpha,
-                    linewidth=0.5,
+                    linewidth=linewidth,
                 )
             elif side == "r" and "y" in data:
                 trans = blended_transform_factory(ax.transAxes, ax.transData)
@@ -74,5 +75,5 @@ class GeomRug:
                     transform=trans,
                     color=color,
                     alpha=alpha,
-                    linewidth=0.5,
+                    linewidth=linewidth,
                 )

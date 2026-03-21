@@ -35,10 +35,16 @@ def _resolve_line_prop[T](
     global_el: ElementLine | ElementBlank | None,
     per_axis_el: ElementLine | ElementBlank | None,
     attr: str,
+    *,
+    base_line: ElementLine | None = None,
 ) -> T:
-    """Resolve a line property (color/size) through the global → per-axis cascade."""
+    """Resolve a line property (color/size) through base → global → per-axis cascade."""
     from plotten.themes._elements import ElementLine
 
+    if isinstance(base_line, ElementLine):
+        val = getattr(base_line, attr, None)
+        if val is not None:
+            default = val
     if isinstance(global_el, ElementLine):
         val = getattr(global_el, attr, None)
         if val is not None:
@@ -80,30 +86,63 @@ def render_panel(
     )
 
     # Resolve grid colors and widths per axis
+    base_line = theme.line
     major_grid_color_x = _resolve_line_prop(
-        theme.grid_color, theme.panel_grid_major, theme.panel_grid_major_x, "color"
+        theme.grid_color,
+        theme.panel_grid_major,
+        theme.panel_grid_major_x,
+        "color",
+        base_line=base_line,
     )
     major_grid_color_y = _resolve_line_prop(
-        theme.grid_color, theme.panel_grid_major, theme.panel_grid_major_y, "color"
+        theme.grid_color,
+        theme.panel_grid_major,
+        theme.panel_grid_major_y,
+        "color",
+        base_line=base_line,
     )
     major_grid_width_x = _resolve_line_prop(
-        theme.grid_line_width, theme.panel_grid_major, theme.panel_grid_major_x, "size"
+        theme.grid_line_width,
+        theme.panel_grid_major,
+        theme.panel_grid_major_x,
+        "size",
+        base_line=base_line,
     )
     major_grid_width_y = _resolve_line_prop(
-        theme.grid_line_width, theme.panel_grid_major, theme.panel_grid_major_y, "size"
+        theme.grid_line_width,
+        theme.panel_grid_major,
+        theme.panel_grid_major_y,
+        "size",
+        base_line=base_line,
     )
 
     minor_grid_color_x = _resolve_line_prop(
-        theme.grid_color, theme.panel_grid_minor, theme.panel_grid_minor_x, "color"
+        theme.grid_color,
+        theme.panel_grid_minor,
+        theme.panel_grid_minor_x,
+        "color",
+        base_line=base_line,
     )
     minor_grid_color_y = _resolve_line_prop(
-        theme.grid_color, theme.panel_grid_minor, theme.panel_grid_minor_y, "color"
+        theme.grid_color,
+        theme.panel_grid_minor,
+        theme.panel_grid_minor_y,
+        "color",
+        base_line=base_line,
     )
     minor_grid_width_x = _resolve_line_prop(
-        theme.grid_line_width * 0.5, theme.panel_grid_minor, theme.panel_grid_minor_x, "size"
+        theme.grid_line_width * 0.5,
+        theme.panel_grid_minor,
+        theme.panel_grid_minor_x,
+        "size",
+        base_line=base_line,
     )
     minor_grid_width_y = _resolve_line_prop(
-        theme.grid_line_width * 0.5, theme.panel_grid_minor, theme.panel_grid_minor_y, "size"
+        theme.grid_line_width * 0.5,
+        theme.panel_grid_minor,
+        theme.panel_grid_minor_y,
+        "size",
+        base_line=base_line,
     )
 
     # Clear any default grid, then apply per-axis
@@ -127,13 +166,19 @@ def render_panel(
     # Spine styling (polar axes have different spine names)
     is_polar_ax = ax.name == "polar"
 
-    # Resolve axis line element properties
+    # Resolve axis line element properties — inherit from theme.line
+    from plotten.themes._elements import merge_line
+
+    resolved_axis_line = merge_line(
+        theme.axis_line_element if isinstance(theme.axis_line_element, ElementLine) else None,
+        base_line,
+    )
     line_width = theme.axis_line_width
     line_color = None
-    if isinstance(theme.axis_line_element, ElementLine):
-        if theme.axis_line_element.size is not None:
-            line_width = theme.axis_line_element.size
-        line_color = theme.axis_line_element.color
+    if isinstance(resolved_axis_line, ElementLine):
+        if resolved_axis_line.size is not None:
+            line_width = resolved_axis_line.size
+        line_color = resolved_axis_line.color
 
     for spine in ax.spines.values():
         spine.set_linewidth(line_width)
@@ -153,11 +198,28 @@ def render_panel(
         ax.spines["left"].set_visible(axis_line_y)
         ax.spines["right"].set_visible(axis_line_y)
 
-    # Panel border
+    # Panel border — inherit from theme.rect
+    from plotten.themes._elements import ElementRect, merge_rect
+
+    base_rect = theme.rect if isinstance(theme.rect, ElementRect) else None
     panel_border_color = theme.panel_border_color
     panel_border_width = theme.panel_border_width
+    if base_rect is not None:
+        if panel_border_color is None and base_rect.color is not None:
+            panel_border_color = base_rect.color
+        if panel_border_width == 1.0 and base_rect.size is not None:
+            panel_border_width = base_rect.size
     if isinstance(theme.panel_border, ElementBlank):
+        for spine in ax.spines.values():
+            spine.set_visible(False)
         panel_border_color = None
+    elif isinstance(theme.panel_border, ElementRect):
+        resolved_border = merge_rect(theme.panel_border, base_rect)
+        if resolved_border is not None:
+            if resolved_border.color is not None:
+                panel_border_color = resolved_border.color
+            if resolved_border.size is not None:
+                panel_border_width = resolved_border.size
     elif isinstance(theme.panel_border, type(None)):
         pass
     if panel_border_color is not None:
@@ -198,13 +260,33 @@ def render_panel(
     show_ticks_x = _resolve_visibility(True, theme.axis_ticks, theme.axis_ticks_x)
     show_ticks_y = _resolve_visibility(True, theme.axis_ticks, theme.axis_ticks_y)
     tick_color_x = _resolve_line_prop(
-        axis_text_x_kw.get("color", "#000000"), theme.axis_ticks, theme.axis_ticks_x, "color"
+        axis_text_x_kw.get("color", "#000000"),
+        theme.axis_ticks,
+        theme.axis_ticks_x,
+        "color",
+        base_line=base_line,
     )
     tick_color_y = _resolve_line_prop(
-        axis_text_y_kw.get("color", "#000000"), theme.axis_ticks, theme.axis_ticks_y, "color"
+        axis_text_y_kw.get("color", "#000000"),
+        theme.axis_ticks,
+        theme.axis_ticks_y,
+        "color",
+        base_line=base_line,
     )
-    tick_width_x = _resolve_line_prop(line_width, theme.axis_ticks, theme.axis_ticks_x, "size")
-    tick_width_y = _resolve_line_prop(line_width, theme.axis_ticks, theme.axis_ticks_y, "size")
+    tick_width_x = _resolve_line_prop(
+        line_width,
+        theme.axis_ticks,
+        theme.axis_ticks_x,
+        "size",
+        base_line=base_line,
+    )
+    tick_width_y = _resolve_line_prop(
+        line_width,
+        theme.axis_ticks,
+        theme.axis_ticks_y,
+        "size",
+        base_line=base_line,
+    )
 
     ax.tick_params(
         axis="x",
@@ -280,6 +362,7 @@ def render_panel(
         theme,
         default_size=theme.label_size,
         default_color="#000000",
+        is_title=True,
     )
 
     # Per-axis title element overrides

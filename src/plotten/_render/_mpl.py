@@ -56,6 +56,7 @@ def render_single(
                 theme,
                 default_size=theme.label_size,
                 default_color="#000000",
+                is_title=True,
             )
             for k in ("ha", "va", "rotation"):
                 axis_title_kw.pop(k, None)
@@ -75,6 +76,7 @@ def render_single(
                 theme,
                 default_size=theme.title_size,
                 default_color=theme.title_color,
+                is_title=True,
             )
             for k in ("ha", "va"):
                 title_kw.pop(k, None)
@@ -201,23 +203,29 @@ def _apply_legend(
     if not has_legend:
         return
 
-    # Adjust constrained layout rect to make room for legend
-    engine = fig.get_layout_engine()
-    if engine is not None:
-        pos = position
-        if isinstance(pos, tuple):
-            pass  # Inside legend, no rect adjustment needed
-        elif pos == LegendPosition.RIGHT:
-            engine.set(rect=[0, 0, 0.85, 1])  # type: ignore[union-attr]
-        elif pos == LegendPosition.LEFT:
-            engine.set(rect=[0.15, 0, 1, 1])  # type: ignore[union-attr]
-        elif pos == LegendPosition.TOP:
-            engine.set(rect=[0, 0, 1, 0.85])  # type: ignore[union-attr]
-        elif pos == LegendPosition.BOTTOM:
-            engine.set(rect=[0, 0.15, 1, 1])  # type: ignore[union-attr]
+    # Check for dedicated legend subfig created by create_figure
+    legend_subfig = getattr(fig, "_plotten_legend_subfig", None)
 
-    # Draw legend on the top-level figure (not subfigure)
-    draw_legend(fig, axes, resolved.scales, resolved.labs, theme, resolved.guides)
+    # Adjust constrained layout rect to make room for legend
+    # (not needed when a dedicated legend subfig handles the space)
+    if legend_subfig is None:
+        engine = fig.get_layout_engine()
+        if engine is not None:
+            pos = position
+            if isinstance(pos, tuple):
+                pass  # Inside legend, no rect adjustment needed
+            elif pos == LegendPosition.RIGHT:
+                engine.set(rect=[0, 0, 0.85, 1])  # type: ignore[union-attr]
+            elif pos == LegendPosition.LEFT:
+                engine.set(rect=[0.15, 0, 1, 1])  # type: ignore[union-attr]
+            elif pos == LegendPosition.TOP:
+                engine.set(rect=[0, 0, 1, 0.85])  # type: ignore[union-attr]
+            elif pos == LegendPosition.BOTTOM:
+                engine.set(rect=[0, 0.15, 1, 1])  # type: ignore[union-attr]
+
+    # Draw legend in the dedicated subfig if available, otherwise top-level fig
+    legend_target = legend_subfig if legend_subfig is not None else fig
+    draw_legend(legend_target, axes, resolved.scales, resolved.labs, theme, resolved.guides)
 
 
 def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:

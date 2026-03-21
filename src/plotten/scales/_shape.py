@@ -4,6 +4,7 @@ from typing import Any
 
 import narwhals as nw
 
+from plotten._shapes import resolve_shape
 from plotten.scales._base import LegendEntry, MappedDiscreteScale
 
 DEFAULT_SHAPES = ["o", "s", "^", "D", "v", "p", "h", "*", "X", "P"]
@@ -26,7 +27,7 @@ class ScaleShapeDiscrete(MappedDiscreteScale):
     def map_data(self, values: Any) -> Any:
         s = nw.from_native(values, series_only=True)
         if self._manual_values:
-            return [self._manual_values.get(str(v), "o") for v in s.to_list()]
+            return [resolve_shape(self._manual_values.get(str(v), "o")) for v in s.to_list()]
         shape_map = {
             lev: DEFAULT_SHAPES[i % len(DEFAULT_SHAPES)] for i, lev in enumerate(self._levels)
         }
@@ -36,7 +37,7 @@ class ScaleShapeDiscrete(MappedDiscreteScale):
         entries = []
         for i, lev in enumerate(self._levels):
             if self._manual_values:
-                shape = self._manual_values.get(str(lev), "o")
+                shape = resolve_shape(self._manual_values.get(str(lev), "o"))
             else:
                 shape = DEFAULT_SHAPES[i % len(DEFAULT_SHAPES)]
             entries.append(LegendEntry(label=str(lev), shape=shape))

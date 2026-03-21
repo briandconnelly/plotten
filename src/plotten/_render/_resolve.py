@@ -58,6 +58,8 @@ def resolve(plot: Any) -> ResolvedPlot:
 
     facet = plot.facet
 
+    labs = _default_labs(plot.labs, plot.mapping)
+
     if facet is None:
         # Single panel
         scales = dict(explicit_scales)
@@ -69,7 +71,7 @@ def resolve(plot: Any) -> ResolvedPlot:
             scales=scales,
             coord=plot.coord,
             theme=plot.theme,
-            labs=plot.labs,
+            labs=labs,
             facet=None,
             guides=plot.guides,
         )
@@ -106,10 +108,40 @@ def resolve(plot: Any) -> ResolvedPlot:
         scales=global_scales,
         coord=plot.coord,
         theme=plot.theme,
-        labs=plot.labs,
+        labs=labs,
         facet=facet,
         guides=plot.guides,
     )
+
+
+def _default_labs(labs_obj: Any, mapping: Any) -> Any:
+    """Fill missing axis/aesthetic labels from the aes mapping variable names."""
+    from plotten._labs import Labs
+
+    if labs_obj is None:
+        labs_obj = Labs()
+
+    defaults: dict[str, str] = {}
+    for field_name in (
+        "x",
+        "y",
+        "color",
+        "fill",
+        "size",
+        "alpha",
+        "shape",
+        "linetype",
+        "linewidth",
+        "hatch",
+    ):
+        if getattr(labs_obj, field_name) is None:
+            aes_val = getattr(mapping, field_name, None)
+            if isinstance(aes_val, str):
+                defaults[field_name] = aes_val
+
+    if defaults:
+        return labs_obj + Labs(**defaults)
+    return labs_obj
 
 
 # Re-export for backwards compatibility with existing imports

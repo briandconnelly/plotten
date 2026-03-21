@@ -60,5 +60,6 @@ class GeomParams(TypedDict, total=False):
     linestyle: str
     padding: float
     style: str
+    shape: str | int
     hatch: str
     weight: str

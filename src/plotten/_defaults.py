@@ -32,6 +32,9 @@ DEFAULT_POSITION_BREAK_COUNT: int = 6
 DEFAULT_GEOM_COLOR = "#333333"
 DEFAULT_GEOM_FILL = "#4C72B0"
 
+# Default geom sizes (matplotlib scatter `s` units = area in points²)
+DEFAULT_POINT_SIZE: float = 20
+
 
 def detect_backend() -> Literal["polars", "pandas"]:
     """Return the first available dataframe backend name."""
