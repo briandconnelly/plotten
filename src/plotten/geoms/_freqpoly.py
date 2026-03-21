@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
-from plotten.geoms._draw_helpers import scalar
+from plotten.geoms._draw_helpers import resolve_ls, scalar
 
 
 class GeomFreqpoly:
@@ -34,9 +34,9 @@ class GeomFreqpoly:
             kwargs["alpha"] = params["alpha"]
         if "linetype" in data:
             lt = data["linetype"]
-            kwargs["linestyle"] = scalar(lt) if isinstance(lt, list) else lt
+            kwargs["linestyle"] = resolve_ls(scalar(lt) if isinstance(lt, list) else lt)
         elif "linetype" in params:
-            kwargs["linestyle"] = params["linetype"]
+            kwargs["linestyle"] = resolve_ls(params["linetype"])
         if "size" in data:
             size = data["size"]
             kwargs["linewidth"] = scalar(size) if isinstance(size, list) else size

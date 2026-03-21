@@ -4,6 +4,7 @@ from typing import Any
 
 import narwhals as nw
 
+from plotten._linetypes import resolve_linetype
 from plotten.scales._base import LegendEntry, MappedDiscreteScale
 
 DEFAULT_LINETYPES = ["solid", "dashed", "dotted", "dashdot"]
@@ -26,7 +27,9 @@ class ScaleLinetypeDiscrete(MappedDiscreteScale):
     def map_data(self, values: Any) -> Any:
         s = nw.from_native(values, series_only=True)
         if self._manual_values:
-            return [self._manual_values.get(str(v), "solid") for v in s.to_list()]
+            return [
+                resolve_linetype(self._manual_values.get(str(v), "solid")) for v in s.to_list()
+            ]
         lt_map = {
             lev: DEFAULT_LINETYPES[i % len(DEFAULT_LINETYPES)]
             for i, lev in enumerate(self._levels)
@@ -37,7 +40,7 @@ class ScaleLinetypeDiscrete(MappedDiscreteScale):
         entries = []
         for i, lev in enumerate(self._levels):
             if self._manual_values:
-                lt = self._manual_values.get(str(lev), "solid")
+                lt = resolve_linetype(self._manual_values.get(str(lev), "solid"))
             else:
                 lt = DEFAULT_LINETYPES[i % len(DEFAULT_LINETYPES)]
             entries.append(LegendEntry(label=str(lev), linetype=lt))

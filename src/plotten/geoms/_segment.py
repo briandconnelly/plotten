@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from plotten._defaults import DEFAULT_GEOM_COLOR
+from plotten._linetypes import resolve_linetype
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -32,7 +33,7 @@ class GeomSegment:
 
         default_color = params.get("color", DEFAULT_GEOM_COLOR)
         default_alpha = params.get("alpha", 1.0)
-        default_linestyle = params.get("linetype", "-")
+        default_linestyle = resolve_linetype(params.get("linetype", "-"))
         default_linewidth = params.get("size", 0.8)
         arrow = params.get("arrow", False)
 
@@ -53,7 +54,7 @@ class GeomSegment:
             for i in range(len(xs)):
                 c = colors[i] if isinstance(colors, list) else (colors or default_color)
                 a = alphas[i] if isinstance(alphas, list) else (alphas or default_alpha)
-                ls = (
+                ls = resolve_linetype(
                     linetypes[i]
                     if isinstance(linetypes, list)
                     else (linetypes or default_linestyle)
@@ -93,7 +94,9 @@ class GeomSegment:
 
             c = colors[0] if isinstance(colors, list) else (colors or default_color)
             a = alphas[0] if isinstance(alphas, list) else (alphas or default_alpha)
-            ls = linetypes[0] if isinstance(linetypes, list) else (linetypes or default_linestyle)
+            ls = resolve_linetype(
+                linetypes[0] if isinstance(linetypes, list) else (linetypes or default_linestyle)
+            )
             lw = sizes[0] if isinstance(sizes, list) else (sizes or default_linewidth)
 
             segments = [[(xs[i], ys[i]), (xends[i], yends[i])] for i in range(len(xs))]

@@ -43,8 +43,8 @@ class ElementText:
     weight: str | None = None
     style: str | None = None
     rotation: float | None = None
-    ha: str | None = None
-    va: str | None = None
+    ha: str | float | None = None
+    va: str | float | None = None
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -73,7 +73,17 @@ class ElementBlank:
 
 
 def element_text(**kwargs) -> ElementText:
-    """Create a text element."""
+    """Create a text element.
+
+    Accepts ``hjust`` / ``vjust`` as aliases for ``ha`` / ``va``
+    (ggplot2 convention).  Numeric values (0-1) are translated:
+    ``hjust``: 0 = left, 0.5 = center, 1 = right.
+    ``vjust``: 0 = bottom, 0.5 = center, 1 = top.
+    """
+    if "hjust" in kwargs:
+        kwargs.setdefault("ha", kwargs.pop("hjust"))
+    if "vjust" in kwargs:
+        kwargs.setdefault("va", kwargs.pop("vjust"))
     return ElementText(**kwargs)
 
 

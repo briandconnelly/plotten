@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._linetypes import resolve_linetype
 from plotten.stats._quantile import StatQuantile
 
 if TYPE_CHECKING:
@@ -42,9 +43,9 @@ class GeomQuantile:
             kwargs["alpha"] = params["alpha"]
         if "linetype" in data:
             lt = data["linetype"]
-            kwargs["linestyle"] = lt[0] if isinstance(lt, list) else lt
+            kwargs["linestyle"] = resolve_linetype(lt[0] if isinstance(lt, list) else lt)
         elif "linetype" in params:
-            kwargs["linestyle"] = params["linetype"]
+            kwargs["linestyle"] = resolve_linetype(params["linetype"])
         if "size" in data:
             size = data["size"]
             kwargs["linewidth"] = size[0] if isinstance(size, list) else size

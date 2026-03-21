@@ -65,8 +65,30 @@ def text_props(
         if element.rotation is not None:
             props["rotation"] = element.rotation
         if element.ha is not None:
-            props["ha"] = element.ha
+            props["ha"] = _resolve_ha(element.ha)
         if element.va is not None:
-            props["va"] = element.va
+            props["va"] = _resolve_va(element.va)
 
     return props
+
+
+def _resolve_ha(value: str | float) -> str:
+    """Translate hjust (0-1 float) to matplotlib ha string."""
+    if isinstance(value, str):
+        return value
+    if value <= 0.25:
+        return "left"
+    if value >= 0.75:
+        return "right"
+    return "center"
+
+
+def _resolve_va(value: str | float) -> str:
+    """Translate vjust (0-1 float) to matplotlib va string."""
+    if isinstance(value, str):
+        return value
+    if value <= 0.25:
+        return "bottom"
+    if value >= 0.75:
+        return "top"
+    return "center"

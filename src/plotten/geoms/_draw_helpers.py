@@ -49,6 +49,15 @@ def extract_fill_or_color(
     return None
 
 
+def resolve_ls(value: Any) -> Any:
+    """Resolve a linetype value through the ggplot2 translation layer."""
+    from plotten._linetypes import resolve_linetype
+
+    if isinstance(value, list):
+        return [resolve_linetype(v) for v in value]
+    return resolve_linetype(value)
+
+
 def extract_per_index[T](values: list[T] | T, indices: list[int]) -> list[T] | T:
     """Subset by indices if list, else broadcast."""
     if isinstance(values, list):
