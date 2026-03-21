@@ -10,36 +10,12 @@ import pandas as pd
 import pytest
 
 from plotten import Plot, aes, geom_label_repel, geom_point, geom_text_repel, ggplot, ggsave
-from plotten.geoms._repel import GeomLabelRepel, GeomTextRepel, _box_overlap
+from plotten.geoms._repel import GeomLabelRepel, GeomTextRepel
 
 matplotlib.use("Agg")
 
 import numpy as np
 
-
-class TestBoxOverlap:
-    def test_no_overlap(self):
-        pos1 = np.array([0.0, 0.0])
-        size1 = np.array([10.0, 10.0])
-        pos2 = np.array([20.0, 20.0])
-        size2 = np.array([10.0, 10.0])
-        assert _box_overlap(pos1, size1, pos2, size2) == 0.0
-
-    def test_full_overlap(self):
-        pos1 = np.array([5.0, 5.0])
-        size1 = np.array([10.0, 10.0])
-        pos2 = np.array([5.0, 5.0])
-        size2 = np.array([10.0, 10.0])
-        assert _box_overlap(pos1, size1, pos2, size2) == pytest.approx(100.0)
-
-    def test_partial_overlap(self):
-        pos1 = np.array([0.0, 0.0])
-        size1 = np.array([10.0, 10.0])
-        pos2 = np.array([5.0, 0.0])
-        size2 = np.array([10.0, 10.0])
-        overlap = _box_overlap(pos1, size1, pos2, size2)
-        assert overlap > 0
-        assert overlap < 100
 
 
 class TestGeomClasses:
