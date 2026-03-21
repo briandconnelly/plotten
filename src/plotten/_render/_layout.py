@@ -81,7 +81,7 @@ def create_figure(
     base_rect = theme.rect if isinstance(theme.rect, ElementRect) else None
     if isinstance(theme.plot_background, ElementRect):
         resolved_bg = merge_rect(theme.plot_background, base_rect)
-        if resolved_bg is not None:
+        if isinstance(resolved_bg, ElementRect):
             if resolved_bg.fill is not None:
                 fig.patch.set_facecolor(resolved_bg.fill)
             if resolved_bg.color is not None:

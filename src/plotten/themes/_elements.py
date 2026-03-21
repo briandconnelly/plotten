@@ -102,48 +102,62 @@ def element_blank() -> ElementBlank:
     return ElementBlank()
 
 
-def merge_text(element: ElementText | None, base: ElementText | None) -> ElementText | None:
+_Element = ElementText | ElementLine | ElementRect
+
+
+def _merge_element[T: _Element](
+    element: T | ElementBlank | None,
+    base: T | ElementBlank | None,
+    cls: type[T],
+) -> T | ElementBlank | None:
+    """Merge two theme elements, using the base for any None fields.
+
+    ElementBlank on either side short-circuits: if *element* is blank it wins
+    (suppresses drawing); if only *base* is blank it is ignored.
+    """
+    if isinstance(element, ElementBlank):
+        return element
+    if isinstance(base, ElementBlank):
+        base = None
+    if element is None:
+        return base
+    if base is None or not isinstance(base, cls):
+        return element
+    from dataclasses import fields
+
+    merged = {
+        f.name: (
+            getattr(element, f.name)
+            if getattr(element, f.name) is not None
+            else getattr(base, f.name)
+        )
+        for f in fields(cls)
+    }
+    return cls(**merged)
+
+
+def merge_text(
+    element: ElementText | ElementBlank | None,
+    base: ElementText | ElementBlank | None,
+) -> ElementText | ElementBlank | None:
     """Merge a text element with a base, using the base for any None fields."""
-    if element is None:
-        return base
-    if base is None:
-        return element
-    return ElementText(
-        size=element.size if element.size is not None else base.size,
-        color=element.color if element.color is not None else base.color,
-        family=element.family if element.family is not None else base.family,
-        weight=element.weight if element.weight is not None else base.weight,
-        style=element.style if element.style is not None else base.style,
-        rotation=element.rotation if element.rotation is not None else base.rotation,
-        ha=element.ha if element.ha is not None else base.ha,
-        va=element.va if element.va is not None else base.va,
-    )
+    return _merge_element(element, base, ElementText)
 
 
-def merge_line(element: ElementLine | None, base: ElementLine | None) -> ElementLine | None:
+def merge_line(
+    element: ElementLine | ElementBlank | None,
+    base: ElementLine | ElementBlank | None,
+) -> ElementLine | ElementBlank | None:
     """Merge a line element with a base, using the base for any None fields."""
-    if element is None:
-        return base
-    if base is None:
-        return element
-    return ElementLine(
-        color=element.color if element.color is not None else base.color,
-        size=element.size if element.size is not None else base.size,
-        linetype=element.linetype if element.linetype is not None else base.linetype,
-    )
+    return _merge_element(element, base, ElementLine)
 
 
-def merge_rect(element: ElementRect | None, base: ElementRect | None) -> ElementRect | None:
+def merge_rect(
+    element: ElementRect | ElementBlank | None,
+    base: ElementRect | ElementBlank | None,
+) -> ElementRect | ElementBlank | None:
     """Merge a rect element with a base, using the base for any None fields."""
-    if element is None:
-        return base
-    if base is None:
-        return element
-    return ElementRect(
-        fill=element.fill if element.fill is not None else base.fill,
-        color=element.color if element.color is not None else base.color,
-        size=element.size if element.size is not None else base.size,
-    )
+    return _merge_element(element, base, ElementRect)
 
 
 @dataclass(frozen=True, slots=True)

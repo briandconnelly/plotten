@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
-from plotten.geoms._draw_helpers import resolve_ls, scalar
+from plotten.geoms._draw_helpers import build_line_kwargs
 
 
 class GeomFreqpoly:
@@ -15,7 +15,7 @@ class GeomFreqpoly:
 
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = True
-    known_params: frozenset[str] = frozenset({"color", "alpha", "linewidth"})
+    known_params: frozenset[str] = frozenset({"color", "alpha", "linetype", "linewidth"})
 
     def default_stat(self) -> Any:
         from plotten.stats._bin import StatBin
@@ -23,23 +23,5 @@ class GeomFreqpoly:
         return StatBin()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        kwargs: dict[str, Any] = {}
-        if "color" in data:
-            color = data["color"]
-            kwargs["color"] = scalar(color) if isinstance(color, list) else color
-        if "alpha" in data:
-            alpha = data["alpha"]
-            kwargs["alpha"] = scalar(alpha) if isinstance(alpha, list) else alpha
-        elif "alpha" in params:
-            kwargs["alpha"] = params["alpha"]
-        if "linetype" in data:
-            lt = data["linetype"]
-            kwargs["linestyle"] = resolve_ls(scalar(lt) if isinstance(lt, list) else lt)
-        elif "linetype" in params:
-            kwargs["linestyle"] = resolve_ls(params["linetype"])
-        if "size" in data:
-            size = data["size"]
-            kwargs["linewidth"] = scalar(size) if isinstance(size, list) else size
-        elif "size" in params:
-            kwargs["linewidth"] = params["size"]
+        kwargs = build_line_kwargs(data, params)
         ax.plot(data["x"], data["y"], **kwargs)

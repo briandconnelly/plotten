@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
-from plotten.geoms._draw_helpers import resolve_ls, scalar
+from plotten.geoms._draw_helpers import build_line_kwargs
 
 
 class GeomStep:
@@ -25,38 +25,6 @@ class GeomStep:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        kwargs: dict[str, Any] = {}
-
-        where = params.get("direction", "mid")
-        kwargs["where"] = where
-
-        if "color" in data:
-            color = data["color"]
-            kwargs["color"] = scalar(color) if isinstance(color, list) else color
-        elif "color" in params:
-            kwargs["color"] = params["color"]
-
-        if "alpha" in data:
-            alpha = data["alpha"]
-            kwargs["alpha"] = scalar(alpha) if isinstance(alpha, list) else alpha
-        elif "alpha" in params:
-            kwargs["alpha"] = params["alpha"]
-
-        if "linetype" in data:
-            lt = data["linetype"]
-            kwargs["linestyle"] = resolve_ls(scalar(lt) if isinstance(lt, list) else lt)
-        elif "linetype" in params:
-            kwargs["linestyle"] = resolve_ls(params["linetype"])
-
-        if "linewidth" in data:
-            lw = data["linewidth"]
-            kwargs["linewidth"] = scalar(lw) if isinstance(lw, list) else lw
-        elif "linewidth" in params:
-            kwargs["linewidth"] = params["linewidth"]
-        elif "size" in data:
-            size = data["size"]
-            kwargs["linewidth"] = scalar(size) if isinstance(size, list) else size
-        elif "size" in params:
-            kwargs["linewidth"] = params["size"]
-
+        kwargs = build_line_kwargs(data, params)
+        kwargs["where"] = params.get("direction", "mid")
         ax.step(data["x"], data["y"], **kwargs)

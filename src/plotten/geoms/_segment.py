@@ -11,6 +11,13 @@ if TYPE_CHECKING:
     from plotten._types import GeomDrawData, GeomParams
 
 
+def _per_value[T](values: list[T] | T | None, index: int, default: T) -> T:
+    """Get per-element value from a list, scalar, or default."""
+    if isinstance(values, list):
+        return values[index]
+    return values if values is not None else default
+
+
 class GeomSegment:
     """Draw line segments from (x, y) to (xend, yend)."""
 
@@ -42,32 +49,21 @@ class GeomSegment:
         linetypes = data.get("linetype")
         sizes = data.get("size")
 
-        per_segment = (
-            (isinstance(colors, list) and len(set(colors)) > 1)
-            or (isinstance(alphas, list) and len(set(alphas)) > 1)
-            or (isinstance(linetypes, list) and len(set(linetypes)) > 1)
-            or (isinstance(sizes, list) and len(set(sizes)) > 1)
-            or arrow
+        has_varying = any(
+            isinstance(v, list) and len(set(v)) > 1 for v in (colors, alphas, linetypes, sizes)
         )
 
-        if per_segment or arrow:
+        if has_varying or arrow:
             for i in range(len(xs)):
-                c = colors[i] if isinstance(colors, list) else (colors or default_color)
-                a = alphas[i] if isinstance(alphas, list) else (alphas or default_alpha)
-                ls = resolve_linetype(
-                    linetypes[i]
-                    if isinstance(linetypes, list)
-                    else (linetypes or default_linestyle)
-                )
-                lw = sizes[i] if isinstance(sizes, list) else (sizes or default_linewidth)
+                c = _per_value(colors, i, default_color)
+                a = _per_value(alphas, i, default_alpha)
+                ls = resolve_linetype(_per_value(linetypes, i, default_linestyle))
+                lw = _per_value(sizes, i, default_linewidth)
 
                 if arrow:
                     from plotten._arrow import Arrow
 
-                    if isinstance(arrow, Arrow):
-                        arrowstyle = arrow.to_arrowstyle()
-                    else:
-                        arrowstyle = "->"
+                    arrowstyle = arrow.to_arrowstyle() if isinstance(arrow, Arrow) else "->"
                     ax.annotate(
                         "",
                         xy=(xends[i], yends[i]),
@@ -92,12 +88,10 @@ class GeomSegment:
         else:
             from matplotlib.collections import LineCollection
 
-            c = colors[0] if isinstance(colors, list) else (colors or default_color)
-            a = alphas[0] if isinstance(alphas, list) else (alphas or default_alpha)
-            ls = resolve_linetype(
-                linetypes[0] if isinstance(linetypes, list) else (linetypes or default_linestyle)
-            )
-            lw = sizes[0] if isinstance(sizes, list) else (sizes or default_linewidth)
+            c = _per_value(colors, 0, default_color)
+            a = _per_value(alphas, 0, default_alpha)
+            ls = resolve_linetype(_per_value(linetypes, 0, default_linestyle))
+            lw = _per_value(sizes, 0, default_linewidth)
 
             segments = [[(xs[i], ys[i]), (xends[i], yends[i])] for i in range(len(xs))]
             lc = LineCollection(segments, colors=c, alpha=a, linestyles=ls, linewidths=lw)

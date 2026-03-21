@@ -215,7 +215,7 @@ def render_panel(
         panel_border_color = None
     elif isinstance(theme.panel_border, ElementRect):
         resolved_border = merge_rect(theme.panel_border, base_rect)
-        if resolved_border is not None:
+        if isinstance(resolved_border, ElementRect):
             if resolved_border.color is not None:
                 panel_border_color = resolved_border.color
             if resolved_border.size is not None:

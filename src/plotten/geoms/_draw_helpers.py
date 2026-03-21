@@ -25,7 +25,7 @@ def extract_aesthetic(
 ) -> Any:
     """Get aesthetic from data with fallback to params.
 
-    *param_key* allows looking up a different key in params (e.g. ``linetype`` →
+    *param_key* allows looking up a different key in params (e.g. ``linetype`` ->
     ``linestyle``).
     """
     pk = param_key if param_key is not None else key
@@ -39,7 +39,7 @@ def extract_fill_or_color(
     data: GeomDrawData,
     params: GeomParams | None = None,
 ) -> str | list[str] | None:
-    """Try fill first, then color — for bar/col geoms."""
+    """Try fill first, then color -- for bar/col geoms."""
     if "fill" in data:
         return data["fill"]
     if "color" in data and isinstance(data["color"], str):
@@ -63,3 +63,79 @@ def extract_per_index[T](values: list[T] | T, indices: list[int]) -> list[T] | T
     if isinstance(values, list):
         return [values[i] for i in indices]
     return values
+
+
+def build_line_kwargs(
+    data: GeomDrawData,
+    params: GeomParams,
+) -> dict[str, Any]:
+    """Build common kwargs for line-based geoms (color, alpha, linestyle, linewidth).
+
+    Handles data-vs-params fallback and scalar coercion for grouped data.
+    """
+    kwargs: dict[str, Any] = {}
+    _add_scalar(kwargs, data, params, "color", "color")
+    _add_scalar(kwargs, data, params, "alpha", "alpha")
+    if "linetype" in data:
+        kwargs["linestyle"] = resolve_ls(scalar(data["linetype"]))
+    elif "linetype" in params:
+        kwargs["linestyle"] = resolve_ls(params["linetype"])
+    # linewidth: prefer explicit linewidth, fall back to size
+    if "linewidth" in data:
+        kwargs["linewidth"] = (
+            scalar(data["linewidth"]) if isinstance(data["linewidth"], list) else data["linewidth"]
+        )
+    elif "linewidth" in params:
+        kwargs["linewidth"] = params["linewidth"]
+    elif "size" in data:
+        kwargs["linewidth"] = (
+            scalar(data["size"]) if isinstance(data["size"], list) else data["size"]
+        )
+    elif "size" in params:
+        kwargs["linewidth"] = params["size"]
+    return kwargs
+
+
+def build_fill_kwargs(
+    data: GeomDrawData,
+    params: GeomParams,
+    *,
+    default_alpha: float | None = None,
+) -> dict[str, Any]:
+    """Build common kwargs for filled geoms (color from fill/color, alpha, linewidth, hatch).
+
+    For fill_between/bar-style geoms. Uses ``fill`` aesthetic as ``color`` kwarg.
+    """
+    kwargs: dict[str, Any] = {}
+    fill_color = extract_fill_or_color(data, params)
+    if fill_color is not None:
+        kwargs["color"] = scalar(fill_color) if isinstance(fill_color, list) else fill_color
+    if default_alpha is not None:
+        kwargs["alpha"] = params.get("alpha", default_alpha)
+    elif "alpha" in params:
+        kwargs["alpha"] = params["alpha"]
+    if "linewidth" in data:
+        kwargs["linewidth"] = (
+            scalar(data["linewidth"]) if isinstance(data["linewidth"], list) else data["linewidth"]
+        )
+    elif "linewidth" in params:
+        kwargs["linewidth"] = params["linewidth"]
+    hatch = data.get("hatch", params.get("hatch"))
+    if hatch is not None:
+        kwargs["hatch"] = scalar(hatch) if isinstance(hatch, list) else hatch
+    return kwargs
+
+
+def _add_scalar(
+    kwargs: dict[str, Any],
+    data: GeomDrawData,
+    params: GeomParams,
+    data_key: str,
+    kwarg_key: str,
+) -> None:
+    """Add a scalar aesthetic to kwargs with data/params fallback."""
+    if data_key in data:
+        val = data[data_key]  # type: ignore[literal-required]
+        kwargs[kwarg_key] = scalar(val) if isinstance(val, list) else val
+    elif data_key in params:
+        kwargs[kwarg_key] = params[data_key]  # type: ignore[literal-required]

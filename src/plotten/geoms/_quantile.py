@@ -1,14 +1,15 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
-from plotten._linetypes import resolve_linetype
 from plotten.stats._quantile import StatQuantile
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
+
+from plotten.geoms._draw_helpers import build_line_kwargs
 
 
 class GeomQuantile:
@@ -30,26 +31,5 @@ class GeomQuantile:
         return StatQuantile(quantiles=self._quantiles, n_points=self._n_points)
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        kwargs: dict[str, Any] = {}
-        if "color" in data:
-            color = data["color"]
-            kwargs["color"] = color[0] if isinstance(color, list) else color
-        elif "color" in params:
-            kwargs["color"] = params["color"]
-        if "alpha" in data:
-            alpha = data["alpha"]
-            kwargs["alpha"] = alpha[0] if isinstance(alpha, list) else alpha
-        elif "alpha" in params:
-            kwargs["alpha"] = params["alpha"]
-        if "linetype" in data:
-            lt = data["linetype"]
-            kwargs["linestyle"] = resolve_linetype(lt[0] if isinstance(lt, list) else lt)
-        elif "linetype" in params:
-            kwargs["linestyle"] = resolve_linetype(params["linetype"])
-        if "size" in data:
-            size = data["size"]
-            kwargs["linewidth"] = size[0] if isinstance(size, list) else size
-        elif "size" in params:
-            kwargs["linewidth"] = params["size"]
-
+        kwargs = build_line_kwargs(data, params)
         ax.plot(data["x"], data["y"], **kwargs)

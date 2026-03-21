@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
-from plotten.geoms._draw_helpers import scalar
+from plotten.geoms._draw_helpers import build_fill_kwargs
 
 
 class GeomRibbon:
@@ -23,19 +23,5 @@ class GeomRibbon:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        kwargs: dict[str, Any] = {}
-        if "fill" in data:
-            fill = data["fill"]
-            kwargs["color"] = scalar(fill) if isinstance(fill, list) else fill
-        elif "color" in params:
-            kwargs["color"] = params["color"]
-        kwargs["alpha"] = params.get("alpha", 0.3)
-        if "linewidth" in data:
-            lw = data["linewidth"]
-            kwargs["linewidth"] = scalar(lw) if isinstance(lw, list) else lw
-        elif "linewidth" in params:
-            kwargs["linewidth"] = params["linewidth"]
-        hatch = data.get("hatch", params.get("hatch"))
-        if hatch is not None:
-            kwargs["hatch"] = scalar(hatch) if isinstance(hatch, list) else hatch
+        kwargs = build_fill_kwargs(data, params, default_alpha=0.3)
         ax.fill_between(data["x"], data["ymin"], data["ymax"], **kwargs)

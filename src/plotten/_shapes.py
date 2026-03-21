@@ -80,7 +80,7 @@ _SHAPE_NAMES: dict[str, str] = {
 }
 
 
-def resolve_shape(value: str | int) -> str:
+def resolve_shape(value: str | int | None) -> str:
     """Translate a ggplot2 shape spec to a matplotlib marker string.
 
     Parameters
@@ -92,20 +92,25 @@ def resolve_shape(value: str | int) -> str:
     Returns
     -------
     str
-        A matplotlib marker string.
+        A matplotlib marker string.  Returns ``"o"`` for unrecognised values.
     """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return "o"
+
     if isinstance(value, int):
         return _GGPLOT2_SHAPES.get(value, "o")
 
+    if not isinstance(value, str):
+        return "o"
+
     # Try as a numeric string
-    if isinstance(value, str) and value.isdigit():
+    if value.isdigit():
         return _GGPLOT2_SHAPES.get(int(value), "o")
 
     # Try as a ggplot2 name (case-insensitive)
-    if isinstance(value, str):
-        lower = value.lower().strip()
-        if lower in _SHAPE_NAMES:
-            return _SHAPE_NAMES[lower]
+    lower = value.lower().strip()
+    if lower in _SHAPE_NAMES:
+        return _SHAPE_NAMES[lower]
 
-    # Pass through as matplotlib marker
-    return str(value)
+    # Pass through as matplotlib marker (single char or valid marker string)
+    return value

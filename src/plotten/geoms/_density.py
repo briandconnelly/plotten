@@ -15,7 +15,7 @@ class GeomDensity:
 
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = True
-    known_params: frozenset[str] = frozenset({"color", "fill", "alpha"})
+    known_params: frozenset[str] = frozenset({"color", "fill", "alpha", "hatch"})
 
     def __init__(self, fill: bool = True, alpha: float = 0.3) -> None:
         self._fill = fill
@@ -28,14 +28,14 @@ class GeomDensity:
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         alpha = params.get("alpha", self._alpha)
-        fill = params.get("fill", self._fill)
+        do_fill = params.get("fill", self._fill)
 
         color = data.get("color", params.get("color", "#3366CC"))
         if isinstance(color, list):
             color = scalar(color)
 
         ax.plot(data["x"], data["y"], color=color)
-        if fill:
+        if do_fill:
             fill_kw: dict[str, Any] = {"alpha": alpha, "color": color}
             hatch = data.get("hatch", params.get("hatch"))
             if hatch is not None:

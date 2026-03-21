@@ -57,7 +57,7 @@ def _parse_hex_dash(pattern: str) -> tuple[int, tuple[float, ...]]:
     return (0, tuple(float(s) for s in segments))
 
 
-def resolve_linetype(value: str | int) -> Any:
+def resolve_linetype(value: str | int | None) -> Any:
     """Translate a ggplot2 linetype spec to a matplotlib linestyle.
 
     Parameters
@@ -72,6 +72,9 @@ def resolve_linetype(value: str | int) -> Any:
     str or tuple
         A matplotlib linestyle string or (offset, dash) tuple.
     """
+    if value is None or (isinstance(value, str) and not value.strip()):
+        return "solid"
+
     if isinstance(value, int):
         return _GGPLOT2_LINETYPES.get(value, "solid")
 
