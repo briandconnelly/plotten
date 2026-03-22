@@ -18,6 +18,7 @@ class _GeomAnnotRect:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
 
     def __init__(
         self,
@@ -64,6 +65,7 @@ class _GeomAnnotSegment:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "line"
 
     def __init__(
         self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
@@ -124,6 +126,7 @@ class _GeomAnnotCurve:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "line"
 
     def __init__(
         self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
@@ -178,6 +181,7 @@ class _GeomAnnotBracket:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
 
     def __init__(
         self,

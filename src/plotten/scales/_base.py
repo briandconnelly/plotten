@@ -19,6 +19,7 @@ class LegendEntry:
     linetype: str | None = None
     linewidth: float | None = None
     hatch: str | None = None
+    key: str = "rect"
 
 
 class ScaleBase:

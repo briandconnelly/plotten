@@ -13,6 +13,7 @@ class GeomErrorbarH:
 
     required_aes: frozenset[str] = frozenset({"y", "xmin", "xmax"})
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "alpha", "height", "linewidth"})
 
     def default_stat(self) -> Any:

@@ -18,6 +18,7 @@ class GeomSpoke:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "angle", "radius"})
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linewidth", "size", "arrow"})
 
     def default_stat(self) -> Any:

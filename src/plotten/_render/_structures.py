@@ -42,3 +42,4 @@ class ResolvedPlot:
     labs: Labs | None = None
     facet: Any = None
     guides: dict | None = None
+    legend_keys: dict[str, str] = field(default_factory=dict)

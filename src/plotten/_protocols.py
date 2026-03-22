@@ -23,6 +23,7 @@ class Stat(Protocol):
 class Geom(Protocol):
     required_aes: frozenset[str]
     supports_group_splitting: bool
+    legend_key: str
 
     def default_stat(self) -> Stat: ...
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None: ...

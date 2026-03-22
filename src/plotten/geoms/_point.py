@@ -18,6 +18,7 @@ class GeomPoint:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
+    legend_key: str = "point"
     known_params: frozenset[str] = frozenset({"color", "size", "alpha", "shape"})
 
     def default_stat(self) -> Any:

@@ -13,6 +13,7 @@ class GeomRaster:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "z"})
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"alpha"})
 
     def default_stat(self) -> Any:

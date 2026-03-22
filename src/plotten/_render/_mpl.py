@@ -225,7 +225,15 @@ def _apply_legend(
 
     # Draw legend in the dedicated subfig if available, otherwise top-level fig
     legend_target = legend_subfig if legend_subfig is not None else fig
-    draw_legend(legend_target, axes, resolved.scales, resolved.labs, theme, resolved.guides)
+    draw_legend(
+        legend_target,
+        axes,
+        resolved.scales,
+        resolved.labs,
+        theme,
+        resolved.guides,
+        legend_keys=resolved.legend_keys,
+    )
 
 
 def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:

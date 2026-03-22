@@ -13,6 +13,7 @@ class GeomRug:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linewidth", "sides", "length"})
 
     def default_stat(self) -> Any:

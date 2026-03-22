@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten._defaults import MAPPED_AESTHETICS
 from plotten._enums import FacetScales
 from plotten._render._data_pipeline import (
     _detect_group_key,
@@ -59,6 +60,7 @@ def resolve(plot: Any) -> ResolvedPlot:
     facet = plot.facet
 
     labs = _default_labs(plot.labs, plot.mapping)
+    legend_keys = _infer_legend_keys(plot)
 
     if facet is None:
         # Single panel
@@ -74,6 +76,7 @@ def resolve(plot: Any) -> ResolvedPlot:
             labs=labs,
             facet=None,
             guides=plot.guides,
+            legend_keys=legend_keys,
         )
 
     # Faceted: split data into panels
@@ -111,7 +114,19 @@ def resolve(plot: Any) -> ResolvedPlot:
         labs=labs,
         facet=facet,
         guides=plot.guides,
+        legend_keys=legend_keys,
     )
+
+
+def _infer_legend_keys(plot: Any) -> dict[str, str]:
+    """Map each aesthetic to the legend_key of the first geom that uses it."""
+    keys: dict[str, str] = {}
+    for layer in plot.layers:
+        merged = plot.mapping | layer.mapping
+        for aes_name in MAPPED_AESTHETICS:
+            if aes_name not in keys and getattr(merged, aes_name, None) is not None:
+                keys[aes_name] = getattr(layer.geom, "legend_key", "rect")
+    return keys
 
 
 def _default_labs(labs_obj: Any, mapping: Any) -> Any:

@@ -40,6 +40,7 @@ def draw_legend(
     labs: Any,
     theme: Theme,
     guides: dict[str, Any] | None = None,
+    legend_keys: dict[str, str] | None = None,
 ) -> None:
     """Draw legends for color/fill scales."""
     position = theme.legend_position
@@ -96,6 +97,12 @@ def draw_legend(
         entries = scale.legend_entries()
         if not entries:
             continue
+
+        # Stamp geom-aware legend key onto entries
+        if legend_keys and aes_name in legend_keys:
+            from dataclasses import replace
+
+            entries = [replace(e, key=legend_keys[aes_name]) for e in entries]
 
         guide_spec = guides.get(aes_name)
 
@@ -163,6 +170,11 @@ def _draw_legend_entry(
     marker_s = _MARKER_SIZE_BASE * (key_size / 20.0)
     line_x0 = _SWATCH_LEFT - 0.02  # left edge of line swatch
     line_x1 = _SWATCH_LEFT + _SWATCH_WIDTH  # right edge of line swatch
+    alpha_kw: dict[str, Any] = {}
+    if entry.alpha is not None:
+        alpha_kw["alpha"] = entry.alpha
+
+    # Specialized scale fields take priority (shape/linetype/hatch scales set these)
     if entry.shape is not None:
         legend_ax.scatter(
             [_SWATCH_CENTER],
@@ -172,6 +184,7 @@ def _draw_legend_entry(
             c=entry.color or "black",
             transform=legend_ax.transAxes,
             clip_on=False,
+            **alpha_kw,
         )
     elif entry.linetype is not None:
         legend_ax.plot(
@@ -179,10 +192,23 @@ def _draw_legend_entry(
             [y, y],
             linestyle=entry.linetype,
             color=entry.color or "black",
-            linewidth=1.5,
+            linewidth=entry.linewidth or 1.5,
             transform=legend_ax.transAxes,
             clip_on=False,
+            **alpha_kw,
         )
+    elif getattr(entry, "hatch", None) is not None:
+        rect = Rectangle(
+            (_SWATCH_LEFT, y - step * 0.3),
+            _SWATCH_WIDTH,
+            step * 0.6,
+            facecolor=entry.fill or entry.color or "#cccccc",
+            edgecolor="black",
+            hatch=entry.hatch,
+            transform=legend_ax.transAxes,
+            **alpha_kw,
+        )
+        legend_ax.add_patch(rect)
     elif entry.size is not None and entry.color is None and entry.fill is None:
         legend_ax.scatter(
             [_SWATCH_CENTER],
@@ -206,17 +232,6 @@ def _draw_legend_entry(
             transform=legend_ax.transAxes,
             clip_on=False,
         )
-    elif getattr(entry, "hatch", None) is not None:
-        rect = Rectangle(
-            (_SWATCH_LEFT, y - step * 0.3),
-            _SWATCH_WIDTH,
-            step * 0.6,
-            facecolor=entry.fill or entry.color or "#cccccc",
-            edgecolor="black",
-            hatch=entry.hatch,
-            transform=legend_ax.transAxes,
-        )
-        legend_ax.add_patch(rect)
     elif entry.alpha is not None and entry.color is None and entry.fill is None:
         rect = Rectangle(
             (_SWATCH_LEFT, y - step * 0.3),
@@ -228,6 +243,29 @@ def _draw_legend_entry(
             transform=legend_ax.transAxes,
         )
         legend_ax.add_patch(rect)
+    # Geom-aware key dispatch
+    elif getattr(entry, "key", "rect") == "point":
+        legend_ax.scatter(
+            [_SWATCH_CENTER],
+            [y],
+            marker="o",
+            s=marker_s,
+            c=entry.color or entry.fill or "black",
+            transform=legend_ax.transAxes,
+            clip_on=False,
+            **alpha_kw,
+        )
+    elif getattr(entry, "key", "rect") == "line":
+        legend_ax.plot(
+            [line_x0, line_x1],
+            [y, y],
+            linestyle="-",
+            color=entry.color or "black",
+            linewidth=entry.linewidth or 1.5,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+            **alpha_kw,
+        )
     elif entry.fill is not None:
         rect = Rectangle(
             (_SWATCH_LEFT, y - step * 0.3),
@@ -236,6 +274,7 @@ def _draw_legend_entry(
             facecolor=entry.fill,
             edgecolor="none",
             transform=legend_ax.transAxes,
+            **alpha_kw,
         )
         legend_ax.add_patch(rect)
     else:
@@ -246,6 +285,7 @@ def _draw_legend_entry(
             facecolor=entry.color or "#cccccc",
             edgecolor="none",
             transform=legend_ax.transAxes,
+            **alpha_kw,
         )
         legend_ax.add_patch(rect)
 
@@ -284,6 +324,9 @@ def _draw_legend_entry_at(
     swatch_w = _SWATCH_WIDTH * col_width
     text_x = x_offset + _TEXT_LEFT * col_width
     marker_s = _MARKER_SIZE_BASE * (key_size / 20.0)
+    alpha_kw: dict[str, Any] = {}
+    if entry.alpha is not None:
+        alpha_kw["alpha"] = entry.alpha
 
     if entry.shape is not None:
         legend_ax.scatter(
@@ -294,6 +337,7 @@ def _draw_legend_entry_at(
             c=entry.color or "black",
             transform=legend_ax.transAxes,
             clip_on=False,
+            **alpha_kw,
         )
     elif entry.linetype is not None:
         legend_ax.plot(
@@ -301,9 +345,32 @@ def _draw_legend_entry_at(
             [y, y],
             linestyle=entry.linetype,
             color=entry.color or "black",
-            linewidth=1.5,
+            linewidth=entry.linewidth or 1.5,
             transform=legend_ax.transAxes,
             clip_on=False,
+            **alpha_kw,
+        )
+    elif getattr(entry, "key", "rect") == "point":
+        legend_ax.scatter(
+            [swatch_cx],
+            [y],
+            marker="o",
+            s=marker_s,
+            c=entry.color or entry.fill or "black",
+            transform=legend_ax.transAxes,
+            clip_on=False,
+            **alpha_kw,
+        )
+    elif getattr(entry, "key", "rect") == "line":
+        legend_ax.plot(
+            [swatch_x, swatch_x + swatch_w],
+            [y, y],
+            linestyle="-",
+            color=entry.color or "black",
+            linewidth=entry.linewidth or 1.5,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+            **alpha_kw,
         )
     elif entry.fill is not None:
         rect = Rectangle(
@@ -313,6 +380,7 @@ def _draw_legend_entry_at(
             facecolor=entry.fill,
             edgecolor="none",
             transform=legend_ax.transAxes,
+            **alpha_kw,
         )
         legend_ax.add_patch(rect)
     else:
@@ -323,6 +391,7 @@ def _draw_legend_entry_at(
             facecolor=entry.color or "#cccccc",
             edgecolor="none",
             transform=legend_ax.transAxes,
+            **alpha_kw,
         )
         legend_ax.add_patch(rect)
 

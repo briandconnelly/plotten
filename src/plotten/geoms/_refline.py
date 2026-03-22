@@ -13,6 +13,7 @@ class GeomHLine:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linestyle", "linewidth"})
 
     def __init__(self, yintercept: float, **kwargs: Any) -> None:
@@ -39,6 +40,7 @@ class GeomVLine:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linestyle", "linewidth"})
 
     def __init__(self, xintercept: float, **kwargs: Any) -> None:
@@ -65,6 +67,7 @@ class GeomAbLine:
 
     required_aes: frozenset[str] = frozenset()
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linestyle", "linewidth"})
 
     def __init__(self, slope: float, intercept: float, **kwargs: Any) -> None:

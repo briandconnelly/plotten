@@ -15,6 +15,7 @@ class GeomSmooth:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
+    legend_key: str = "line"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linetype"})
 
     def __init__(

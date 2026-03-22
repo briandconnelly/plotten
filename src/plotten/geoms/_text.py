@@ -15,6 +15,7 @@ class GeomText:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset(
         {"color", "alpha", "size", "fontsize", "ha", "va", "family", "weight", "style"}
     )
@@ -43,6 +44,7 @@ class GeomLabel:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
     supports_group_splitting: bool = False
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset(
         {"fill", "color", "alpha", "size", "fontsize", "ha", "va", "family", "weight", "style"}
     )

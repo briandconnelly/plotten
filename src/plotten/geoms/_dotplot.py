@@ -17,6 +17,7 @@ class GeomDotplot:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
+    legend_key: str = "point"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha"})
 
     def default_stat(self) -> Any:

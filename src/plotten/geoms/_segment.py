@@ -23,6 +23,7 @@ class GeomSegment:
 
     required_aes: frozenset[str] = frozenset({"x", "y", "xend", "yend"})
     supports_group_splitting: bool = False
+    legend_key: str = "line"
     known_params: frozenset[str] = frozenset(
         {"color", "alpha", "linetype", "linewidth", "size", "arrow"}
     )

@@ -15,6 +15,7 @@ class GeomArea:
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
+    legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "linewidth", "hatch"})
 
     def default_stat(self) -> Any:
