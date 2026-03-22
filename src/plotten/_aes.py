@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 from typing import TYPE_CHECKING, Self
 
 if TYPE_CHECKING:
@@ -45,7 +45,7 @@ class Aes:
                     if getattr(other, f.name) is not None
                     else getattr(self, f.name)
                 )
-                for f in self.__dataclass_fields__.values()
+                for f in fields(self)
             }
         )
 

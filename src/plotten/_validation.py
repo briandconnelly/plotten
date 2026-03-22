@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import difflib
 import warnings
+from dataclasses import fields
 from typing import Any
 
 _strict_mode: bool = False
@@ -142,7 +143,7 @@ def validate_required_aes(geom: Any, merged_aes: Any, data_columns: list[str]) -
 
     available = set(data_columns)
     # Also count aesthetics that are mapped
-    for field_name in merged_aes.__dataclass_fields__:
+    for field_name in (f.name for f in fields(merged_aes)):
         col = getattr(merged_aes, field_name)
         if col is not None:
             available.add(field_name)

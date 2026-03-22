@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,6 +72,19 @@ class ElementBlank:
     pass
 
 
+def _validate_element_kwargs(cls: type, factory_name: str, kwargs: dict) -> None:
+    """Raise ConfigError if kwargs contain invalid field names."""
+    valid = {f.name for f in fields(cls)}
+    invalid = set(kwargs) - valid
+    if invalid:
+        from plotten._validation import ConfigError
+
+        raise ConfigError(
+            f"{factory_name}() got unexpected keyword argument(s): {sorted(invalid)}. "
+            f"Valid fields: {sorted(valid)}"
+        )
+
+
 def element_text(**kwargs) -> ElementText:
     """Create a text element.
 
@@ -84,16 +97,19 @@ def element_text(**kwargs) -> ElementText:
         kwargs.setdefault("ha", kwargs.pop("hjust"))
     if "vjust" in kwargs:
         kwargs.setdefault("va", kwargs.pop("vjust"))
+    _validate_element_kwargs(ElementText, "element_text", kwargs)
     return ElementText(**kwargs)
 
 
 def element_line(**kwargs) -> ElementLine:
     """Create a line element."""
+    _validate_element_kwargs(ElementLine, "element_line", kwargs)
     return ElementLine(**kwargs)
 
 
 def element_rect(**kwargs) -> ElementRect:
     """Create a rect element."""
+    _validate_element_kwargs(ElementRect, "element_rect", kwargs)
     return ElementRect(**kwargs)
 
 

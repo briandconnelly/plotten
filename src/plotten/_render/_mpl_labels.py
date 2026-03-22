@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 def apply_axis_labs(ax: Axes, resolved: ResolvedPlot, theme: Theme) -> None:
-    """Apply axis labels from labs. Call before tight_layout."""
+    """Apply axis labels from labs."""
     from plotten.coords._polar import CoordPolar
 
     labs = resolved.labs

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING, Any, cast
 
 from plotten.themes._text_props import text_props
 
@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
     from plotten._render._resolve import ResolvedPanel, ResolvedPlot
     from plotten._types import GeomDrawData, GeomParams
-    from plotten.themes._elements import ElementBlank, ElementLine
+    from plotten.themes._elements import ElementBlank, ElementLine, ElementText
     from plotten.themes._theme import Theme
 
 
@@ -220,7 +220,7 @@ def render_panel(
                 panel_border_color = resolved_border.color
             if resolved_border.size is not None:
                 panel_border_width = resolved_border.size
-    elif isinstance(theme.panel_border, type(None)):
+    elif theme.panel_border is None:
         pass
     if panel_border_color is not None:
         for spine in ax.spines.values():
@@ -406,13 +406,13 @@ def render_panel(
 
 
 def _resolve_per_axis_text(
-    per_axis_element: object,
-    global_kw: dict,
-    theme: object,
+    per_axis_element: ElementText | ElementBlank | None,
+    global_kw: dict[str, Any],
+    theme: Theme,
     *,
     size_override: float | None = None,
     rotation_override: float | None = None,
-) -> dict:
+) -> dict[str, Any]:
     """Resolve per-axis element text props, falling back to global."""
     from plotten.themes._elements import ElementBlank, ElementText
 

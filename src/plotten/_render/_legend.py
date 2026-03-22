@@ -10,7 +10,7 @@ from plotten._enums import LegendPosition
 from plotten.scales._color import ScaleColorContinuous
 from plotten.themes._text_props import text_props
 
-# Legend layout constants (figure-fraction coordinates)
+# All layout constants are in figure-fraction coordinates (0.0-1.0)
 _ENTRY_HEIGHT_BASE = 0.03
 _TITLE_HEIGHT = 0.04
 _MARGIN_PAD_BASE = 0.02
@@ -167,141 +167,17 @@ def _draw_legend_entry(
     key_size: float = 20.0,
 ) -> None:
     """Draw a single legend entry (swatch + label) at position *y*."""
-    marker_s = _MARKER_SIZE_BASE * (key_size / 20.0)
-    line_x0 = _SWATCH_LEFT - 0.02  # left edge of line swatch
-    line_x1 = _SWATCH_LEFT + _SWATCH_WIDTH  # right edge of line swatch
-    alpha_kw: dict[str, Any] = {}
-    if entry.alpha is not None:
-        alpha_kw["alpha"] = entry.alpha
-
-    # Specialized scale fields take priority (shape/linetype/hatch scales set these)
-    if entry.shape is not None:
-        legend_ax.scatter(
-            [_SWATCH_CENTER],
-            [y],
-            marker=entry.shape,
-            s=marker_s,
-            c=entry.color or "black",
-            transform=legend_ax.transAxes,
-            clip_on=False,
-            **alpha_kw,
-        )
-    elif entry.linetype is not None:
-        legend_ax.plot(
-            [line_x0, line_x1],
-            [y, y],
-            linestyle=entry.linetype,
-            color=entry.color or "black",
-            linewidth=entry.linewidth or 1.5,
-            transform=legend_ax.transAxes,
-            clip_on=False,
-            **alpha_kw,
-        )
-    elif getattr(entry, "hatch", None) is not None:
-        rect = Rectangle(
-            (_SWATCH_LEFT, y - step * 0.3),
-            _SWATCH_WIDTH,
-            step * 0.6,
-            facecolor=entry.fill or entry.color or "#cccccc",
-            edgecolor="black",
-            hatch=entry.hatch,
-            transform=legend_ax.transAxes,
-            **alpha_kw,
-        )
-        legend_ax.add_patch(rect)
-    elif entry.size is not None and entry.color is None and entry.fill is None:
-        legend_ax.scatter(
-            [_SWATCH_CENTER],
-            [y],
-            s=entry.size * 5,
-            c="black",
-            alpha=entry.alpha if entry.alpha is not None else 1.0,
-            transform=legend_ax.transAxes,
-            clip_on=False,
-        )
-    elif (
-        getattr(entry, "linewidth", None) is not None
-        and entry.color is None
-        and entry.fill is None
-    ):
-        legend_ax.plot(
-            [line_x0, line_x1],
-            [y, y],
-            color="black",
-            linewidth=entry.linewidth,
-            transform=legend_ax.transAxes,
-            clip_on=False,
-        )
-    elif entry.alpha is not None and entry.color is None and entry.fill is None:
-        rect = Rectangle(
-            (_SWATCH_LEFT, y - step * 0.3),
-            _SWATCH_WIDTH,
-            step * 0.6,
-            facecolor="black",
-            alpha=entry.alpha,
-            edgecolor="none",
-            transform=legend_ax.transAxes,
-        )
-        legend_ax.add_patch(rect)
-    # Geom-aware key dispatch
-    elif getattr(entry, "key", "rect") == "point":
-        legend_ax.scatter(
-            [_SWATCH_CENTER],
-            [y],
-            marker="o",
-            s=marker_s,
-            c=entry.color or entry.fill or "black",
-            transform=legend_ax.transAxes,
-            clip_on=False,
-            **alpha_kw,
-        )
-    elif getattr(entry, "key", "rect") == "line":
-        legend_ax.plot(
-            [line_x0, line_x1],
-            [y, y],
-            linestyle="-",
-            color=entry.color or "black",
-            linewidth=entry.linewidth or 1.5,
-            transform=legend_ax.transAxes,
-            clip_on=False,
-            **alpha_kw,
-        )
-    elif entry.fill is not None:
-        rect = Rectangle(
-            (_SWATCH_LEFT, y - step * 0.3),
-            _SWATCH_WIDTH,
-            step * 0.6,
-            facecolor=entry.fill,
-            edgecolor="none",
-            transform=legend_ax.transAxes,
-            **alpha_kw,
-        )
-        legend_ax.add_patch(rect)
-    else:
-        rect = Rectangle(
-            (_SWATCH_LEFT, y - step * 0.3),
-            _SWATCH_WIDTH,
-            step * 0.6,
-            facecolor=entry.color or "#cccccc",
-            edgecolor="none",
-            transform=legend_ax.transAxes,
-            **alpha_kw,
-        )
-        legend_ax.add_patch(rect)
-
-    kw: dict[str, Any] = {
-        "fontsize": legend_text_size,
-        "fontfamily": font_family,
-        "verticalalignment": "center",
-    }
-    if text_kw:
-        kw.update(text_kw)
-    legend_ax.text(
-        _TEXT_LEFT,
-        y,
-        entry.label,
-        transform=legend_ax.transAxes,
-        **kw,
+    _draw_legend_entry_at(
+        legend_ax,
+        entry,
+        x_offset=0.0,
+        col_width=1.0,
+        y=y,
+        step=step,
+        legend_text_size=legend_text_size,
+        font_family=font_family,
+        text_kw=text_kw,
+        key_size=key_size,
     )
 
 
@@ -328,6 +204,10 @@ def _draw_legend_entry_at(
     if entry.alpha is not None:
         alpha_kw["alpha"] = entry.alpha
 
+    line_x0 = swatch_x - 0.02 * col_width
+    line_x1 = swatch_x + swatch_w
+
+    # Specialized scale fields take priority (shape/linetype/hatch scales set these)
     if entry.shape is not None:
         legend_ax.scatter(
             [swatch_cx],
@@ -341,7 +221,7 @@ def _draw_legend_entry_at(
         )
     elif entry.linetype is not None:
         legend_ax.plot(
-            [swatch_x, swatch_x + swatch_w],
+            [line_x0, line_x1],
             [y, y],
             linestyle=entry.linetype,
             color=entry.color or "black",
@@ -350,6 +230,53 @@ def _draw_legend_entry_at(
             clip_on=False,
             **alpha_kw,
         )
+    elif getattr(entry, "hatch", None) is not None:
+        rect = Rectangle(
+            (swatch_x, y - step * 0.3),
+            swatch_w,
+            step * 0.6,
+            facecolor=entry.fill or entry.color or "#cccccc",
+            edgecolor="black",
+            hatch=entry.hatch,
+            transform=legend_ax.transAxes,
+            **alpha_kw,
+        )
+        legend_ax.add_patch(rect)
+    elif entry.size is not None and entry.color is None and entry.fill is None:
+        legend_ax.scatter(
+            [swatch_cx],
+            [y],
+            s=entry.size * 5,
+            c="black",
+            alpha=entry.alpha if entry.alpha is not None else 1.0,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif (
+        getattr(entry, "linewidth", None) is not None
+        and entry.color is None
+        and entry.fill is None
+    ):
+        legend_ax.plot(
+            [line_x0, line_x1],
+            [y, y],
+            color="black",
+            linewidth=entry.linewidth,
+            transform=legend_ax.transAxes,
+            clip_on=False,
+        )
+    elif entry.alpha is not None and entry.color is None and entry.fill is None:
+        rect = Rectangle(
+            (swatch_x, y - step * 0.3),
+            swatch_w,
+            step * 0.6,
+            facecolor="black",
+            alpha=entry.alpha,
+            edgecolor="none",
+            transform=legend_ax.transAxes,
+        )
+        legend_ax.add_patch(rect)
+    # Geom-aware key dispatch
     elif getattr(entry, "key", "rect") == "point":
         legend_ax.scatter(
             [swatch_cx],
@@ -363,7 +290,7 @@ def _draw_legend_entry_at(
         )
     elif getattr(entry, "key", "rect") == "line":
         legend_ax.plot(
-            [swatch_x, swatch_x + swatch_w],
+            [line_x0, line_x1],
             [y, y],
             linestyle="-",
             color=entry.color or "black",
@@ -529,10 +456,6 @@ def _draw_discrete_legend(
     # theme.legend_direction is "horizontal", but we also support the theme
     # field directly.
     direction = theme.legend_direction or "vertical"
-
-    from matplotlib.figure import SubFigure
-
-    in_subfig = isinstance(fig, SubFigure)
 
     from matplotlib.figure import SubFigure
 

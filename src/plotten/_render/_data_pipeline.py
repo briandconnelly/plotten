@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import fields
 from typing import TYPE_CHECKING, Any, cast
 
 import narwhals as nw
@@ -27,7 +28,7 @@ def _separate_mappings(
     after_scale: dict[str, str] = {}
     interactions: dict[str, Any] = {}
 
-    for aes_field in merged_aes.__dataclass_fields__:
+    for aes_field in (f.name for f in fields(merged_aes)):
         val = getattr(merged_aes, aes_field)
         if val is None:
             continue

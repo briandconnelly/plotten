@@ -309,27 +309,21 @@ def annotate(
             if coord == "npc":
                 params["_transform"] = "axes"
 
-            for _backend in ("polars", "pandas"):
-                try:
-                    inline_data = nw.from_dict(
-                        {"x": [x], "y": [y], "label": [label]}, backend=_backend
-                    )
-                    break
-                except ImportError:
-                    continue
-            else:
-                msg = "Either polars or pandas must be installed"
-                raise ImportError(msg)
+            from plotten._defaults import detect_backend
+
+            inline_data = nw.from_dict(
+                {"x": [x], "y": [y], "label": [label]}, backend=detect_backend()
+            )
             return Layer(
                 geom=GeomText(), mapping=Aes(), params=params, data=nw.to_native(inline_data)
             )
 
         case AnnotationType.RECT:
             geom = _GeomAnnotRect(
-                xmin=xmin or 0,
-                xmax=xmax or 0,
-                ymin=ymin or 0,
-                ymax=ymax or 0,
+                xmin=xmin if xmin is not None else 0,
+                xmax=xmax if xmax is not None else 0,
+                ymin=ymin if ymin is not None else 0,
+                ymax=ymax if ymax is not None else 0,
                 coord=coord,
                 **params,
             )
@@ -339,10 +333,10 @@ def annotate(
             xend = params.pop("xend", x)
             yend = params.pop("yend", y)
             geom = _GeomAnnotSegment(
-                x=x or 0,
-                y=y or 0,
-                xend=xend or 0,
-                yend=yend or 0,
+                x=x if x is not None else 0,
+                y=y if y is not None else 0,
+                xend=xend if xend is not None else 0,
+                yend=yend if yend is not None else 0,
                 coord=coord,
                 **params,
             )
@@ -352,10 +346,10 @@ def annotate(
             xend = params.pop("xend", x)
             yend = params.pop("yend", y)
             geom = _GeomAnnotCurve(
-                x=x or 0,
-                y=y or 0,
-                xend=xend or 0,
-                yend=yend or 0,
+                x=x if x is not None else 0,
+                y=y if y is not None else 0,
+                xend=xend if xend is not None else 0,
+                yend=yend if yend is not None else 0,
                 coord=coord,
                 **params,
             )
@@ -363,9 +357,9 @@ def annotate(
 
         case AnnotationType.BRACKET:
             geom_b = _GeomAnnotBracket(
-                xmin=xmin or 0,
-                xmax=xmax or 0,
-                y=y or 0,
+                xmin=xmin if xmin is not None else 0,
+                xmax=xmax if xmax is not None else 0,
+                y=y if y is not None else 0,
                 label=label,
                 coord=coord,
                 **params,

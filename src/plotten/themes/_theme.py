@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import difflib
-from dataclasses import dataclass, fields
+from dataclasses import MISSING, dataclass, fields
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
@@ -251,7 +251,7 @@ class Theme:
         kwargs: dict[str, Any] = {}
         for f in fields(self):
             other_val = getattr(other, f.name)
-            if other_val != f.default:
+            if f.default is MISSING or other_val != f.default:
                 kwargs[f.name] = other_val
             else:
                 kwargs[f.name] = getattr(self, f.name)
