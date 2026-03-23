@@ -571,6 +571,16 @@ class TestGeomRug:
         assert fig is not None
         plt.close(fig)
 
+    def test_rug_incompatible_with_polar(self):
+        """geom_rug should raise a clear error when used with polar coords."""
+        from plotten._validation import RenderError
+        from plotten.coords import coord_polar
+
+        df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_rug() + coord_polar()
+        with pytest.raises(RenderError, match="not compatible with polar"):
+            render(p)
+
 
 # --- geom_jitter ---
 
@@ -1167,6 +1177,20 @@ class TestPositionDodge2:
         # dodge width = 0.9 / 3 = 0.3
         # dodge2 width = 0.9 * (1 - 0.3) / 3 = 0.21
         assert params_d2["width"] < params_d["width"]
+
+    def test_missing_categories_centered(self):
+        """When not all groups are present at every x, bars should still be centered."""
+        pos = PositionDodge2(width=0.9, padding=0.0)
+        data = {
+            "x": [1, 1, 1, 2, 2],
+            "y": [10, 20, 30, 40, 50],
+            "fill": ["a", "b", "c", "a", "b"],
+        }
+        params: dict = {}
+        result = pos.adjust(data, params)
+        x_at_2 = [result["x"][i] for i in (3, 4)]
+        center = sum(x_at_2) / len(x_at_2)
+        assert center == pytest.approx(2.0), f"Bars at x=2 not centered: {x_at_2}"
 
     def test_position_dodge2_factory(self):
         pos = position_dodge2(width=0.8, padding=0.15)

@@ -38,13 +38,19 @@ class PositionJitterDodge:
             n_groups = len(unique_groups)
 
             if n_groups > 1:
-                group_index = {g: i for i, g in enumerate(unique_groups)}
                 group_width = self.dodge_width / n_groups
+
+                # Build per-x-position group counts for centering
+                x_groups: dict[object, set] = {}
+                for xv, gv in zip(data["x"], groups, strict=True):
+                    x_groups.setdefault(xv, set()).add(gv)
 
                 new_x = []
                 for x_val, g in zip(data["x"], groups, strict=True):
-                    idx = group_index[g]
-                    dodge_offset = (idx - (n_groups - 1) / 2) * group_width
+                    local_groups = sorted(x_groups[x_val])
+                    local_idx = local_groups.index(g)
+                    local_n = len(local_groups)
+                    dodge_offset = (local_idx - (local_n - 1) / 2) * group_width
                     jitter_offset = (
                         rng.uniform(-self.jitter_width / 2, self.jitter_width / 2)
                         if self.jitter_width > 0

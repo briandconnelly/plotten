@@ -78,6 +78,20 @@ class TestPositionDodge:
         result = PositionDodge().adjust(data, {})
         assert result["x"][0] != result["x"][1]
 
+    def test_missing_categories_centered(self):
+        """When not all groups are present at every x, bars should still be centered."""
+        data = {
+            "x": [1, 1, 1, 2, 2],
+            "y": [10, 20, 30, 40, 50],
+            "fill": ["a", "b", "c", "a", "b"],
+        }
+        params: dict = {}
+        result = PositionDodge(width=0.9).adjust(data, params)
+        # At x=2 only groups a and b are present — they should be centered
+        x_at_2 = [result["x"][i] for i in (3, 4)]
+        center = sum(x_at_2) / len(x_at_2)
+        assert center == pytest.approx(2.0), f"Bars at x=2 not centered: {x_at_2}"
+
     def test_convenience(self):
         pos = position_dodge(width=0.8)
         assert isinstance(pos, PositionDodge)

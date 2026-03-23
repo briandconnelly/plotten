@@ -24,6 +24,14 @@ class GeomRug:
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
         from matplotlib.transforms import blended_transform_factory
 
+        if ax.name == "polar":
+            from plotten._validation import RenderError
+
+            raise RenderError(
+                "geom_rug is not compatible with polar coordinates. "
+                "Rug marks require a Cartesian axis system."
+            )
+
         sides = params.get("sides", "b")
         length = params.get("length", 0.03)
         alpha = params.get("alpha", 0.5)

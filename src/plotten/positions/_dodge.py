@@ -28,13 +28,20 @@ class PositionDodge:
         if n_groups <= 1:
             return data
 
-        group_index = {g: i for i, g in enumerate(unique_groups)}
         group_width = self.width / n_groups
 
+        # Build per-x-position group counts for centering
+        x_vals = data["x"]
+        x_groups: dict[object, set] = {}
+        for x_val, g in zip(x_vals, groups, strict=True):
+            x_groups.setdefault(x_val, set()).add(g)
+
         new_x = []
-        for x_val, g in zip(data["x"], groups, strict=True):
-            idx = group_index[g]
-            offset = (idx - (n_groups - 1) / 2) * group_width
+        for x_val, g in zip(x_vals, groups, strict=True):
+            local_groups = sorted(x_groups[x_val])
+            local_n = len(local_groups)
+            local_idx = local_groups.index(g)
+            offset = (local_idx - (local_n - 1) / 2) * group_width
             new_x.append(x_val + offset)
 
         result = dict(data)
