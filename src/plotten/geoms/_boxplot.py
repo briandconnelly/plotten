@@ -32,11 +32,7 @@ class GeomBoxplot:
         x_vals = data["x"]
         n = len(x_vals)
 
-        # Use integer positions for categorical x
-        positions = list(range(n))
-
         for i in range(n):
-            pos = positions[i]
             lower = data["lower"][i]
             upper = data["upper"][i]
             median = data["middle"][i]
@@ -56,7 +52,7 @@ class GeomBoxplot:
             if hatch is not None:
                 bar_kw["hatch"] = hatch
             ax.bar(
-                pos,
+                i,
                 upper - lower,
                 bottom=lower,
                 width=width,
@@ -64,21 +60,21 @@ class GeomBoxplot:
             )
 
             # Median line
-            ax.hlines(median, pos - hw, pos + hw, colors=line_color, linewidth=2)
+            ax.hlines(median, i - hw, i + hw, colors=line_color, linewidth=2)
 
             # Whiskers
-            ax.vlines(pos, ymin, lower, colors=line_color, linewidth=1)
-            ax.vlines(pos, upper, ymax, colors=line_color, linewidth=1)
+            ax.vlines(i, ymin, lower, colors=line_color, linewidth=1)
+            ax.vlines(i, upper, ymax, colors=line_color, linewidth=1)
 
             # Whisker caps
             cap_hw = hw * 0.5
-            ax.hlines(ymin, pos - cap_hw, pos + cap_hw, colors=line_color, linewidth=1)
-            ax.hlines(ymax, pos - cap_hw, pos + cap_hw, colors=line_color, linewidth=1)
+            ax.hlines(ymin, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
+            ax.hlines(ymax, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
 
             # Outliers
             if outliers:
                 ax.scatter(
-                    [pos] * len(outliers),
+                    [i] * len(outliers),
                     outliers,
                     color=line_color,
                     s=20,

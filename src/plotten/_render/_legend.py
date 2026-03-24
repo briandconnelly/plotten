@@ -155,32 +155,6 @@ def _apply_guide_overrides(
     return entries
 
 
-def _draw_legend_entry(
-    legend_ax: Axes,
-    entry: Any,
-    y: float,
-    step: float,
-    legend_text_size: float,
-    font_family: str,
-    text_kw: dict[str, Any] | None = None,
-    *,
-    key_size: float = 20.0,
-) -> None:
-    """Draw a single legend entry (swatch + label) at position *y*."""
-    _draw_legend_entry_at(
-        legend_ax,
-        entry,
-        x_offset=0.0,
-        col_width=1.0,
-        y=y,
-        step=step,
-        legend_text_size=legend_text_size,
-        font_family=font_family,
-        text_kw=text_kw,
-        key_size=key_size,
-    )
-
-
 def _draw_legend_entry_at(
     legend_ax: Axes,
     entry: Any,
@@ -551,13 +525,15 @@ def _draw_discrete_legend(
                     key_size=effective_key_w,
                 )
             else:
-                _draw_legend_entry(
+                _draw_legend_entry_at(
                     legend_ax,
                     entry,
-                    y,
-                    step,
-                    effective_text_size,
-                    effective_text_family,
+                    x_offset=0.0,
+                    col_width=1.0,
+                    y=y,
+                    step=step,
+                    legend_text_size=effective_text_size,
+                    font_family=effective_text_family,
                     text_kw=entry_text_kw or None,
                     key_size=effective_key_h,
                 )

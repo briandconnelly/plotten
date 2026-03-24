@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from plotten._defaults import MAPPED_AESTHETICS
+from plotten._defaults import LEGEND_LAYOUT_RECTS, MAPPED_AESTHETICS
 from plotten._render._layout import (
     apply_facet_decorations,
     create_axes,
@@ -47,40 +47,21 @@ def render_single(
     apply_scales(ax, resolved.scales, polar=isinstance(resolved.coord, CoordPolar), theme=theme)
     _apply_coord_limits(ax, resolved.coord, is_flipped)
 
-    # Apply labs directly to axes
+    apply_axis_labs(ax, resolved, theme)
+
+    # Title
     labs = resolved.labs
-    if labs is not None:
-        if not isinstance(resolved.coord, CoordPolar):
-            axis_title_kw = text_props(
-                theme.axis_title,
-                theme,
-                default_size=theme.label_size,
-                default_color="#000000",
-                is_title=True,
-            )
-            for k in ("ha", "va", "rotation"):
-                axis_title_kw.pop(k, None)
-            ax_x_kw = dict(axis_title_kw)
-            ax_y_kw = dict(axis_title_kw)
-            if theme.axis_title_x_size is not None:
-                ax_x_kw["fontsize"] = theme.axis_title_x_size
-            if theme.axis_title_y_size is not None:
-                ax_y_kw["fontsize"] = theme.axis_title_y_size
-            if labs.x is not None:
-                ax.set_xlabel(labs.x, **ax_x_kw)
-            if labs.y is not None:
-                ax.set_ylabel(labs.y, **ax_y_kw)
-        if labs.title is not None:
-            title_kw = text_props(
-                theme.plot_title,
-                theme,
-                default_size=theme.title_size,
-                default_color=theme.title_color,
-                is_title=True,
-            )
-            for k in ("ha", "va"):
-                title_kw.pop(k, None)
-            ax.set_title(labs.title, **title_kw)
+    if labs is not None and labs.title is not None:
+        title_kw = text_props(
+            theme.plot_title,
+            theme,
+            default_size=theme.title_size,
+            default_color=theme.title_color,
+            is_title=True,
+        )
+        for k in ("ha", "va"):
+            title_kw.pop(k, None)
+        ax.set_title(labs.title, **title_kw)
 
 
 def render(plot: Plot) -> Figure:
@@ -214,14 +195,8 @@ def _apply_legend(
             pos = position
             if isinstance(pos, tuple):
                 pass  # Inside legend, no rect adjustment needed
-            elif pos == LegendPosition.RIGHT:
-                engine.set(rect=[0, 0, 0.85, 1])  # type: ignore[union-attr]
-            elif pos == LegendPosition.LEFT:
-                engine.set(rect=[0.15, 0, 1, 1])  # type: ignore[union-attr]
-            elif pos == LegendPosition.TOP:
-                engine.set(rect=[0, 0, 1, 0.85])  # type: ignore[union-attr]
-            elif pos == LegendPosition.BOTTOM:
-                engine.set(rect=[0, 0.15, 1, 1])  # type: ignore[union-attr]
+            elif pos in LEGEND_LAYOUT_RECTS:
+                engine.set(rect=LEGEND_LAYOUT_RECTS[pos])  # type: ignore[union-attr]
 
     # Draw legend in the dedicated subfig if available, otherwise top-level fig
     legend_target = legend_subfig if legend_subfig is not None else fig
@@ -239,7 +214,6 @@ def _apply_legend(
 def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:
     """Apply coordinate limits."""
     from plotten.coords._flip import CoordFlip
-    from plotten.coords._polar import CoordPolar
 
     if isinstance(coord, CoordFlip):
         # Limits were specified as original x/y, but data is now swapped
@@ -247,7 +221,7 @@ def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:
             ax.set_ylim(coord.xlim)
         if coord.ylim is not None:
             ax.set_xlim(coord.ylim)
-    elif isinstance(coord, CoordPolar) or coord is not None:
+    elif coord is not None:
         coord.transform(None, ax)
 
 

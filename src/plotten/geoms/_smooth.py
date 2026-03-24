@@ -38,7 +38,7 @@ class GeomSmooth:
 
         # CI ribbon
         se = params.get("se", self._se)
-        if se and "ymin" in data and "ymax" in data and data["ymin"] != data["ymax"]:
+        if se and "ymin" in data and "ymax" in data:
             ax.fill_between(
                 data["x"],
                 data["ymin"],

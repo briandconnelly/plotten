@@ -62,8 +62,9 @@ from plotten import (
 from plotten._layer import Layer
 from plotten._plot import Plot
 from plotten._protocols import Coord, Geom, Scale, Stat
+from plotten._render._data_pipeline import _detect_group_key, _split_by_group
 from plotten._render._mpl import render
-from plotten._render._resolve import _detect_group_key, _split_by_group, resolve
+from plotten._render._resolve import resolve
 from plotten._validation import ConfigError, DataError, ScaleError, _suggest_columns
 from plotten.coords._cartesian import CoordCartesian
 from plotten.facets import FacetWrap

@@ -479,11 +479,13 @@ def _inject_theme_text_defaults(
 
 def _is_dark_color(color: str) -> bool:
     """Heuristic check if a color string is dark (luminance < 0.4)."""
-    if color == "none" or not color.startswith("#") or len(color) < 7:
+    if color == "none":
         return False
     try:
-        r, g, b = int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16)
-        luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+        from matplotlib.colors import to_rgb
+
+        r, g, b = to_rgb(color)
+        luminance = 0.299 * r + 0.587 * g + 0.114 * b
         return luminance < 0.4
     except ValueError:
         return False

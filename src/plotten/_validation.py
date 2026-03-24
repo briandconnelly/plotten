@@ -268,9 +268,19 @@ _VALID_SHAPES: frozenset[str] = frozenset(
     }
 )
 
-_VALID_LINETYPES: frozenset[str] = frozenset(
-    {"solid", "dashed", "dotted", "dashdot", "-", "--", "-.", ":", "none", "None", ""}
-)
+
+def _build_valid_linetypes() -> frozenset[str]:
+    """Derive valid linetypes from the canonical linetype module."""
+    from plotten._linetypes import _LINETYPE_NAMES, _SHORT_ALIASES
+
+    names = set(_LINETYPE_NAMES)
+    names.update(_SHORT_ALIASES)
+    # Include matplotlib builtins and edge cases
+    names.update({":", "None", ""})
+    return frozenset(names)
+
+
+_VALID_LINETYPES: frozenset[str] = _build_valid_linetypes()
 
 _VALID_HATCHES: frozenset[str] = frozenset(
     {

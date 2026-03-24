@@ -24,10 +24,7 @@ from typing import TYPE_CHECKING, Any
 from plotten._defaults import MAPPED_AESTHETICS
 from plotten._enums import FacetScales
 from plotten._render._data_pipeline import (
-    _detect_group_key,
     _resolve_layers,
-    _separate_mappings,
-    _split_by_group,
 )
 from plotten._render._scale_resolution import (
     _apply_expand_limits,
@@ -137,18 +134,7 @@ def _default_labs(labs_obj: Any, mapping: Any) -> Any:
         labs_obj = Labs()
 
     defaults: dict[str, str] = {}
-    for field_name in (
-        "x",
-        "y",
-        "color",
-        "fill",
-        "size",
-        "alpha",
-        "shape",
-        "linetype",
-        "linewidth",
-        "hatch",
-    ):
+    for field_name in ("x", "y", *MAPPED_AESTHETICS):
         if getattr(labs_obj, field_name) is None:
             aes_val = getattr(mapping, field_name, None)
             if isinstance(aes_val, str):
@@ -159,14 +145,9 @@ def _default_labs(labs_obj: Any, mapping: Any) -> Any:
     return labs_obj
 
 
-# Re-export for backwards compatibility with existing imports
 __all__ = [
     "ResolvedLayer",
     "ResolvedPanel",
     "ResolvedPlot",
-    "_detect_group_key",
-    "_resolve_layers",
-    "_separate_mappings",
-    "_split_by_group",
     "resolve",
 ]

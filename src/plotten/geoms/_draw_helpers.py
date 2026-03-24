@@ -82,15 +82,11 @@ def build_line_kwargs(
         kwargs["linestyle"] = resolve_ls(params["linetype"])
     # linewidth: prefer explicit linewidth, fall back to size
     if "linewidth" in data:
-        kwargs["linewidth"] = (
-            scalar(data["linewidth"]) if isinstance(data["linewidth"], list) else data["linewidth"]
-        )
+        _add_scalar(kwargs, data, params, "linewidth", "linewidth")
+    elif "size" in data:
+        _add_scalar(kwargs, data, params, "size", "linewidth")
     elif "linewidth" in params:
         kwargs["linewidth"] = params["linewidth"]
-    elif "size" in data:
-        kwargs["linewidth"] = (
-            scalar(data["size"]) if isinstance(data["size"], list) else data["size"]
-        )
     elif "size" in params:
         kwargs["linewidth"] = params["size"]
     return kwargs
@@ -124,6 +120,17 @@ def build_fill_kwargs(
     if hatch is not None:
         kwargs["hatch"] = scalar(hatch) if isinstance(hatch, list) else hatch
     return kwargs
+
+
+def draw_bars(
+    data: GeomDrawData,
+    ax: Any,
+    params: GeomParams,
+) -> None:
+    """Shared bar-drawing logic for GeomBar and GeomCol."""
+    kwargs = build_fill_kwargs(data, params)
+    width = params.get("width", 0.8)
+    ax.bar(data["x"], data["y"], width=width, **kwargs)
 
 
 def _add_scalar(

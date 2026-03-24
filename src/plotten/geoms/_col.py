@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
     from plotten._types import GeomDrawData, GeomParams
 
-from plotten.geoms._draw_helpers import build_fill_kwargs
+from plotten.geoms._draw_helpers import draw_bars
 
 
 class GeomCol:
@@ -24,6 +24,4 @@ class GeomCol:
         return StatIdentity()
 
     def draw(self, data: GeomDrawData, ax: Axes, params: GeomParams) -> None:
-        kwargs = build_fill_kwargs(data, params)
-        width = params.get("width", 0.8)
-        ax.bar(data["x"], data["y"], width=width, **kwargs)
+        draw_bars(data, ax, params)

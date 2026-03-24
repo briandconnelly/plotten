@@ -42,9 +42,6 @@ def _apply_axis_scale(ax: Axes, scale: Any, axis: str, *, polar: bool, theme: An
         case _:
             set_lim(scale.get_limits())
 
-    if not polar:
-        set_label = ax.set_xlabel if axis == "x" else ax.set_ylabel
-        set_label(axis)
     _apply_sec_axis(ax, scale, axis=axis, theme=theme)
 
 

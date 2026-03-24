@@ -28,6 +28,20 @@ DEFAULT_STRIP_BOX_PAD: float = 3
 DEFAULT_CONTINUOUS_BREAK_COUNT: int = 5
 DEFAULT_POSITION_BREAK_COUNT: int = 6
 
+# Layout region height ratios (figure-fraction)
+LAYOUT_HEADER_H_TITLE_ONLY: float = 0.06
+LAYOUT_HEADER_H_TITLE_SUBTITLE: float = 0.09
+LAYOUT_LEGEND_TOP_H: float = 0.05
+LAYOUT_CAPTION_H: float = 0.04
+
+# Legend layout rects keyed by position string
+LEGEND_LAYOUT_RECTS: dict[str, list[float]] = {
+    "right": [0, 0, 0.85, 1],
+    "left": [0.15, 0, 1, 1],
+    "top": [0, 0, 1, 0.85],
+    "bottom": [0, 0.15, 1, 1],
+}
+
 # Default geom colors
 DEFAULT_GEOM_COLOR = "#333333"
 DEFAULT_GEOM_FILL = "#4C72B0"

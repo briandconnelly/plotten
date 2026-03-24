@@ -1538,10 +1538,17 @@ class TestIsDarkColor:
 
         assert _is_dark_color("none") is False
 
-    def test_non_hex(self):
+    def test_named_colors(self):
         from plotten._render._mpl_theme import _is_dark_color
 
-        assert _is_dark_color("red") is False
+        # Named dark colors are now correctly detected
+        assert _is_dark_color("red") is True
+        assert _is_dark_color("darkblue") is True
+        # Named light colors
+        assert _is_dark_color("white") is False
+        assert _is_dark_color("yellow") is False
+        # Invalid color strings
+        assert _is_dark_color("notacolor") is False
 
 
 # --- Margin tests ---

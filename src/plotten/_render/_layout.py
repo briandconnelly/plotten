@@ -16,6 +16,10 @@ from plotten._defaults import (
     DEFAULT_FACET_CELL_WIDTH,
     DEFAULT_FIGSIZE,
     DEFAULT_STRIP_BOX_PAD,
+    LAYOUT_CAPTION_H,
+    LAYOUT_HEADER_H_TITLE_ONLY,
+    LAYOUT_HEADER_H_TITLE_SUBTITLE,
+    LAYOUT_LEGEND_TOP_H,
 )
 from plotten.themes._text_props import text_props
 
@@ -96,22 +100,24 @@ def create_figure(
     legend_top = isinstance(theme.legend_position, str) and theme.legend_position == "top"
 
     if has_title or has_subtitle:
-        header_h = 0.06
-        if has_title and has_subtitle:
-            header_h = 0.09
+        header_h = (
+            LAYOUT_HEADER_H_TITLE_SUBTITLE
+            if (has_title and has_subtitle)
+            else LAYOUT_HEADER_H_TITLE_ONLY
+        )
         regions.append("header")
         ratios.append(header_h)
 
     if legend_top:
         regions.append("legend_top")
-        ratios.append(0.05)
+        ratios.append(LAYOUT_LEGEND_TOP_H)
 
     regions.append("main")
     ratios.append(1.0)
 
     if has_caption:
         regions.append("caption")
-        ratios.append(0.04)
+        ratios.append(LAYOUT_CAPTION_H)
 
     if len(regions) == 1:
         # No header or caption — main is the whole figure
@@ -287,7 +293,9 @@ def apply_facet_decorations(
 ) -> None:
     """Apply strip labels, shared axis labels, and hide empty axes for faceted plots."""
     if panel_pos is None:
-        panel_pos = lambda idx: divmod(idx, ncol)  # noqa: E731
+
+        def panel_pos(idx: int) -> tuple[int, int]:
+            return divmod(idx, ncol)
 
     strip_bg = theme.strip_background
     strip_kw = text_props(
