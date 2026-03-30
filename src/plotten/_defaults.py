@@ -17,7 +17,7 @@ MAPPED_AESTHETICS: tuple[str, ...] = (
 )
 
 # Figure size
-DEFAULT_FIGSIZE: tuple[float, float] = (8, 6)
+DEFAULT_FIGSIZE: tuple[float, float] = (8, 5.5)
 DEFAULT_FACET_CELL_WIDTH: float = 4
 DEFAULT_FACET_CELL_HEIGHT: float = 3.5
 
@@ -44,10 +44,10 @@ LEGEND_LAYOUT_RECTS: dict[str, list[float]] = {
 
 # Default geom colors
 DEFAULT_GEOM_COLOR = "#333333"
-DEFAULT_GEOM_FILL = "#4C72B0"
+DEFAULT_GEOM_FILL = "#6A9BC3"
 
 # Default geom sizes (matplotlib scatter `s` units = area in points²)
-DEFAULT_POINT_SIZE: float = 20
+DEFAULT_POINT_SIZE: float = 28
 
 
 def detect_backend() -> Literal["polars", "pandas"]:

@@ -5,7 +5,7 @@ from plotten.themes._theme import Theme
 
 
 def theme_default() -> Theme:
-    """Clean theme with a light gray panel background (all defaults)."""
+    """Clean modern theme with white panel and subdued gridlines (all defaults)."""
     return Theme(complete=True)
 
 
@@ -43,6 +43,9 @@ def theme_bw() -> Theme:
         grid_line_width=0.3,
         panel_border_color="#000000",
         panel_border_width=1.0,
+        axis_line_x=True,
+        axis_line_y=True,
+        tick_length=4.0,
         complete=True,
     )
 
@@ -55,7 +58,10 @@ def theme_classic() -> Theme:
         grid_major_y=False,
         grid_minor_x=False,
         grid_minor_y=False,
+        axis_line_x=True,
+        axis_line_y=True,
         axis_line_width=1.0,
+        tick_length=4.0,
         complete=True,
     )
 
@@ -118,7 +124,7 @@ def theme_economist() -> Theme:
         grid_major_x=False,
         grid_minor_x=False,
         grid_minor_y=False,
-        title_size=16,
+        title_size=18,
         complete=True,
     )
 
@@ -132,7 +138,10 @@ def theme_tufte() -> Theme:
         grid_major_y=False,
         grid_minor_x=False,
         grid_minor_y=False,
+        axis_line_x=True,
+        axis_line_y=True,
         axis_line_width=0.3,
+        tick_length=4.0,
         font_family="serif",
         complete=True,
     )
@@ -161,7 +170,10 @@ def theme_linedraw() -> Theme:
         grid_line_width=0.3,
         panel_border_color="#000000",
         panel_border_width=0.5,
+        axis_line_x=True,
+        axis_line_y=True,
         axis_line_width=0.5,
+        tick_length=4.0,
         strip_background="#d9d9d9",
         complete=True,
     )
@@ -175,7 +187,10 @@ def theme_light() -> Theme:
         grid_line_width=0.3,
         panel_border_color="#999999",
         panel_border_width=0.5,
+        axis_line_x=True,
+        axis_line_y=True,
         axis_line_width=0.3,
+        tick_length=4.0,
         strip_background="#d9d9d9",
         strip_text_color="#333333",
         complete=True,
@@ -193,7 +208,10 @@ def theme_test() -> Theme:
         grid_minor_y=False,
         panel_border_color="#000000",
         panel_border_width=0.5,
+        axis_line_x=True,
+        axis_line_y=True,
         axis_line_width=0.5,
+        tick_length=4.0,
         complete=True,
     )
 

@@ -20,8 +20,6 @@ from plotten import (
     geom_text_repel,
     ggplot,
     labs,
-    theme_bw,
-    theme_minimal,
 )
 from plotten.datasets import load_dataset
 
@@ -37,12 +35,11 @@ hero = (
     + geom_smooth(method="ols")
     + labs(
         title="Engine displacement vs. highway MPG",
-        subtitle="Seven vehicle classes, model years 1999–2008",
+        subtitle="Seven vehicle classes, model years 1999-2008",
         caption="Source: ggplot2::mpg",
         x="Displacement (L)",
         y="Highway MPG",
     )
-    + theme_minimal()
 )
 hero.save(f"{OUT}/hero.png", width=8, height=5, dpi=150)
 print(f"Saved {OUT}/hero.png")
@@ -53,8 +50,18 @@ repel_df = pl.DataFrame(
     {
         "x": [1.0, 1.2, 1.1, 3.0, 3.1, 5.0, 5.2, 5.1, 7.0, 7.1],
         "y": [2.0, 2.1, 1.9, 4.0, 4.2, 3.0, 3.1, 2.8, 5.0, 5.1],
-        "name": ["Alpha", "Beta", "Gamma", "Delta", "Epsilon",
-                  "Zeta", "Eta", "Theta", "Iota", "Kappa"],
+        "name": [
+            "Alpha",
+            "Beta",
+            "Gamma",
+            "Delta",
+            "Epsilon",
+            "Zeta",
+            "Eta",
+            "Theta",
+            "Iota",
+            "Kappa",
+        ],
     }
 )
 
@@ -62,7 +69,6 @@ repel = (
     ggplot(repel_df, aes(x="x", y="y", label="name"))
     + geom_point(size=30, color="#2c3e50")
     + geom_text_repel()
-    + theme_minimal()
     + labs(title="geom_text_repel — automatic label placement", x="X", y="Y")
 )
 repel.save(f"{OUT}/label_repel.png", width=6, height=4, dpi=150)
@@ -78,11 +84,10 @@ computed = (
     ggplot(hist_df, aes(x="x", y=after_stat("density")))
     + geom_histogram(bins=25, alpha=0.8, color="#3F51B5")
     + labs(
-        title="Density histogram via after_stat(\"density\")",
+        title='Density histogram via after_stat("density")',
         x="Value",
         y="Density",
     )
-    + theme_minimal()
 )
 computed.save(f"{OUT}/computed_aesthetics.png", width=6, height=4, dpi=150)
 print(f"Saved {OUT}/computed_aesthetics.png")
@@ -94,18 +99,13 @@ faceted = (
     + geom_point(mapping=aes(color="drv"), alpha=0.6)
     + geom_smooth(method="loess")
     + facet_wrap("class", ncol=3)
-    + theme_bw()
 )
 faceted.save(f"{OUT}/faceted_scatter.png", width=9, height=7, dpi=150)
 print(f"Saved {OUT}/faceted_scatter.png")
 
 # ── Ridge plot ────────────────────────────────────────────────────────────────
 
-ridge = (
-    ggplot(mpg, aes(x="hwy", y="class"))
-    + geom_density_ridges(alpha=0.8)
-    + theme_minimal()
-)
+ridge = ggplot(mpg, aes(x="hwy", y="class")) + geom_density_ridges(alpha=0.8)
 ridge.save(f"{OUT}/ridge_plot.png", width=8, height=5, dpi=150)
 print(f"Saved {OUT}/ridge_plot.png")
 
@@ -115,14 +115,12 @@ p1 = (
     ggplot(mpg, aes(x="displ", y="hwy", color="class"))
     + geom_point(alpha=0.6)
     + labs(title="Displacement vs MPG", x="Displacement (L)", y="Highway MPG")
-    + theme_minimal()
 )
 
 p2 = (
     ggplot(mpg, aes(x="hwy"))
     + geom_histogram(bins=20, alpha=0.8, color="#3F51B5")
     + labs(title="Highway MPG distribution", x="Highway MPG", y="Count")
-    + theme_minimal()
 )
 
 composition = p1 | p2

@@ -53,8 +53,8 @@ if TYPE_CHECKING:
 
 def test_theme_defaults():
     t = theme_default()
-    assert t.title_size == 14
-    assert t.panel_background == "#ebebeb"
+    assert t.title_size == 16
+    assert t.panel_background == "#ffffff"
 
 
 def test_theme_minimal():
@@ -75,7 +75,7 @@ def test_theme_add():
     combined = base + overlay
     assert combined.title_size == 20
     # Non-overridden fields stay from base
-    assert combined.panel_background == "#ebebeb"
+    assert combined.panel_background == "#ffffff"
 
 
 def test_theme_frozen():
@@ -105,12 +105,12 @@ class TestThemeNewFields:
         assert t.axis_text_y_rotation == 0
         assert t.panel_border_color is None
         assert t.panel_border_width == 1.0
-        assert t.strip_background == "#d9d9d9"
+        assert t.strip_background == "none"
         assert t.strip_text_size is None
         assert t.strip_text_color == "#000000"
-        assert t.title_color == "#000000"
-        assert t.subtitle_size is None
-        assert t.subtitle_color == "#555555"
+        assert t.title_color == "#1a1a1a"
+        assert t.subtitle_size == 12
+        assert t.subtitle_color == "#666666"
         assert t.legend_background is None
         assert t.legend_title_size is None
         assert t.legend_text_size is None
@@ -118,8 +118,8 @@ class TestThemeNewFields:
         assert t.grid_major_y is True
         assert t.grid_minor_x is False
         assert t.grid_minor_y is False
-        assert t.axis_line_x is True
-        assert t.axis_line_y is True
+        assert t.axis_line_x is False
+        assert t.axis_line_y is False
 
     def test_custom_values(self):
         t = Theme(

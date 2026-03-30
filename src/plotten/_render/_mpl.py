@@ -59,6 +59,8 @@ def render_single(
             default_color=theme.title_color,
             is_title=True,
         )
+        if "fontweight" not in title_kw and theme.title_weight:
+            title_kw["fontweight"] = theme.title_weight
         for k in ("ha", "va"):
             title_kw.pop(k, None)
         ax.set_title(labs.title, **title_kw)

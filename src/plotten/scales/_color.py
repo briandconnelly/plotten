@@ -5,6 +5,7 @@ from typing import Any
 import narwhals as nw
 
 from plotten.scales._base import LegendEntry, MappedContinuousScale, MappedDiscreteScale
+from plotten.scales._palettes import DEFAULT_DISCRETE_PALETTE
 
 
 class ScaleColorContinuous(MappedContinuousScale):
@@ -61,7 +62,7 @@ class ScaleColorDiscrete(MappedDiscreteScale):
     def __init__(
         self,
         aesthetic: str = "color",
-        palette: str = "tab10",
+        palette: str = DEFAULT_DISCRETE_PALETTE,
         values: dict[str, str] | None = None,
     ) -> None:
         import matplotlib
@@ -126,13 +127,15 @@ def scale_color_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
     return ScaleColorContinuous(cmap_name=cmap)
 
 
-def scale_color_discrete(palette: str = "tab10") -> ScaleColorDiscrete:
+def scale_color_discrete(palette: str = DEFAULT_DISCRETE_PALETTE) -> ScaleColorDiscrete:
     """Map discrete values to distinct colors from a qualitative palette.
 
     Parameters
     ----------
     palette : str, optional
-        Matplotlib qualitative colormap name (default ``"tab10"``).
+        Colormap name (default ``"okabe_ito"``).  Also accepts any
+        matplotlib qualitative colormap such as ``"tab10"`` or
+        ``"tol_bright"``.
 
     Examples
     --------
@@ -174,13 +177,15 @@ def scale_fill_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
     return ScaleColorContinuous(aesthetic="fill", cmap_name=cmap)
 
 
-def scale_fill_discrete(palette: str = "tab10") -> ScaleColorDiscrete:
+def scale_fill_discrete(palette: str = DEFAULT_DISCRETE_PALETTE) -> ScaleColorDiscrete:
     """Map discrete values to distinct fill colors from a qualitative palette.
 
     Parameters
     ----------
     palette : str, optional
-        Matplotlib qualitative colormap name (default ``"tab10"``).
+        Colormap name (default ``"okabe_ito"``).  Also accepts any
+        matplotlib qualitative colormap such as ``"tab10"`` or
+        ``"tol_bright"``.
 
     Examples
     --------

@@ -174,6 +174,8 @@ def _render_header(
         default_color=theme.title_color,
         is_title=True,
     )
+    if "fontweight" not in title_kw and theme.title_weight:
+        title_kw["fontweight"] = theme.title_weight
     subtitle_kw = text_props(
         theme.plot_subtitle,
         theme,
@@ -305,6 +307,8 @@ def apply_facet_decorations(
         default_color=theme.strip_text_color,
         is_title=True,
     )
+    if "fontweight" not in strip_kw and theme.strip_text_weight:
+        strip_kw["fontweight"] = theme.strip_text_weight
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
     # Per-axis strip overrides

@@ -6,7 +6,7 @@ If you've used ggplot2 in R, plotten will feel immediately familiar.
 If you haven't, the grammar of graphics is a composable, layered approach to building charts: you describe *what* your data is and *how* it should be encoded visually, and the library handles the rest.
 
 ```python
-from plotten import ggplot, aes, geom_point, geom_smooth, labs, theme_minimal
+from plotten import ggplot, aes, geom_point, geom_smooth, labs
 from plotten.datasets import load_dataset
 
 mpg = load_dataset("mpg")
@@ -22,7 +22,6 @@ mpg = load_dataset("mpg")
         x="Displacement (L)",
         y="Highway MPG",
     )
-    + theme_minimal()
 )
 ```
 
@@ -189,7 +188,7 @@ Seven classic datasets via `load_dataset()`: `diamonds`, `mtcars`, `iris`, `fait
 **Scatter with smooth + facets**
 
 ```python
-from plotten import ggplot, aes, geom_point, geom_smooth, facet_wrap, theme_bw
+from plotten import ggplot, aes, geom_point, geom_smooth, facet_wrap
 from plotten.datasets import load_dataset
 
 mpg = load_dataset("mpg")
@@ -199,7 +198,6 @@ mpg = load_dataset("mpg")
     + geom_point(aes(color="drv"), alpha=0.6)
     + geom_smooth(method="loess")
     + facet_wrap("class", ncol=3)
-    + theme_bw()
 )
 ```
 
@@ -208,7 +206,7 @@ mpg = load_dataset("mpg")
 **Ridge plot**
 
 ```python
-from plotten import ggplot, aes, geom_density_ridges, theme_minimal
+from plotten import ggplot, aes, geom_density_ridges
 from plotten.datasets import load_dataset
 
 mpg = load_dataset("mpg")
@@ -216,7 +214,6 @@ mpg = load_dataset("mpg")
 (
     ggplot(mpg, aes(x="hwy", y="class"))
     + geom_density_ridges(alpha=0.8)
-    + theme_minimal()
 )
 ```
 

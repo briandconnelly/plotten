@@ -19,20 +19,20 @@ class Theme:
     """Visual theme controlling the appearance of a plot."""
 
     # Text
-    title_size: float = 14
-    label_size: float = 12
+    title_size: float = 16
+    label_size: float = 11
     tick_size: float = 10
     font_family: str = "sans-serif"
 
     # Colors
     background: str = "#ffffff"
-    panel_background: str = "#ebebeb"
-    grid_color: str = "#ffffff"
+    panel_background: str = "#ffffff"
+    grid_color: str = "#e0e0e0"
 
     # Lines
     axis_line_width: float = 0.5
-    grid_line_width: float = 0.5
-    tick_length: float = 4.0
+    grid_line_width: float = 0.3
+    tick_length: float = 0.0
 
     # Spacing
     margin: float = 0.1
@@ -51,14 +51,16 @@ class Theme:
     panel_border_width: float = 1.0
 
     # Facet strip
-    strip_background: str = "#d9d9d9"
+    strip_background: str = "none"
     strip_text_size: float | None = None
     strip_text_color: str = "#000000"
+    strip_text_weight: str = "semibold"
 
-    # Title/subtitle colors
-    title_color: str = "#000000"
-    subtitle_size: float | None = None
-    subtitle_color: str = "#555555"
+    # Title/subtitle colors and weight
+    title_color: str = "#1a1a1a"
+    title_weight: str = "bold"
+    subtitle_size: float | None = 12
+    subtitle_color: str = "#666666"
 
     # Legend styling
     legend_background: str | None = None
@@ -72,8 +74,8 @@ class Theme:
     grid_minor_y: bool = False
 
     # Axis line visibility (boolean shortcuts)
-    axis_line_x: bool = True
-    axis_line_y: bool = True
+    axis_line_x: bool = False
+    axis_line_y: bool = False
 
     # Element overrides (take precedence over flat fields)
     axis_title: ElementText | ElementBlank | None = None

@@ -1313,7 +1313,7 @@ def test_add_theme():
     p = ggplot()
     p2 = p + theme_minimal()
     assert p2.theme.panel_background == "none"
-    assert p.theme.panel_background == "#ebebeb"
+    assert p.theme.panel_background == "#ffffff"
 
 
 def test_add_unsupported_raises_type_error():
@@ -1332,7 +1332,7 @@ def test_add_preserves_immutability():
     assert len(p1.layers) == 0
     assert len(p2.layers) == 1
     assert p3.theme.panel_background == "none"
-    assert p2.theme.panel_background == "#ebebeb"
+    assert p2.theme.panel_background == "#ffffff"
 
 
 # --- from test_layer.py ---
