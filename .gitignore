@@ -15,3 +15,8 @@ htmlcov/
 
 # Example output
 examples/output/
+
+.DS_Store
+
+# Claude stuff
+.claude/settings.local.json
