@@ -35,6 +35,12 @@ mpg = load_dataset("mpg")
 ## Installation
 
 ```bash
+uv add plotten
+```
+
+or with pip:
+
+```bash
 pip install plotten
 ```
 
