@@ -1,6 +1,6 @@
 [project]
 name = "plotten"
-version = "1.0.0"
+version = "0.1.0"
 description = "A grammar-of-graphics plotting library for Python"
 readme = "README.md"
 license = "MIT"
