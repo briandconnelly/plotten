@@ -31,6 +31,9 @@ def theme_dark() -> Theme:
         strip_text_color="#e0e0e0",
         axis_text=ElementText(color="#cccccc"),
         axis_title=ElementText(color="#e0e0e0"),
+        plot_caption=ElementText(color="#999999"),
+        legend_title_element=ElementText(color="#e0e0e0"),
+        legend_text_element=ElementText(color="#cccccc"),
         complete=True,
     )
 
