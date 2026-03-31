@@ -8,6 +8,7 @@
 
 If you've used ggplot2 in R, plotten will feel immediately familiar.
 If you haven't, the grammar of graphics is a composable, layered approach to building charts: you describe *what* your data is and *how* it should be encoded visually, and the library handles the rest.
+Built on [narwhals](https://github.com/narwhals-dev/narwhals), plotten works natively with pandas, polars, cuDF, and any other narwhals-supported DataFrame library.
 
 ```python
 from plotten import ggplot, aes, geom_point, geom_smooth, labs

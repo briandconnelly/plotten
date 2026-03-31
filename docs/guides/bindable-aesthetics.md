@@ -31,8 +31,8 @@ from plotten import ggplot, aes, geom_point, geom_smooth
 
 (
     ggplot(mpg, aes(x="displ", y="hwy"))
-    + geom_point(aes(color="drv"))          # color only for points
-    + geom_smooth(aes(linetype="drv"))       # linetype only for smooth
+    + geom_point(mapping=aes(color="drv"))          # color only for points
+    + geom_smooth(mapping=aes(linetype="drv"))       # linetype only for smooth
 )
 ```
 
@@ -46,7 +46,7 @@ The rule is simple:
 
 ```python
 # MAPPING: color varies by the "drv" column, legend is created
-ggplot(mpg, aes(x="displ", y="hwy")) + geom_point(aes(color="drv"))
+ggplot(mpg, aes(x="displ", y="hwy")) + geom_point(mapping=aes(color="drv"))
 
 # SETTING: all points are red, no legend
 ggplot(mpg, aes(x="displ", y="hwy")) + geom_point(color="red")
@@ -169,7 +169,7 @@ from plotten import ggplot, aes, geom_point, after_scale
 # Make the fill a lighter version of the mapped color
 (
     ggplot(mpg, aes(x="displ", y="hwy", color="drv"))
-    + geom_point(aes(fill=after_scale("color")), shape="o", size=4)
+    + geom_point(mapping=aes(fill=after_scale("color")), shape="o", size=4)
 )
 ```
 
@@ -215,7 +215,7 @@ mpg = load_dataset("mpg")
 # Group lines by the combination of drv and cyl
 (
     ggplot(mpg, aes(x="displ", y="hwy"))
-    + geom_line(aes(color=interaction("drv", "cyl")))
+    + geom_line(mapping=aes(color=interaction("drv", "cyl")))
 )
 ```
 

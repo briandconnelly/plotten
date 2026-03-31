@@ -144,7 +144,8 @@ def geom_smooth(method: str = "loess", se: bool = True, degree: int = 2, **param
     Parameters
     ----------
     method : str, optional
-        Smoothing method: ``"loess"`` (default) or ``"lm"``.
+        Smoothing method: ``"loess"`` (default), ``"ols"`` / ``"lm"``
+        (linear), ``"poly"``, or ``"moving_average"``.
     se : bool, optional
         Whether to draw the confidence interval band (default ``True``).
     degree : int, optional

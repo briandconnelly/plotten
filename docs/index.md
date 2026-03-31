@@ -40,7 +40,7 @@ mpg = load_dataset("mpg")
 - **Publication-quality export** -- `ggsave()` with 300 DPI default, size in inches/cm/mm
 - **Accessibility auditing** -- `accessibility_report()` checks colorblind safety, contrast ratios, and font sizes
 - **Helpful error messages** -- typo suggestions for column names, geom parameters, and theme properties
-- **Vega-Lite export** -- `plot.to_vegalite()` and `plot.to_html()` for web output
+- **Vega-Lite export** -- `to_vegalite(plot)` and `to_html(plot)` for web output
 
 [Get started](getting-started/installation.md){ .md-button .md-button--primary }
 [Browse the gallery](gallery.md){ .md-button }

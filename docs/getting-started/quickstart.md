@@ -23,7 +23,7 @@ from plotten import ggplot, aes, geom_point, geom_smooth, labs
 
 (
     ggplot(mpg, aes(x="displ", y="hwy"))
-    + geom_point(aes(color="drv"), alpha=0.6)
+    + geom_point(mapping=aes(color="drv"), alpha=0.6)
     + geom_smooth(method="loess")
     + labs(
         title="Engine displacement vs. highway MPG",
@@ -42,7 +42,7 @@ from plotten import facet_wrap
 
 (
     ggplot(mpg, aes(x="displ", y="hwy"))
-    + geom_point(aes(color="drv"), alpha=0.6)
+    + geom_point(mapping=aes(color="drv"), alpha=0.6)
     + geom_smooth(method="loess")
     + facet_wrap("class", ncol=3)
 )

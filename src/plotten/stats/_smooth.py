@@ -41,7 +41,7 @@ class StatSmooth:
         x_pred = np.linspace(x_sorted.min(), x_sorted.max(), self.n_points)
 
         match self.method:
-            case SmoothMethod.OLS:
+            case SmoothMethod.OLS | "lm":
                 y_pred, ymin, ymax = self._ols(x_sorted, y_sorted, x_pred)
             case SmoothMethod.LOESS:
                 y_pred, ymin, ymax = self._loess(x_sorted, y_sorted, x_pred)
@@ -54,7 +54,7 @@ class StatSmooth:
 
                 msg = (
                     f"Unknown smoothing method: {self.method!r}. "
-                    f"Valid methods: 'ols', 'loess', 'moving_average', 'poly'."
+                    f"Valid methods: 'ols' (or 'lm'), 'loess', 'moving_average', 'poly'."
                 )
                 raise StatError(msg)
 
