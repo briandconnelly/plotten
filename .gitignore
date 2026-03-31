@@ -13,8 +13,8 @@ htmlcov/
 # Virtual environments
 .venv
 
-# Example output
-examples/output/
+# CI-generated doc images
+docs/images/generated/
 
 # Built docs
 site/

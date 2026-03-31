@@ -48,6 +48,11 @@ plugins:
           - getting-started/quickstart.md: First plot, layers, facets, themes, saving
         Gallery:
           - gallery.md: Example plots with code
+        Guides:
+          - guides/bindable-aesthetics.md: How aes() mappings work, setting vs mapping, computed aesthetics
+          - guides/theming.md: Built-in themes, element system, custom themes, Google Fonts
+          - guides/ggplot2-migration.md: Side-by-side R and Python examples for ggplot2 users
+          - guides/dataframes.md: Using polars, pandas, and other DataFrame libraries with plotten
         API Reference:
           - reference/core.md: ggplot, aes, labs, ggsave, guides, annotations
           - reference/geoms.md: 45+ geometry layers
@@ -98,6 +103,11 @@ nav:
       - Installation: getting-started/installation.md
       - Quick Start: getting-started/quickstart.md
   - Gallery: gallery.md
+  - Guides:
+      - Bindable Aesthetics: guides/bindable-aesthetics.md
+      - Theming: guides/theming.md
+      - ggplot2 Migration: guides/ggplot2-migration.md
+      - Working with DataFrames: guides/dataframes.md
   - Reference:
       - Core: reference/core.md
       - Geoms: reference/geoms.md
