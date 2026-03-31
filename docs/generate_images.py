@@ -9,6 +9,10 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
+import matplotlib
+
+matplotlib.use("Agg")
+
 import numpy as np
 import polars as pl
 

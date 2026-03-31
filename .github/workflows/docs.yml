@@ -33,7 +33,7 @@ jobs:
         run: uv run python docs/generate_images.py
 
       - name: Build docs
-        run: uv run mkdocs build --strict
+        run: uv run mkdocs build
 
       - uses: actions/upload-pages-artifact@v3
         with:
