@@ -28,12 +28,19 @@ dependencies = [
 
 [project.urls]
 Homepage = "https://github.com/briandconnelly/plotten"
+Documentation = "https://briandconnelly.github.io/plotten"
 Repository = "https://github.com/briandconnelly/plotten"
 Issues = "https://github.com/briandconnelly/plotten/issues"
 
 [project.optional-dependencies]
 scipy = ["scipy>=1.10"]
 smooth = ["scipy>=1.10"]
+
+docs = [
+    "mkdocs-material>=9.6",
+    "mkdocstrings[python]>=0.29",
+    "mkdocs-llmstxt>=0.5",
+]
 
 [dependency-groups]
 dev = [

@@ -1,0 +1,114 @@
+site_name: plotten
+site_url: https://briandconnelly.github.io/plotten
+site_description: A grammar-of-graphics plotting library for Python
+site_author: Brian Connelly
+
+repo_url: https://github.com/briandconnelly/plotten
+repo_name: briandconnelly/plotten
+
+theme:
+  name: material
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: amber
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - content.code.copy
+    - content.code.annotate
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - toc.follow
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - llmstxt:
+      full_output: llms-full.txt
+      sections:
+        Getting Started:
+          - index.md: A grammar-of-graphics plotting library for Python
+          - getting-started/installation.md: Install plotten with pip or uv
+          - getting-started/quickstart.md: First plot, layers, facets, themes, saving
+        Gallery:
+          - gallery.md: Example plots with code
+        API Reference:
+          - reference/core.md: ggplot, aes, labs, ggsave, guides, annotations
+          - reference/geoms.md: 45+ geometry layers
+          - reference/scales.md: 50+ scales for color, size, shape, position
+          - reference/stats.md: Statistical transformations
+          - reference/positions.md: Position adjustments (dodge, jitter, stack)
+          - reference/coords.md: Coordinate systems (cartesian, polar, flip)
+          - reference/facets.md: facet_wrap and facet_grid
+          - reference/themes.md: 12+ built-in themes and customization
+          - reference/datasets.md: 7 built-in datasets
+          - reference/recipes.md: High-level plot constructors
+          - reference/composition.md: Combining plots with plot_grid and operators
+          - reference/accessibility.md: Accessibility auditing and font registration
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src]
+          options:
+            show_source: false
+            show_root_heading: true
+            show_root_full_path: false
+            heading_level: 3
+            members_order: source
+            docstring_style: numpy
+            docstring_section_style: spacy
+            show_signature_annotations: true
+            separate_signature: true
+            merge_init_into_class: true
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.snippets
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - Quick Start: getting-started/quickstart.md
+  - Gallery: gallery.md
+  - Reference:
+      - Core: reference/core.md
+      - Geoms: reference/geoms.md
+      - Scales: reference/scales.md
+      - Stats: reference/stats.md
+      - Positions: reference/positions.md
+      - Coords: reference/coords.md
+      - Facets: reference/facets.md
+      - Themes: reference/themes.md
+      - Datasets: reference/datasets.md
+      - Recipes: reference/recipes.md
+      - Composition: reference/composition.md
+      - Accessibility: reference/accessibility.md
+  - Changelog: changelog.md

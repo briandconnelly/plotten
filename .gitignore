@@ -16,6 +16,9 @@ htmlcov/
 # Example output
 examples/output/
 
+# Built docs
+site/
+
 .DS_Store
 
 # Claude stuff
