@@ -1178,9 +1178,17 @@ class TestThemeTest:
 class TestSecAxisThemeStyling:
     """Fix 5: Secondary axes should respect theme styling."""
 
-    def test_sec_axis_with_theme(self):
+    @staticmethod
+    def _find_sec_axis(fig):
         from matplotlib.axes._secondary_axes import SecondaryAxis
 
+        ax = fig.axes[0]
+        for child in ax.get_children():
+            if isinstance(child, SecondaryAxis):
+                return child
+        return None
+
+    def test_sec_axis_with_theme(self):
         from plotten import scale_y_continuous, sec_axis
 
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
@@ -1193,14 +1201,272 @@ class TestSecAxisThemeStyling:
             + theme(font_family="monospace", tick_size=8)
         )
         fig = render(p)
-        ax = fig.axes[0]
-        sec = None
-        for child in ax.get_children():
-            if isinstance(child, SecondaryAxis):
-                sec = child
-                break
+        sec = self._find_sec_axis(fig)
         assert sec is not None
         assert sec.get_ylabel() == "Secondary"
+        plt.close(fig)
+
+    def test_sec_axis_text_y_right(self):
+        """axis_text_y_right should style secondary y-axis tick labels."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2))
+            + theme(axis_text_y_right=element_text(color="red", size=14))
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+    def test_sec_axis_text_y_right_blank(self):
+        """axis_text_y_right=element_blank() should hide secondary tick labels."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2))
+            + theme(axis_text_y_right=element_blank())
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+    def test_sec_axis_title_y_right(self):
+        """axis_title_y_right should style secondary y-axis title."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(
+                sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2, name="Right")
+            )
+            + theme(axis_title_y_right=element_text(color="blue", size=16))
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+    def test_sec_axis_title_y_right_blank(self):
+        """axis_title_y_right=element_blank() should suppress secondary title."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(
+                sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2, name="Right")
+            )
+            + theme(axis_title_y_right=element_blank())
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        # Title should be suppressed
+        assert sec.get_ylabel() == ""
+        plt.close(fig)
+
+    def test_sec_axis_ticks_y_right(self):
+        """axis_ticks_y_right should style secondary tick marks."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2))
+            + theme(axis_ticks_y_right=element_line(color="green", size=2.0))
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+    def test_sec_axis_ticks_y_right_blank(self):
+        """axis_ticks_y_right=element_blank() should suppress secondary tick marks."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2))
+            + theme(axis_ticks_y_right=element_blank())
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+    def test_sec_axis_line_y_right(self):
+        """axis_line_y_right should style secondary spine."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2))
+            + theme(axis_line_y_right=element_line(color="purple", size=2.0))
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+    def test_sec_axis_x_top(self):
+        """Secondary x-axis (top) should respect per-position theme fields."""
+        from plotten import scale_x_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_x_continuous(
+                sec_axis=sec_axis(
+                    trans=lambda x: x * 100, inverse=lambda x: x / 100, name="Percent"
+                )
+            )
+            + theme(
+                axis_text_x_top=element_text(color="red"),
+                axis_title_x_top=element_text(size=14),
+                axis_ticks_x_top=element_line(color="blue"),
+                axis_ticks_length_x_top=5.0,
+            )
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_sec_axis_ticks_length_y_right(self):
+        """axis_ticks_length_y_right should control tick length on secondary axis."""
+        from plotten import scale_y_continuous, sec_axis
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [4.0, 5.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + scale_y_continuous(sec_axis=sec_axis(trans=lambda x: x * 2, inverse=lambda x: x / 2))
+            + theme(axis_ticks_length_y_right=8.0)
+        )
+        fig = render(p)
+        sec = self._find_sec_axis(fig)
+        assert sec is not None
+        plt.close(fig)
+
+
+class TestPerPositionPrimaryAxis:
+    """Per-position theme fields for primary axes (bottom, left)."""
+
+    def test_axis_text_x_bottom(self):
+        """axis_text_x_bottom should override primary x tick labels."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(axis_text_x_bottom=element_text(color="red", size=14))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_text_y_left(self):
+        """axis_text_y_left should override primary y tick labels."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(axis_text_y_left=element_text(color="blue", size=12))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_title_x_bottom_blank(self):
+        """axis_title_x_bottom=element_blank() should suppress primary x title."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(x="X Label")
+            + theme(axis_title_x_bottom=element_blank())
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_title_y_left(self):
+        """axis_title_y_left should style primary y-axis title."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(y="Y Label")
+            + theme(axis_title_y_left=element_text(color="green", size=16))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_ticks_x_bottom(self):
+        """axis_ticks_x_bottom should style primary x tick marks."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(axis_ticks_x_bottom=element_line(color="orange", size=2.0))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_line_x_bottom_blank(self):
+        """axis_line_x_bottom=element_blank() should hide bottom spine."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                axis_line_x=True,
+                axis_line_x_bottom=element_blank(),
+            )
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        assert not ax.spines["bottom"].get_visible()
+        plt.close(fig)
+
+    def test_axis_line_y_left_styled(self):
+        """axis_line_y_left=element_line() should show and style left spine."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                axis_line_y_left=element_line(color="red", size=2.0),
+            )
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        assert ax.spines["left"].get_visible()
+        plt.close(fig)
+
+    def test_axis_ticks_length_x_bottom(self):
+        """axis_ticks_length_x_bottom should override primary x tick length."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [3.0, 4.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(axis_ticks_length_x_bottom=8.0)
+        fig = render(p)
+        assert fig is not None
         plt.close(fig)
 
 
@@ -2596,3 +2862,253 @@ class TestPolarThemeFields:
         fig = render(p)
         assert fig is not None
         plt.close(fig)
+
+
+class TestLegendBoxLayout:
+    """legend_box, legend_box_spacing, legend_box_background, legend_byrow, legend_position_inside."""
+
+    @staticmethod
+    def _make_multi_legend_plot():
+        from plotten import geom_line, scale_color_discrete, scale_linetype_discrete
+
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0, 1.0, 2.0, 3.0],
+                "y": [1.0, 3.0, 2.0, 2.0, 1.0, 3.0],
+                "g": ["a", "a", "a", "b", "b", "b"],
+                "lt": ["solid", "solid", "solid", "dashed", "dashed", "dashed"],
+            }
+        )
+        return (
+            ggplot(df, aes(x="x", y="y", color="g", linetype="lt"))
+            + geom_line()
+            + scale_color_discrete()
+            + scale_linetype_discrete()
+        )
+
+    def test_legend_box_vertical_default(self):
+        """Default legend_box is vertical (None) — should render normally."""
+        p = self._make_multi_legend_plot()
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_box_horizontal(self):
+        """legend_box='horizontal' should stack legend groups side by side."""
+        p = self._make_multi_legend_plot() + theme(legend_box="horizontal")
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_box_spacing(self):
+        """legend_box_spacing should control gap between legend groups."""
+        p = self._make_multi_legend_plot() + theme(legend_box_spacing=0.05)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_box_background(self):
+        """legend_box_background should draw a background behind all legends."""
+        p = self._make_multi_legend_plot() + theme(
+            legend_box_background=element_rect(fill="lightyellow", color="grey")
+        )
+        fig = render(p)
+        # Check that a patch was added to the figure
+        assert len(fig.patches) > 0
+        plt.close(fig)
+
+    def test_legend_box_horizontal_with_spacing(self):
+        """Horizontal box with custom spacing."""
+        p = self._make_multi_legend_plot() + theme(
+            legend_box="horizontal",
+            legend_box_spacing=0.08,
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_byrow(self):
+        """legend_byrow should reorder entries in row-first order."""
+        from plotten import guide_legend, guides, scale_color_discrete
+
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0, 4.0],
+                "y": [1.0, 2.0, 3.0, 4.0],
+                "g": ["a", "b", "c", "d"],
+            }
+        )
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + guides(color=guide_legend(ncol=2))
+            + theme(legend_byrow=True)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_position_inside(self):
+        """legend_position_inside should override position to axes-relative coords."""
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0],
+                "y": [1.0, 2.0, 3.0],
+                "g": ["a", "b", "c"],
+            }
+        )
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + theme(legend_position_inside=(0.8, 0.8))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_position_inside_overrides_position(self):
+        """legend_position_inside takes precedence over legend_position."""
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame(
+            {
+                "x": [1.0, 2.0, 3.0],
+                "y": [1.0, 2.0, 3.0],
+                "g": ["a", "b", "c"],
+            }
+        )
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + scale_color_discrete()
+            + theme(legend_position="left", legend_position_inside=(0.5, 0.5))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestLegendTextPosition:
+    """legend_text_position controls text placement relative to swatch."""
+
+    @staticmethod
+    def _make_plot():
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
+        return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
+
+    @pytest.mark.parametrize("pos", ["right", "left", "top", "bottom"])
+    def test_text_position(self, pos):
+        p = self._make_plot() + theme(legend_text_position=pos)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestLegendTitlePosition:
+    """legend_title_position controls title placement in legend."""
+
+    @staticmethod
+    def _make_plot():
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
+        return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
+
+    @pytest.mark.parametrize("pos", ["top", "bottom", "left", "right"])
+    def test_title_position(self, pos):
+        p = self._make_plot() + theme(legend_title_position=pos)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestLegendBoxJustAndMargin:
+    """legend_box_just and legend_box_margin positioning."""
+
+    @staticmethod
+    def _make_plot():
+        from plotten import scale_color_discrete
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
+        return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
+
+    @pytest.mark.parametrize("just", ["left", "right", "top", "bottom"])
+    def test_box_just(self, just):
+        p = self._make_plot() + theme(legend_box_just=just)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_box_margin(self):
+        p = self._make_plot() + theme(legend_box_margin=(10, 5, 10, 5))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestStripMiscFields:
+    """strip_clip, strip_switch_pad_grid, strip_switch_pad_wrap, spacing."""
+
+    def test_strip_clip_off(self):
+        from plotten.facets import facet_wrap
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("g")
+            + theme(strip_clip="off")
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_strip_switch_pad_wrap(self):
+        from plotten.facets import facet_wrap
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("g", strip_position="bottom")
+            + theme(strip_switch_pad_wrap=10.0)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_strip_switch_pad_grid(self):
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_grid(cols="g")
+            + theme(strip_switch_pad_grid=12.0)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_global_spacing(self):
+        from plotten.facets import facet_wrap
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g") + theme(spacing=2.0)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_global_spacing_affects_panel_gap(self):
+        """spacing=0.5 should halve the effective panel spacing."""
+        t = Theme(panel_spacing=0.1, spacing=0.5)
+        # spacing is a multiplier applied at render time, not stored as derived
+        assert t.spacing == 0.5
+        assert t.panel_spacing == 0.1

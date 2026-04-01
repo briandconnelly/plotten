@@ -63,6 +63,10 @@ def create_figure(
     fig = plt.figure(figsize=figsize, layout="constrained")
     h_pad = theme.panel_spacing_y if theme.panel_spacing_y is not None else theme.panel_spacing
     w_pad = theme.panel_spacing_x if theme.panel_spacing_x is not None else theme.panel_spacing
+    # Global spacing multiplier
+    if theme.spacing is not None:
+        h_pad *= theme.spacing
+        w_pad *= theme.spacing
     fig.get_layout_engine().set(h_pad=h_pad, w_pad=w_pad)  # type: ignore[union-attr]
     fig.patch.set_facecolor(theme.background)
 
@@ -474,10 +478,19 @@ def apply_facet_decorations(
         strip_y = 1.0 if not inside else 0.97
         strip_pad = 6 if not inside else -14
 
+        # strip_switch_pad overrides pad when strip is on the non-default side
+        is_grid = isinstance(resolved.facet, FacetGrid)
+        switch_pad = theme.strip_switch_pad_grid if is_grid else theme.strip_switch_pad_wrap
+        if switch_pad is not None and strip_position == "bottom":
+            strip_pad = switch_pad
+
         # For facet_grid with rows+cols, only show col strip on first row
         show_x_strip = has_col_strips and bool(x_label)
         if has_row_strips and has_col_strips and r > 0:
             show_x_strip = False
+
+        # strip_clip: "off" disables clipping on strip text
+        clip_on = theme.strip_clip != "off"
 
         if show_x_strip:
             if strip_position == "bottom":
@@ -488,13 +501,14 @@ def apply_facet_decorations(
                     bbox=effective_bbox,
                 )
             else:
-                ax.set_title(
+                title_obj = ax.set_title(
                     x_label,
                     pad=strip_pad,
                     y=strip_y,
                     **skw,
                     bbox=effective_bbox,
                 )
+                title_obj.set_clip_on(clip_on)
         else:
             ax.set_title("")
 

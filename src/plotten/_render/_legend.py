@@ -70,8 +70,13 @@ def draw_legend(
     if not legend_groups:
         return
 
-    # Compute total height of all legend groups so we can stack them vertically
+    # legend_position_inside overrides tuple position
+    if theme.legend_position_inside is not None:
+        pos = theme.legend_position_inside
+
+    # Compute group dimensions
     group_heights: list[float] = []
+    group_widths: list[float] = []
     for aes_name, _title, scale in legend_groups:
         entries = scale.legend_entries() or []
         guide_spec = guides.get(aes_name)
@@ -79,6 +84,7 @@ def draw_legend(
             entries = _apply_guide_overrides(entries, guide_spec)
         if isinstance(scale, ScaleColorContinuous):
             group_heights.append(_COLORBAR_HEIGHT)
+            group_widths.append(0.05)  # colorbar width
         else:
             ncol = 1
             if guide_spec is not None:
@@ -89,14 +95,27 @@ def draw_legend(
             lm = theme.legend_margin if isinstance(theme.legend_margin, (int, float)) else 8.0
             margin_pad = _MARGIN_PAD_BASE * (lm / 8.0)
             group_heights.append(_TITLE_HEIGHT + nrow_legend * entry_height + margin_pad)
+            group_widths.append(_LEGEND_WIDTH_PER_COL * ncol)
 
+    # legend_box_spacing overrides default gap
     legend_gap = (
-        theme.legend_spacing_y / 100.0 if theme.legend_spacing_y is not None else _LEGEND_GAP
+        theme.legend_box_spacing
+        if theme.legend_box_spacing is not None
+        else (
+            theme.legend_spacing_y / 100.0 if theme.legend_spacing_y is not None else _LEGEND_GAP
+        )
     )
-    total_all = sum(group_heights) + legend_gap * (len(group_heights) - 1)
+    is_horizontal_box = theme.legend_box == "horizontal"
 
-    # Draw each legend group, stacking vertically
-    y_cursor = 0.0  # cumulative offset from the top of the legend stack
+    if is_horizontal_box:
+        total_width = sum(group_widths) + legend_gap * (len(group_widths) - 1)
+        total_height = max(group_heights) if group_heights else 0
+    else:
+        total_width = max(group_widths) if group_widths else _LEGEND_WIDTH_PER_COL
+        total_height = sum(group_heights) + legend_gap * (len(group_heights) - 1)
+
+    # Draw each legend group
+    cursor = 0.0  # cumulative offset along stacking axis
     for i, (aes_name, title, scale) in enumerate(legend_groups):
         entries = scale.legend_entries()
         if not entries:
@@ -114,6 +133,12 @@ def draw_legend(
         if guide_spec is not None:
             entries = _apply_guide_overrides(entries, guide_spec)
 
+        # legend_byrow: row-first entry ordering
+        if theme.legend_byrow and guide_spec is not None:
+            byrow_ncol = getattr(guide_spec, "ncol", None) or 1
+            if byrow_ncol > 1:
+                entries = _reorder_byrow(entries, byrow_ncol)
+
         if isinstance(scale, ScaleColorContinuous):
             _draw_continuous_legend(
                 fig,
@@ -124,8 +149,10 @@ def draw_legend(
                 theme,
                 guide_spec,
                 main_axes,
-                y_offset=y_cursor,
-                total_stack_height=total_all,
+                y_offset=cursor if not is_horizontal_box else 0.0,
+                total_stack_height=total_height,
+                x_offset=cursor if is_horizontal_box else 0.0,
+                is_horizontal_box=is_horizontal_box,
             )
         else:
             _draw_discrete_legend(
@@ -136,10 +163,22 @@ def draw_legend(
                 theme,
                 guide_spec,
                 main_axes,
-                y_offset=y_cursor,
-                total_stack_height=total_all,
+                y_offset=cursor if not is_horizontal_box else 0.0,
+                total_stack_height=total_height,
+                x_offset=cursor if is_horizontal_box else 0.0,
+                is_horizontal_box=is_horizontal_box,
             )
-        y_cursor += group_heights[i] + legend_gap
+        if is_horizontal_box:
+            cursor += group_widths[i] + legend_gap
+        else:
+            cursor += group_heights[i] + legend_gap
+
+    # legend_box_background — draw background behind all legend groups
+    if theme.legend_box_background is not None and len(legend_groups) > 1:
+        from plotten.themes._elements import ElementRect as _ER
+
+        if isinstance(theme.legend_box_background, _ER):
+            _draw_legend_box_background(fig, pos, theme, main_axes, total_width, total_height)
 
 
 def _apply_guide_overrides(
@@ -172,14 +211,36 @@ def _draw_legend_entry_at(
     *,
     key_size: float = 20.0,
     key_bg: tuple[str | None, str | None, float | None] = (None, None, None),
+    text_position: str = "right",
 ) -> None:
     """Draw a legend entry at a specific column offset for multi-column layout."""
+    # Compute swatch/text positions based on text_position
+    if text_position == "left":
+        # Text on left, swatch on right
+        swatch_left = 0.55
+        swatch_center = 0.65
+        swatch_width = _SWATCH_WIDTH
+        text_left = 0.02
+        text_ha = "left"
+    elif text_position in ("top", "bottom"):
+        swatch_left = _SWATCH_LEFT
+        swatch_center = _SWATCH_CENTER
+        swatch_width = _SWATCH_WIDTH
+        text_left = _SWATCH_CENTER
+        text_ha = "center"
+    else:  # "right" (default)
+        swatch_left = _SWATCH_LEFT
+        swatch_center = _SWATCH_CENTER
+        swatch_width = _SWATCH_WIDTH
+        text_left = _TEXT_LEFT
+        text_ha = "left"
+
     # Draw legend key background if specified
     key_fill, key_edge, key_edge_w = key_bg
     if key_fill is not None or key_edge is not None:
         key_rect = Rectangle(
-            (x_offset + _SWATCH_LEFT * col_width - 0.02 * col_width, y - step * 0.35),
-            _SWATCH_WIDTH * col_width + 0.04 * col_width,
+            (x_offset + swatch_left * col_width - 0.02 * col_width, y - step * 0.35),
+            swatch_width * col_width + 0.04 * col_width,
             step * 0.7,
             facecolor=key_fill or "none",
             edgecolor=key_edge or "none",
@@ -189,10 +250,10 @@ def _draw_legend_entry_at(
         )
         legend_ax.add_patch(key_rect)
 
-    swatch_x = x_offset + _SWATCH_LEFT * col_width
-    swatch_cx = x_offset + _SWATCH_CENTER * col_width
-    swatch_w = _SWATCH_WIDTH * col_width
-    text_x = x_offset + _TEXT_LEFT * col_width
+    swatch_x = x_offset + swatch_left * col_width
+    swatch_cx = x_offset + swatch_center * col_width
+    swatch_w = swatch_width * col_width
+    text_x = x_offset + text_left * col_width
     marker_s = _MARKER_SIZE_BASE * (key_size / 20.0)
     alpha_kw: dict[str, Any] = {}
     if entry.alpha is not None:
@@ -320,16 +381,93 @@ def _draw_legend_entry_at(
         "fontsize": legend_text_size,
         "fontfamily": font_family,
         "verticalalignment": "center",
+        "horizontalalignment": text_ha,
     }
     if text_kw:
         kw.update(text_kw)
+
+    # Adjust text y for top/bottom placement
+    if text_position == "top":
+        text_y = y + step * 0.45
+    elif text_position == "bottom":
+        text_y = y - step * 0.45
+    else:
+        text_y = y
+
     legend_ax.text(
         text_x,
-        y,
+        text_y,
         entry.label,
         transform=legend_ax.transAxes,
         **kw,
     )
+
+
+def _reorder_byrow(entries: list, ncol: int) -> list:
+    """Reorder entries from column-first to row-first layout."""
+    n = len(entries)
+    nrow = -(-n // ncol)
+    reordered = []
+    for row in range(nrow):
+        for col in range(ncol):
+            idx = col * nrow + row
+            if idx < n:
+                reordered.append(entries[idx])
+    return reordered
+
+
+def _draw_legend_box_background(
+    fig: Figure,
+    position: str | tuple[float, float],
+    theme: Theme,
+    main_axes: list[Axes] | None,
+    total_width: float,
+    total_height: float,
+) -> None:
+    """Draw a background rectangle behind all legend groups."""
+    from plotten.themes._elements import ElementRect as _ER
+
+    bg = theme.legend_box_background
+    if not isinstance(bg, _ER):
+        return
+
+    # Compute position matching the legend stack
+    if isinstance(position, tuple):
+        if main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x0 + position[0] * ax_bbox.width
+            y0 = ax_bbox.y0 + position[1] * ax_bbox.height - total_height
+        else:
+            x0, y0 = position[0], max(position[1] - total_height, 0.0)
+    elif position == LegendPosition.RIGHT:
+        if theme.legend_location == "panel" and main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x1 + 0.01
+        else:
+            x0 = _LEGEND_RIGHT_X
+        y0 = 0.5 - total_height / 2
+    elif position == LegendPosition.LEFT:
+        if theme.legend_location == "panel" and main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x0 - total_width - 0.01
+        else:
+            x0 = _LEGEND_LEFT_X
+        y0 = 0.5 - total_height / 2
+    else:
+        x0 = 0.5 - total_width / 2
+        y0 = 0.5 - total_height / 2
+
+    rect = Rectangle(
+        (x0 - 0.005, y0 - 0.005),
+        total_width + 0.01,
+        total_height + 0.01,
+        facecolor=bg.fill or "white",
+        edgecolor=bg.color or "none",
+        linewidth=bg.size or 0.5,
+        transform=fig.transFigure,
+        zorder=0,
+    )
+    fig.patches.append(rect)
 
 
 def _draw_discrete_legend(
@@ -342,6 +480,8 @@ def _draw_discrete_legend(
     main_axes: list[Axes] | None = None,
     y_offset: float = 0.0,
     total_stack_height: float = 0.0,
+    x_offset: float = 0.0,
+    is_horizontal_box: bool = False,
 ) -> None:
     """Draw a discrete legend with colored rectangles and text labels."""
     # Determine number of columns from guide spec
@@ -406,6 +546,30 @@ def _draw_discrete_legend(
     else:  # bottom
         x0 = 0.5 - legend_width / 2
         y0 = _LEGEND_LEFT_X + y_offset
+
+    # Apply horizontal box offset
+    if is_horizontal_box:
+        x0 += x_offset
+
+    # Apply legend_box_margin (top, right, bottom, left) in figure-fraction
+    box_margin = theme.legend_box_margin
+    if box_margin is not None:
+        if isinstance(box_margin, tuple) and len(box_margin) == 4:
+            mt, _mr, mb, ml = (v / 72.0 for v in box_margin)  # points to ~fig fraction
+        else:
+            mt = mb = ml = 0.0
+        x0 += ml
+        y0 += mb - mt
+
+    # Apply legend_box_just — shift alignment of the legend box
+    if theme.legend_box_just == "left":
+        pass  # default x0 is already left-aligned for most positions
+    elif theme.legend_box_just == "right" and not isinstance(position, tuple):
+        x0 += legend_width * 0.1
+    elif theme.legend_box_just == "top" and not isinstance(position, tuple):
+        y0 += 0.02
+    elif theme.legend_box_just == "bottom" and not isinstance(position, tuple):
+        y0 -= 0.02
 
     legend_ax = fig.add_axes((x0, y0, legend_width, total_height))
     legend_ax.set_xlim(0, 1)
@@ -478,6 +642,8 @@ def _draw_discrete_legend(
     # theme.legend_direction is "horizontal", but we also support the theme
     # field directly.
     direction = theme.legend_direction or "vertical"
+    text_pos = theme.legend_text_position or "right"
+    title_pos = theme.legend_title_position or "top"
 
     from matplotlib.figure import SubFigure
 
@@ -520,19 +686,62 @@ def _draw_discrete_legend(
                 text_kw=entry_text_kw or None,
                 key_size=effective_key_w,
                 key_bg=key_bg,
+                text_position=text_pos,
             )
         return
 
-    legend_ax.text(
-        _SWATCH_LEFT,
-        0.95,
-        title,
-        verticalalignment="top",
-        transform=legend_ax.transAxes,
-        **title_kw,
-    )
+    # Title placement based on legend_title_position
+    if title_pos == "bottom":
+        # Title at the bottom of the legend — draw entries first, title last
+        title_y = 0.02
+        title_va = "bottom"
+        y_start = 1.0 - 0.02 / total_height  # entries start at top
+    elif title_pos == "left":
+        title_y = 0.5
+        title_va = "center"
+        # Shift entries rightward to make room for title on the left
+        legend_ax.text(
+            0.02,
+            0.5,
+            title,
+            verticalalignment="center",
+            horizontalalignment="left",
+            rotation=90,
+            transform=legend_ax.transAxes,
+            **title_kw,
+        )
+        y_start = 1.0 - 0.02 / total_height
+        title_pos = "_done"  # skip second draw
+    elif title_pos == "right":
+        title_y = 0.5
+        title_va = "center"
+        legend_ax.text(
+            0.98,
+            0.5,
+            title,
+            verticalalignment="center",
+            horizontalalignment="right",
+            rotation=-90,
+            transform=legend_ax.transAxes,
+            **title_kw,
+        )
+        y_start = 1.0 - 0.02 / total_height
+        title_pos = "_done"
+    else:  # "top" (default)
+        title_y = 0.95
+        title_va = "top"
+        y_start = 1.0 - _TITLE_HEIGHT / total_height
 
-    y_start = 1.0 - _TITLE_HEIGHT / total_height
+    if title_pos != "_done":
+        legend_ax.text(
+            _SWATCH_LEFT,
+            title_y,
+            title,
+            verticalalignment=title_va,
+            transform=legend_ax.transAxes,
+            **title_kw,
+        )
+
     step = entry_height / total_height
     col_width = 1.0 / ncol
 
@@ -557,6 +766,7 @@ def _draw_discrete_legend(
                 text_kw=entry_text_kw or None,
                 key_size=effective_key_w,
                 key_bg=key_bg,
+                text_position=text_pos,
             )
     else:
         for i, entry in enumerate(entries):
@@ -577,6 +787,7 @@ def _draw_discrete_legend(
                     text_kw=entry_text_kw or None,
                     key_size=effective_key_w,
                     key_bg=key_bg,
+                    text_position=text_pos,
                 )
             else:
                 _draw_legend_entry_at(
@@ -591,6 +802,7 @@ def _draw_discrete_legend(
                     text_kw=entry_text_kw or None,
                     key_size=effective_key_h,
                     key_bg=key_bg,
+                    text_position=text_pos,
                 )
 
 
@@ -605,6 +817,8 @@ def _draw_continuous_legend(
     main_axes: list[Axes] | None = None,
     y_offset: float = 0.0,
     total_stack_height: float = 0.0,
+    x_offset: float = 0.0,
+    is_horizontal_box: bool = False,
 ) -> None:
     """Draw a continuous colorbar legend."""
     # Determine dimensions from guide spec or defaults
@@ -658,6 +872,10 @@ def _draw_continuous_legend(
         w = barwidth
     if barheight is not None:
         h = barheight
+
+    # Apply horizontal box offset
+    if is_horizontal_box:
+        x0 += x_offset
 
     cbar_ax = fig.add_axes((x0, y0, w, h))
 

@@ -213,6 +213,24 @@ def render_panel(
         ax.spines["left"].set_visible(axis_line_y)
         ax.spines["right"].set_visible(axis_line_y)
 
+        # Per-position spine overrides (axis_line_x_bottom, axis_line_y_left, etc.)
+        from plotten.themes._elements import ElementLine as _EL
+
+        for spine_name, el in [
+            ("bottom", theme.axis_line_x_bottom),
+            ("top", theme.axis_line_x_top),
+            ("left", theme.axis_line_y_left),
+            ("right", theme.axis_line_y_right),
+        ]:
+            if isinstance(el, ElementBlank):
+                ax.spines[spine_name].set_visible(False)
+            elif isinstance(el, _EL):
+                ax.spines[spine_name].set_visible(True)
+                if el.color is not None:
+                    ax.spines[spine_name].set_edgecolor(el.color)
+                if el.size is not None:
+                    ax.spines[spine_name].set_linewidth(el.size)
+
     # Panel border — inherit from theme.rect
     from plotten.themes._elements import merge_rect
 
@@ -266,18 +284,30 @@ def render_panel(
         size_override=theme.axis_text_y_size,
         rotation_override=theme.axis_text_y_rotation,
     )
+    # Per-position overrides (bottom/left for primary axes)
+    axis_text_x_kw = _resolve_per_axis_text(theme.axis_text_x_bottom, axis_text_x_kw, theme)
+    axis_text_y_kw = _resolve_per_axis_text(theme.axis_text_y_left, axis_text_y_kw, theme)
 
     # Resolve tick lengths per-axis
-    tick_length_x = theme.axis_ticks_length_x or theme.tick_length
-    tick_length_y = theme.axis_ticks_length_y or theme.tick_length
+    tick_length_x = (
+        theme.axis_ticks_length_x_bottom or theme.axis_ticks_length_x or theme.tick_length
+    )
+    tick_length_y = (
+        theme.axis_ticks_length_y_left or theme.axis_ticks_length_y or theme.tick_length
+    )
 
     # Resolve tick visibility/styling from axis_ticks elements
-    show_ticks_x = _resolve_visibility(True, theme.axis_ticks, theme.axis_ticks_x)
-    show_ticks_y = _resolve_visibility(True, theme.axis_ticks, theme.axis_ticks_y)
+    show_ticks_x = _resolve_visibility(
+        True, theme.axis_ticks, theme.axis_ticks_x, theme.axis_ticks_x_bottom
+    )
+    show_ticks_y = _resolve_visibility(
+        True, theme.axis_ticks, theme.axis_ticks_y, theme.axis_ticks_y_left
+    )
     tick_color_x = _resolve_line_prop(
         axis_text_x_kw.get("color", "#000000"),
         theme.axis_ticks,
         theme.axis_ticks_x,
+        theme.axis_ticks_x_bottom,
         attr="color",
         base_line=base_line,
     )
@@ -285,6 +315,7 @@ def render_panel(
         axis_text_y_kw.get("color", "#000000"),
         theme.axis_ticks,
         theme.axis_ticks_y,
+        theme.axis_ticks_y_left,
         attr="color",
         base_line=base_line,
     )
@@ -292,6 +323,7 @@ def render_panel(
         line_width,
         theme.axis_ticks,
         theme.axis_ticks_x,
+        theme.axis_ticks_x_bottom,
         attr="size",
         base_line=base_line,
     )
@@ -299,6 +331,7 @@ def render_panel(
         line_width,
         theme.axis_ticks,
         theme.axis_ticks_y,
+        theme.axis_ticks_y_left,
         attr="size",
         base_line=base_line,
     )
@@ -531,9 +564,19 @@ def render_panel(
         theme,
         size_override=theme.axis_title_y_size,
     )
+    # Per-position overrides (bottom/left for primary axes)
+    axis_title_x_kw = _resolve_per_axis_text(theme.axis_title_x_bottom, axis_title_x_kw, theme)
+    axis_title_y_kw = _resolve_per_axis_text(theme.axis_title_y_left, axis_title_y_kw, theme)
 
-    # Check if per-axis title elements suppress the title
-    if not isinstance(theme.axis_title_x, ElementBlank):
+    # Check if per-position or per-axis title elements suppress the title
+    suppress_x = isinstance(theme.axis_title_x_bottom, ElementBlank) or (
+        theme.axis_title_x_bottom is None and isinstance(theme.axis_title_x, ElementBlank)
+    )
+    suppress_y = isinstance(theme.axis_title_y_left, ElementBlank) or (
+        theme.axis_title_y_left is None and isinstance(theme.axis_title_y, ElementBlank)
+    )
+
+    if not suppress_x:
         ax.xaxis.label.set_fontfamily(axis_title_x_kw.get("fontfamily", theme.font_family))
         ax.xaxis.label.set_fontsize(axis_title_x_kw.get("fontsize", theme.label_size))
         if "fontweight" in axis_title_x_kw:
@@ -545,7 +588,7 @@ def render_panel(
     else:
         ax.xaxis.label.set_fontsize(0)
 
-    if not isinstance(theme.axis_title_y, ElementBlank):
+    if not suppress_y:
         ax.yaxis.label.set_fontfamily(axis_title_y_kw.get("fontfamily", theme.font_family))
         ax.yaxis.label.set_fontsize(axis_title_y_kw.get("fontsize", theme.label_size))
         if "fontweight" in axis_title_y_kw:

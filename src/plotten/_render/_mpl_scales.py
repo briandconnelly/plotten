@@ -83,19 +83,127 @@ def _apply_sec_axis(
 
     # Apply theme styling to secondary axis
     if theme is not None:
-        sec_ax.tick_params(
-            labelsize=theme.tick_size,
-            length=theme.tick_length,
-        )
-        tick_labels = sec_ax.get_yticklabels() if axis == "y" else sec_ax.get_xticklabels()
-        for label in tick_labels:
-            label.set_fontfamily(theme.font_family)
-        if axis == "y" and sec.name is not None:
-            sec_ax.yaxis.label.set_fontfamily(theme.font_family)
-            sec_ax.yaxis.label.set_fontsize(theme.axis_title_y_size or theme.label_size)
-        elif axis == "x" and sec.name is not None:
-            sec_ax.xaxis.label.set_fontfamily(theme.font_family)
-            sec_ax.xaxis.label.set_fontsize(theme.axis_title_x_size or theme.label_size)
+        _style_sec_axis(sec_ax, axis=axis, theme=theme, name=sec.name)
+
+
+def _style_sec_axis(sec_ax: Any, *, axis: str, theme: Any, name: str | None) -> None:
+    """Apply per-position theme fields to a secondary axis."""
+    from plotten.themes._elements import ElementBlank, ElementLine, ElementText
+
+    # Determine which per-position fields apply
+    if axis == "y":
+        text_el = theme.axis_text_y_right
+        title_el = theme.axis_title_y_right
+        ticks_el = theme.axis_ticks_y_right
+        ticks_len = theme.axis_ticks_length_y_right
+        line_el = theme.axis_line_y_right
+        # Cascade: per-position → per-axis → global
+        text_parent = theme.axis_text_y
+        title_parent = theme.axis_title_y
+        ticks_parent = theme.axis_ticks_y
+        ticks_len_parent = theme.axis_ticks_length_y
+    else:
+        text_el = theme.axis_text_x_top
+        title_el = theme.axis_title_x_top
+        ticks_el = theme.axis_ticks_x_top
+        ticks_len = theme.axis_ticks_length_x_top
+        line_el = theme.axis_line_x_top
+        text_parent = theme.axis_text_x
+        title_parent = theme.axis_title_x
+        ticks_parent = theme.axis_ticks_x
+        ticks_len_parent = theme.axis_ticks_length_x
+
+    # --- Tick label styling ---
+    effective_text = text_el or text_parent
+    tick_size = theme.tick_size
+    tick_color = "#000000"
+    tick_rotation = 0.0
+    tick_family = theme.font_family
+
+    if isinstance(effective_text, ElementBlank):
+        tick_size = 0
+    elif isinstance(effective_text, ElementText):
+        if effective_text.size is not None:
+            tick_size = effective_text.size
+        if effective_text.color is not None:
+            tick_color = effective_text.color
+        if effective_text.rotation is not None:
+            tick_rotation = effective_text.rotation
+        if effective_text.family is not None:
+            tick_family = effective_text.family
+
+    # --- Tick mark styling ---
+    effective_ticks = ticks_el or ticks_parent or theme.axis_ticks
+    show_ticks = not isinstance(effective_ticks, ElementBlank)
+    tick_mark_color = tick_color
+    tick_mark_width = theme.axis_line_width
+    effective_length = ticks_len or ticks_len_parent or theme.tick_length
+    if isinstance(effective_ticks, ElementLine):
+        if effective_ticks.color is not None:
+            tick_mark_color = effective_ticks.color
+        if effective_ticks.size is not None:
+            tick_mark_width = effective_ticks.size
+
+    sec_ax.tick_params(
+        labelsize=tick_size,
+        labelcolor=tick_color,
+        labelrotation=tick_rotation,
+        length=effective_length if show_ticks else 0,
+        width=tick_mark_width,
+        color=tick_mark_color,
+    )
+    tick_labels = sec_ax.get_yticklabels() if axis == "y" else sec_ax.get_xticklabels()
+    for label in tick_labels:
+        label.set_fontfamily(tick_family)
+
+    # --- Axis line (spine) styling ---
+    effective_line = line_el
+    if axis == "y":
+        spine_name = "right"
+    else:
+        spine_name = "top"
+    if isinstance(effective_line, ElementBlank):
+        sec_ax.spines[spine_name].set_visible(False)
+    elif isinstance(effective_line, ElementLine):
+        sec_ax.spines[spine_name].set_visible(True)
+        if effective_line.color is not None:
+            sec_ax.spines[spine_name].set_edgecolor(effective_line.color)
+        if effective_line.size is not None:
+            sec_ax.spines[spine_name].set_linewidth(effective_line.size)
+
+    # --- Title styling ---
+    if name is not None:
+        effective_title = title_el or title_parent or theme.axis_title
+        title_size = theme.label_size
+        title_family = theme.font_family
+        if axis == "y":
+            title_size = theme.axis_title_y_size or title_size
+        else:
+            title_size = theme.axis_title_x_size or title_size
+
+        if isinstance(effective_title, ElementBlank):
+            if axis == "y":
+                sec_ax.set_ylabel("")
+            else:
+                sec_ax.set_xlabel("")
+        elif isinstance(effective_title, ElementText):
+            if effective_title.size is not None:
+                title_size = effective_title.size
+            if effective_title.family is not None:
+                title_family = effective_title.family
+            label_obj = sec_ax.yaxis.label if axis == "y" else sec_ax.xaxis.label
+            label_obj.set_fontfamily(title_family)
+            label_obj.set_fontsize(title_size)
+            if effective_title.color is not None:
+                label_obj.set_color(effective_title.color)
+            if effective_title.weight is not None:
+                label_obj.set_fontweight(effective_title.weight)
+            if effective_title.style is not None:
+                label_obj.set_fontstyle(effective_title.style)
+        else:
+            label_obj = sec_ax.yaxis.label if axis == "y" else sec_ax.xaxis.label
+            label_obj.set_fontfamily(title_family)
+            label_obj.set_fontsize(title_size)
 
 
 def _apply_continuous_scale(ax: Axes, scale: Any, axis: str) -> None:
