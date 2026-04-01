@@ -716,9 +716,55 @@ def _draw_continuous_legend(
         cbar_ax.set_xticks(tick_positions)
         cbar_ax.set_xticklabels([f"{b:.3g}" for b in breaks], fontsize=legend_text_size)
 
-    # Remove spines
+    # Remove spines by default
     for spine in cbar_ax.spines.values():
         spine.set_visible(False)
+
+    # Colorbar decoration elements
+    from plotten.themes._elements import ElementBlank as _EB
+    from plotten.themes._elements import ElementLine
+    from plotten.themes._elements import ElementRect as _ER
+
+    # legend_frame — border around the colorbar
+    if isinstance(theme.legend_frame, _ER):
+        for spine in cbar_ax.spines.values():
+            spine.set_visible(True)
+            if theme.legend_frame.color is not None:
+                spine.set_edgecolor(theme.legend_frame.color)
+            if theme.legend_frame.size is not None:
+                spine.set_linewidth(theme.legend_frame.size)
+
+    # legend_axis_line — show the value axis spine
+    if isinstance(theme.legend_axis_line, ElementLine):
+        if position in ("right", "left"):
+            side = "right" if position == "right" else "left"
+            cbar_ax.spines[side].set_visible(True)
+            if theme.legend_axis_line.color is not None:
+                cbar_ax.spines[side].set_edgecolor(theme.legend_axis_line.color)
+            if theme.legend_axis_line.size is not None:
+                cbar_ax.spines[side].set_linewidth(theme.legend_axis_line.size)
+        else:
+            side = "bottom"
+            cbar_ax.spines[side].set_visible(True)
+            if theme.legend_axis_line.color is not None:
+                cbar_ax.spines[side].set_edgecolor(theme.legend_axis_line.color)
+            if theme.legend_axis_line.size is not None:
+                cbar_ax.spines[side].set_linewidth(theme.legend_axis_line.size)
+
+    # legend_ticks — suppress or style tick marks
+    if isinstance(theme.legend_ticks, _EB):
+        cbar_ax.tick_params(length=0)
+    elif isinstance(theme.legend_ticks, ElementLine):
+        tick_kw: dict = {}
+        if theme.legend_ticks.color is not None:
+            tick_kw["color"] = theme.legend_ticks.color
+        if theme.legend_ticks.size is not None:
+            tick_kw["width"] = theme.legend_ticks.size
+        cbar_ax.tick_params(**tick_kw)
+
+    # legend_ticks_length — control tick mark length
+    if theme.legend_ticks_length is not None:
+        cbar_ax.tick_params(length=theme.legend_ticks_length)
 
     # Title above colorbar
     if position in ("right", "left"):

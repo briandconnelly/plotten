@@ -2345,3 +2345,138 @@ class TestRowStrips:
         p = ResolvedPanel(label="a ~ x", row_label="a", col_label="x")
         assert p.row_label == "a"
         assert p.col_label == "x"
+
+
+class TestPanelWidthsHeights:
+    """Tests for panel_widths and panel_heights facet sizing."""
+
+    def test_panel_widths(self):
+        """panel_widths should set column width ratios."""
+        from plotten.facets import facet_wrap
+
+        df = pd.DataFrame(
+            {"x": [1, 2, 3, 4, 5, 6], "y": [1, 4, 9, 2, 5, 8], "g": ["a", "a", "b", "b", "c", "c"]}
+        )
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("g", ncol=3)
+            + theme(panel_widths=(2.0, 1.0, 1.0))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_panel_heights(self):
+        """panel_heights should set row height ratios."""
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "r": ["a", "a", "b", "b"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_grid(rows="r")
+            + theme(panel_heights=(2.0, 1.0))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_panel_widths_and_heights(self):
+        """Both panel_widths and panel_heights together."""
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame(
+            {
+                "x": [1, 2, 3, 4],
+                "y": [2, 4, 1, 3],
+                "r": ["a", "a", "b", "b"],
+                "c": ["x", "y", "x", "y"],
+            }
+        )
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_grid(rows="r", cols="c")
+            + theme(panel_widths=(2.0, 1.0), panel_heights=(1.0, 2.0))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_panel_widths_none_default(self):
+        """Default panel_widths=None should produce equal columns."""
+        from plotten.facets import facet_wrap
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g")
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestLegendColorbarRefinements:
+    """Tests for legend_frame, legend_ticks, legend_ticks_length, legend_axis_line."""
+
+    def _make_continuous_plot(self):
+        from plotten import scale_color_gradient
+
+        df = pd.DataFrame(
+            {"x": [1, 2, 3, 4, 5], "y": [1, 4, 9, 16, 25], "v": [1.0, 2.0, 3.0, 4.0, 5.0]}
+        )
+        return (
+            ggplot(df, aes(x="x", y="y", color="v"))
+            + geom_point()
+            + scale_color_gradient(low="blue", high="red")
+        )
+
+    def test_legend_frame(self):
+        """legend_frame=element_rect() should add a border around the colorbar."""
+        p = self._make_continuous_plot() + theme(
+            legend_frame=element_rect(color="black", size=1.0)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_ticks_styling(self):
+        """legend_ticks=element_line() should style tick marks."""
+        p = self._make_continuous_plot() + theme(legend_ticks=element_line(color="red", size=2.0))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_ticks_blank(self):
+        """legend_ticks=element_blank() should suppress tick marks."""
+        p = self._make_continuous_plot() + theme(legend_ticks=element_blank())
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_ticks_length(self):
+        """legend_ticks_length should control tick mark length."""
+        p = self._make_continuous_plot() + theme(legend_ticks_length=8.0)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_axis_line(self):
+        """legend_axis_line=element_line() should show the value axis spine."""
+        p = self._make_continuous_plot() + theme(
+            legend_axis_line=element_line(color="black", size=0.5)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_frame_and_ticks_combined(self):
+        """Frame, ticks, and ticks_length should all work together."""
+        p = self._make_continuous_plot() + theme(
+            legend_frame=element_rect(color="grey", size=0.5),
+            legend_ticks=element_line(color="black"),
+            legend_ticks_length=5.0,
+            legend_axis_line=element_line(color="black", size=0.5),
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)

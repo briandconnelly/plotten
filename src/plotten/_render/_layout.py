@@ -336,11 +336,21 @@ def create_axes(
 
     n_panels = len(resolved.panels)
     nrow, ncol = resolved.facet.layout(n_panels)
+
+    gridspec_kw: dict[str, Any] | None = None
+    if theme.panel_widths is not None or theme.panel_heights is not None:
+        gridspec_kw = {}
+        if theme.panel_widths is not None:
+            gridspec_kw["width_ratios"] = list(theme.panel_widths[:ncol])
+        if theme.panel_heights is not None:
+            gridspec_kw["height_ratios"] = list(theme.panel_heights[:nrow])
+
     axes = main_subfig.subplots(
         nrow,
         ncol,
         squeeze=False,
         subplot_kw=subplot_kw,
+        gridspec_kw=gridspec_kw,
     )
     return axes
 
