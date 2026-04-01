@@ -225,7 +225,10 @@ def _extract_theme_colors(plot: Any) -> dict[str, str]:
     if bg:
         result["background"] = bg
 
-    panel_bg = _normalize_color(theme.panel_background)
+    from plotten.themes._elements import resolve_background
+
+    panel_fill, _, _ = resolve_background(theme.panel_background)
+    panel_bg = _normalize_color(panel_fill) if panel_fill else None
     if panel_bg:
         result["panel_background"] = panel_bg
 

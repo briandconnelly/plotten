@@ -176,6 +176,22 @@ def merge_rect(
     return _merge_element(element, base, ElementRect)
 
 
+def resolve_background(
+    value: str | ElementRect | None,
+) -> tuple[str | None, str | None, float | None]:
+    """Extract (fill, border_color, border_width) from a background value.
+
+    Accepts a plain color string (interpreted as fill) or an
+    :class:`ElementRect` for full control.  Returns a 3-tuple of
+    ``(fill, color, size)`` where any component may be ``None``.
+    """
+    if value is None:
+        return None, None, None
+    if isinstance(value, ElementRect):
+        return value.fill, value.color, value.size
+    return value, None, None
+
+
 @dataclass(frozen=True, slots=True)
 class Margin:
     """Margin specification with optional unit.

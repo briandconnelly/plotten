@@ -1493,6 +1493,252 @@ class TestBaseSize:
         plt.close(fig)
 
 
+class TestBackgroundTypeUpgrades:
+    """panel_background, legend_background, strip_background accept ElementRect."""
+
+    def test_panel_background_str(self):
+        """String value still works as fill color."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(panel_background="#f0f0f0")
+        fig = render(p)
+        plt.close(fig)
+
+    def test_panel_background_element_rect(self):
+        from plotten import element_rect
+
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(panel_background=element_rect(fill="#f0f0f0", color="#000000", size=1.0))
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        assert ax.get_facecolor()[:3] != (1.0, 1.0, 1.0)  # not default white
+        plt.close(fig)
+
+    def test_legend_background_element_rect(self):
+        from plotten import element_rect
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3], "c": ["a", "b", "a"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="c"))
+            + geom_point()
+            + theme(legend_background=element_rect(fill="#eeeeee", color="#999999"))
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_strip_background_element_rect(self):
+        from plotten import element_rect, facet_wrap
+
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0], "g": ["a", "b", "a"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_wrap("g")
+            + theme(strip_background=element_rect(fill="#d9d9d9", color="#333333", size=0.5))
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_resolve_background_str(self):
+        from plotten.themes._elements import resolve_background
+
+        fill, color, size = resolve_background("#ff0000")
+        assert fill == "#ff0000"
+        assert color is None
+        assert size is None
+
+    def test_resolve_background_element_rect(self):
+        from plotten import element_rect
+        from plotten.themes._elements import resolve_background
+
+        fill, color, size = resolve_background(element_rect(fill="white", color="black", size=2.0))
+        assert fill == "white"
+        assert color == "black"
+        assert size == 2.0
+
+    def test_resolve_background_none(self):
+        from plotten.themes._elements import resolve_background
+
+        assert resolve_background(None) == (None, None, None)
+
+
+class TestRemainingGapFields:
+    """Fields added to close remaining ggplot2 gaps."""
+
+    def test_legend_justification_positional_defaults(self):
+        t = Theme()
+        assert t.legend_justification_top is None
+        assert t.legend_justification_bottom is None
+        assert t.legend_justification_left is None
+        assert t.legend_justification_right is None
+        assert t.legend_justification_inside is None
+
+    def test_legend_key_justification_default(self):
+        t = Theme()
+        assert t.legend_key_justification is None
+
+    def test_legend_margin_accepts_margin(self):
+        from plotten.themes._elements import Margin
+
+        t = Theme(legend_margin=Margin(top=5, right=10, bottom=5, left=10))
+        assert isinstance(t.legend_margin, Margin)
+
+    def test_legend_margin_accepts_tuple(self):
+        t = Theme(legend_margin=(5, 10, 5, 10))
+        assert t.legend_margin == (5, 10, 5, 10)
+
+    def test_legend_margin_accepts_float(self):
+        t = Theme(legend_margin=12.0)
+        assert t.legend_margin == 12.0
+
+    def test_polar_tick_length_fields(self):
+        t = Theme()
+        assert t.axis_ticks_length_theta is None
+        assert t.axis_ticks_length_r is None
+
+    def test_minor_ticks_positional_fields(self):
+        t = Theme()
+        assert t.axis_minor_ticks_x_top is None
+        assert t.axis_minor_ticks_x_bottom is None
+        assert t.axis_minor_ticks_y_left is None
+        assert t.axis_minor_ticks_y_right is None
+        assert t.axis_minor_ticks_theta is None
+        assert t.axis_minor_ticks_r is None
+
+    def test_minor_ticks_length_positional_fields(self):
+        t = Theme()
+        assert t.axis_minor_ticks_length_x_top is None
+        assert t.axis_minor_ticks_length_x_bottom is None
+        assert t.axis_minor_ticks_length_y_left is None
+        assert t.axis_minor_ticks_length_y_right is None
+        assert t.axis_minor_ticks_length_theta is None
+        assert t.axis_minor_ticks_length_r is None
+
+    def test_new_fields_accepted_by_theme_function(self):
+        t = theme(
+            legend_justification_top="left",
+            legend_key_justification="center",
+            axis_ticks_length_theta=5.0,
+            axis_minor_ticks_x_top=element_blank(),
+            axis_minor_ticks_length_theta=2.0,
+        )
+        assert t.legend_justification_top == "left"
+        assert t.legend_key_justification == "center"
+        assert t.axis_ticks_length_theta == 5.0
+
+    def test_new_fields_preserved_through_add(self):
+        t1 = Theme(legend_justification_top="left", axis_ticks_length_r=3.0)
+        t2 = Theme(title_size=20)
+        combined = t1 + t2
+        assert combined.legend_justification_top == "left"
+        assert combined.axis_ticks_length_r == 3.0
+
+
+class TestLegendLocationAndSpacing:
+    """legend_location and legend_spacing_x/y fields."""
+
+    def test_legend_location_default_is_none(self):
+        t = Theme()
+        assert t.legend_location is None
+
+    def test_legend_spacing_xy_default_is_none(self):
+        t = Theme()
+        assert t.legend_spacing_x is None
+        assert t.legend_spacing_y is None
+
+    def test_legend_location_panel_renders(self):
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3], "c": ["a", "b", "a"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="c"))
+            + geom_point()
+            + theme(legend_location="panel")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_legend_location_plot_renders(self):
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3], "c": ["a", "b", "a"]})
+        p = ggplot(df, aes(x="x", y="y", color="c")) + geom_point() + theme(legend_location="plot")
+        fig = render(p)
+        plt.close(fig)
+
+    def test_legend_spacing_y_renders(self):
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3], "c": ["a", "b", "a"]})
+        p = ggplot(df, aes(x="x", y="y", color="c")) + geom_point() + theme(legend_spacing_y=10.0)
+        fig = render(p)
+        plt.close(fig)
+
+    def test_legend_location_preserved_through_add(self):
+        t1 = Theme(legend_location="panel")
+        t2 = Theme(title_size=20)
+        combined = t1 + t2
+        assert combined.legend_location == "panel"
+
+    def test_legend_spacing_y_preserved_through_add(self):
+        t1 = Theme(legend_spacing_y=10.0)
+        t2 = Theme(title_size=20)
+        combined = t1 + t2
+        assert combined.legend_spacing_y == 10.0
+
+
+class TestPanelGrid:
+    """panel_grid parent element suppresses or styles all grid lines."""
+
+    def test_panel_grid_blank_suppresses_all(self):
+        """theme(panel_grid=element_blank()) removes all grid lines."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(panel_grid=element_blank())
+        fig = render(p)
+        ax = fig.axes[0]
+        # All grid lines should be hidden
+        assert not ax.xaxis.get_gridlines()[0].get_visible()
+        assert not ax.yaxis.get_gridlines()[0].get_visible()
+        plt.close(fig)
+
+    def test_panel_grid_blank_with_major_override(self):
+        """panel_grid=blank still wins even when grid_major_x=True."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(panel_grid=element_blank(), grid_major_x=True, grid_major_y=True)
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        assert not ax.xaxis.get_gridlines()[0].get_visible()
+        assert not ax.yaxis.get_gridlines()[0].get_visible()
+        plt.close(fig)
+
+    def test_panel_grid_element_line_sets_color(self):
+        """panel_grid=element_line(color=...) propagates to all grid lines."""
+        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(panel_grid=element_line(color="#ff0000"))
+        )
+        fig = render(p)
+        ax = fig.axes[0]
+        x_lines = ax.xaxis.get_gridlines()
+        y_lines = ax.yaxis.get_gridlines()
+        assert x_lines[0].get_color() == "#ff0000"
+        assert y_lines[0].get_color() == "#ff0000"
+        plt.close(fig)
+
+    def test_panel_grid_default_is_none(self):
+        t = Theme()
+        assert t.panel_grid is None
+
+    def test_panel_grid_preserved_through_add(self):
+        t1 = Theme(panel_grid=element_blank())
+        t2 = Theme(title_size=20)
+        combined = t1 + t2
+        assert isinstance(combined.panel_grid, ElementBlank)
+
+
 class TestPanelOntop:
     """panel_ontop wiring into rendering."""
 

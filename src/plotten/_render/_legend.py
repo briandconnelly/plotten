@@ -86,10 +86,14 @@ def draw_legend(
             n_entries = len(entries)
             nrow_legend = -(-n_entries // ncol)
             entry_height = _ENTRY_HEIGHT_BASE * (theme.legend_spacing / 4.0)
-            margin_pad = _MARGIN_PAD_BASE * (theme.legend_margin / 8.0)
+            lm = theme.legend_margin if isinstance(theme.legend_margin, (int, float)) else 8.0
+            margin_pad = _MARGIN_PAD_BASE * (lm / 8.0)
             group_heights.append(_TITLE_HEIGHT + nrow_legend * entry_height + margin_pad)
 
-    total_all = sum(group_heights) + _LEGEND_GAP * (len(group_heights) - 1)
+    legend_gap = (
+        theme.legend_spacing_y / 100.0 if theme.legend_spacing_y is not None else _LEGEND_GAP
+    )
+    total_all = sum(group_heights) + legend_gap * (len(group_heights) - 1)
 
     # Draw each legend group, stacking vertically
     y_cursor = 0.0  # cumulative offset from the top of the legend stack
@@ -135,7 +139,7 @@ def draw_legend(
                 y_offset=y_cursor,
                 total_stack_height=total_all,
             )
-        y_cursor += group_heights[i] + _LEGEND_GAP
+        y_cursor += group_heights[i] + legend_gap
 
 
 def _apply_guide_overrides(
@@ -332,7 +336,8 @@ def _draw_discrete_legend(
     n_entries = len(entries)
     nrow_legend = -(-n_entries // ncol)  # ceiling division
     entry_height = _ENTRY_HEIGHT_BASE * (theme.legend_spacing / 4.0)
-    margin_pad = _MARGIN_PAD_BASE * (theme.legend_margin / 8.0)
+    lm = theme.legend_margin if isinstance(theme.legend_margin, (int, float)) else 8.0
+    margin_pad = _MARGIN_PAD_BASE * (lm / 8.0)
     total_height = _TITLE_HEIGHT + nrow_legend * entry_height + margin_pad
     legend_width = _LEGEND_WIDTH_PER_COL * ncol
 
@@ -351,12 +356,24 @@ def _draw_discrete_legend(
             x0 = lx
             y0 = max(ly - total_height - y_offset, 0.0)
     elif position == LegendPosition.RIGHT:
-        x0 = _LEGEND_RIGHT_X
-        stack_top = 0.5 + effective_height / 2
+        if theme.legend_location == "panel" and main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x1 + 0.01
+            mid_y = ax_bbox.y0 + ax_bbox.height / 2
+        else:
+            x0 = _LEGEND_RIGHT_X
+            mid_y = 0.5
+        stack_top = mid_y + effective_height / 2
         y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.LEFT:
-        x0 = _LEGEND_LEFT_X
-        stack_top = 0.5 + effective_height / 2
+        if theme.legend_location == "panel" and main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x0 - legend_width - 0.01
+            mid_y = ax_bbox.y0 + ax_bbox.height / 2
+        else:
+            x0 = _LEGEND_LEFT_X
+            mid_y = 0.5
+        stack_top = mid_y + effective_height / 2
         y0 = max(stack_top - y_offset - total_height, 0.05)
     elif position == LegendPosition.TOP:
         from matplotlib.figure import SubFigure
@@ -380,12 +397,18 @@ def _draw_discrete_legend(
     legend_ax.axis("off")
 
     # Legend background
-    legend_bg = theme.legend_background
-    if legend_bg is not None:
-        legend_ax.set_facecolor(legend_bg)
+    from plotten.themes._elements import resolve_background
+
+    leg_fill, leg_edge, leg_edge_w = resolve_background(theme.legend_background)
+    if leg_fill is not None:
+        legend_ax.set_facecolor(leg_fill)
         legend_ax.patch.set_visible(True)
     else:
         legend_ax.patch.set_visible(False)
+    if leg_edge is not None:
+        legend_ax.patch.set_edgecolor(leg_edge)
+        legend_ax.patch.set_linewidth(leg_edge_w or 0.5)
+        legend_ax.patch.set_visible(True)
 
     # Legend key background is available via theme.legend_key for future use
 
@@ -573,12 +596,26 @@ def _draw_continuous_legend(
         else:
             x0, y0, w, h = lx, max(ly - _COLORBAR_HEIGHT - y_offset, 0.0), 0.03, _COLORBAR_HEIGHT
     elif position == LegendPosition.RIGHT:
-        stack_top = 0.5 + effective_height / 2
-        x0, w, h = 0.89, 0.03, _COLORBAR_HEIGHT
+        w, h = 0.03, _COLORBAR_HEIGHT
+        if theme.legend_location == "panel" and main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x1 + 0.01
+            mid_y = ax_bbox.y0 + ax_bbox.height / 2
+        else:
+            x0 = 0.89
+            mid_y = 0.5
+        stack_top = mid_y + effective_height / 2
         y0 = max(stack_top - y_offset - h, 0.05)
     elif position == LegendPosition.LEFT:
-        stack_top = 0.5 + effective_height / 2
-        x0, w, h = _LEGEND_LEFT_X + 0.01, 0.03, _COLORBAR_HEIGHT
+        w, h = 0.03, _COLORBAR_HEIGHT
+        if theme.legend_location == "panel" and main_axes:
+            ax_bbox = main_axes[0].get_position()
+            x0 = ax_bbox.x0 - w - 0.01
+            mid_y = ax_bbox.y0 + ax_bbox.height / 2
+        else:
+            x0 = _LEGEND_LEFT_X + 0.01
+            mid_y = 0.5
+        stack_top = mid_y + effective_height / 2
         y0 = max(stack_top - y_offset - h, 0.05)
     elif position == LegendPosition.TOP:
         x0, y0, w, h = 0.2, 0.92 - y_offset, 0.5, 0.03

@@ -36,7 +36,7 @@ class Theme:
 
     # Colors
     background: str = "#ffffff"
-    panel_background: str = "#ffffff"
+    panel_background: str | ElementRect = "#ffffff"
     grid_color: str = "#e0e0e0"
 
     # Lines
@@ -61,7 +61,7 @@ class Theme:
     panel_border_width: float = 1.0
 
     # Facet strip
-    strip_background: str = "none"
+    strip_background: str | ElementRect = "none"
     strip_text_size: float | None = None
     strip_text_color: str = "#000000"
     strip_text_weight: str = "semibold"
@@ -73,7 +73,7 @@ class Theme:
     subtitle_color: str = "#666666"
 
     # Legend styling
-    legend_background: str | None = None
+    legend_background: str | ElementRect | None = None
     legend_title_size: float | None = None
     legend_text_size: float | None = None
 
@@ -95,6 +95,7 @@ class Theme:
     plot_caption: ElementText | ElementBlank | None = field(
         default_factory=lambda: _default_plot_caption(),
     )
+    panel_grid: ElementLine | ElementBlank | None = None
     panel_grid_major: ElementLine | ElementBlank | None = None
     panel_grid_minor: ElementLine | ElementBlank | None = None
     panel_border: ElementRect | ElementBlank | None = None
@@ -132,8 +133,8 @@ class Theme:
     # Strip per-axis (ggplot2: strip.text.x, strip.text.y, etc.)
     strip_text_x: ElementText | ElementBlank | None = None
     strip_text_y: ElementText | ElementBlank | None = None
-    strip_background_x: str | None = None
-    strip_background_y: str | None = None
+    strip_background_x: str | ElementRect | None = None
+    strip_background_y: str | ElementRect | None = None
     strip_placement: str = "outside"
 
     # Legend key (ggplot2: legend.key, legend.key.size, etc.)
@@ -142,7 +143,9 @@ class Theme:
     legend_key_width: float | None = None
     legend_key_height: float | None = None
     legend_spacing: float = 4.0
-    legend_margin: float = 8.0
+    legend_spacing_x: float | None = None
+    legend_spacing_y: float | None = None
+    legend_margin: float | Margin | tuple[float, float, float, float] = 8.0
 
     # Plot-level (ggplot2: plot.background, plot.margin)
     plot_background: ElementRect | ElementBlank | None = None
@@ -183,31 +186,52 @@ class Theme:
     axis_ticks_r: ElementLine | ElementBlank | None = None
     axis_line_theta: ElementLine | ElementBlank | None = None
     axis_line_r: ElementLine | ElementBlank | None = None
+    axis_ticks_length_theta: float | None = None
+    axis_ticks_length_r: float | None = None
 
     # --- Minor ticks (ggplot2: axis.minor.ticks, etc.) ---
     axis_minor_ticks: ElementLine | ElementBlank | None = None
     axis_minor_ticks_x: ElementLine | ElementBlank | None = None
     axis_minor_ticks_y: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_x_top: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_x_bottom: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_y_left: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_y_right: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_theta: ElementLine | ElementBlank | None = None
+    axis_minor_ticks_r: ElementLine | ElementBlank | None = None
     axis_minor_ticks_length: float | None = None
     axis_minor_ticks_length_x: float | None = None
+    axis_minor_ticks_length_x_top: float | None = None
+    axis_minor_ticks_length_x_bottom: float | None = None
     axis_minor_ticks_length_y: float | None = None
+    axis_minor_ticks_length_y_left: float | None = None
+    axis_minor_ticks_length_y_right: float | None = None
+    axis_minor_ticks_length_theta: float | None = None
+    axis_minor_ticks_length_r: float | None = None
 
     # --- Legend layout (ggplot2: legend.direction, etc.) ---
     legend_direction: str | None = None
     legend_byrow: bool = False
     legend_justification: str | tuple[float, float] | None = None
+    legend_justification_top: str | tuple[float, float] | None = None
+    legend_justification_bottom: str | tuple[float, float] | None = None
+    legend_justification_left: str | tuple[float, float] | None = None
+    legend_justification_right: str | tuple[float, float] | None = None
+    legend_justification_inside: str | tuple[float, float] | None = None
     legend_position_inside: tuple[float, float] | None = None
     legend_box: str | None = None
     legend_box_just: str | None = None
     legend_box_margin: Margin | tuple[float, float, float, float] | None = None
     legend_box_background: ElementRect | ElementBlank | None = None
     legend_box_spacing: float | None = None
+    legend_location: str | None = None
     legend_text_position: str | None = None
     legend_title_position: str | None = None
     legend_frame: ElementRect | ElementBlank | None = None
     legend_ticks: ElementLine | ElementBlank | None = None
     legend_ticks_length: float | None = None
     legend_axis_line: ElementLine | ElementBlank | None = None
+    legend_key_justification: str | tuple[float, float] | None = None
     legend_key_spacing: float | None = None
     legend_key_spacing_x: float | None = None
     legend_key_spacing_y: float | None = None
@@ -284,8 +308,8 @@ class Theme:
             # Determine the class default for this field
             if f.default is not MISSING:
                 default = f.default
-            elif f.default_factory is not MISSING:  # type: ignore[arg-type]
-                default = f.default_factory()  # type: ignore[misc]
+            elif f.default_factory is not MISSING:
+                default = f.default_factory()
             else:
                 # No default — always take other_val
                 kwargs[f.name] = other_val

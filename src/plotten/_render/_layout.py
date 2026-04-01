@@ -304,7 +304,15 @@ def apply_facet_decorations(
         def panel_pos(idx: int) -> tuple[int, int]:
             return divmod(idx, ncol)
 
-    strip_bg = theme.strip_background
+    from plotten.themes._elements import resolve_background
+
+    strip_fill, strip_edge, strip_edge_w = resolve_background(theme.strip_background)
+    strip_bg_bbox = {
+        "facecolor": strip_fill or "none",
+        "edgecolor": strip_edge or "none",
+        "linewidth": strip_edge_w or 0,
+        "pad": DEFAULT_STRIP_BOX_PAD,
+    }
     strip_kw = text_props(
         theme.strip_text,
         theme,
@@ -317,7 +325,16 @@ def apply_facet_decorations(
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
     # Per-axis strip overrides
-    strip_bg_x = theme.strip_background_x or strip_bg
+    if theme.strip_background_x is not None:
+        sx_fill, sx_edge, sx_edge_w = resolve_background(theme.strip_background_x)
+        strip_bg_bbox_x = {
+            "facecolor": sx_fill or "none",
+            "edgecolor": sx_edge or "none",
+            "linewidth": sx_edge_w or 0,
+            "pad": DEFAULT_STRIP_BOX_PAD,
+        }
+    else:
+        strip_bg_bbox_x = strip_bg_bbox
     strip_kw_x = (
         text_props(
             theme.strip_text_x,
@@ -342,7 +359,7 @@ def apply_facet_decorations(
         skw = dict(strip_kw_x)
         skw.pop("ha", None)
         skw.pop("va", None)
-        effective_strip_bg = strip_bg_x
+        effective_bbox = dict(strip_bg_bbox_x)
 
         # strip_placement: "inside" puts label inside panel, "outside" is default
         inside = theme.strip_placement == "inside"
@@ -355,11 +372,7 @@ def apply_facet_decorations(
             ax.set_xlabel(
                 resolved.panels[idx].label,
                 **skw,
-                bbox={
-                    "facecolor": effective_strip_bg,
-                    "edgecolor": "none",
-                    "pad": DEFAULT_STRIP_BOX_PAD,
-                },
+                bbox=effective_bbox,
             )
         else:
             ax.set_title(
@@ -367,11 +380,7 @@ def apply_facet_decorations(
                 pad=strip_pad,
                 y=strip_y,
                 **skw,
-                bbox={
-                    "facecolor": effective_strip_bg,
-                    "edgecolor": "none",
-                    "pad": DEFAULT_STRIP_BOX_PAD,
-                },
+                bbox=effective_bbox,
             )
 
     # Hide empty axes (cells not occupied by any panel)

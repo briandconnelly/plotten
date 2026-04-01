@@ -73,7 +73,10 @@ def translate_theme(theme: Any) -> dict[str, Any]:
     config["title"] = title_config
 
     # View config
-    view: dict[str, Any] = {"fill": theme.panel_background}
+    from plotten.themes._elements import resolve_background
+
+    panel_fill, _, _ = resolve_background(theme.panel_background)
+    view: dict[str, Any] = {"fill": panel_fill or "none"}
     config["view"] = view
 
     # Panel border via view stroke
@@ -88,8 +91,9 @@ def translate_theme(theme: Any) -> dict[str, Any]:
         legend_config["disable"] = True
     elif isinstance(pos, str) and pos in ("top", "bottom", "left", "right"):
         legend_config["orient"] = pos
-    if theme.legend_background is not None:
-        legend_config["fillColor"] = theme.legend_background
+    leg_fill, _, _ = resolve_background(theme.legend_background)
+    if leg_fill is not None:
+        legend_config["fillColor"] = leg_fill
     if theme.legend_title_size is not None:
         legend_config["titleFontSize"] = theme.legend_title_size
     if theme.legend_text_size is not None:

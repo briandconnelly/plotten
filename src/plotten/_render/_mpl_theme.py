@@ -17,42 +17,44 @@ if TYPE_CHECKING:
 
 def _resolve_visibility(
     default: bool,
-    global_el: ElementLine | ElementBlank | None,
-    per_axis_el: ElementLine | ElementBlank | None,
+    *elements: ElementLine | ElementBlank | None,
 ) -> bool:
-    """Resolve grid/tick visibility through the global → per-axis cascade."""
+    """Resolve grid/tick visibility through the element cascade.
+
+    Any :class:`ElementBlank` in the chain suppresses visibility.
+    Elements are checked in order from broadest (e.g. ``panel_grid``)
+    to most specific (e.g. ``panel_grid_major_x``).
+    """
     from plotten.themes._elements import ElementBlank
 
-    if isinstance(global_el, ElementBlank):
-        default = False
-    if isinstance(per_axis_el, ElementBlank):
-        default = False
+    for el in elements:
+        if isinstance(el, ElementBlank):
+            default = False
     return default
 
 
 def _resolve_line_prop[T](
     default: T,
-    global_el: ElementLine | ElementBlank | None,
-    per_axis_el: ElementLine | ElementBlank | None,
+    *elements: ElementLine | ElementBlank | None,
     attr: str,
-    *,
     base_line: ElementLine | None = None,
 ) -> T:
-    """Resolve a line property (color/size) through base → global → per-axis cascade."""
+    """Resolve a line property (color/size) through the element cascade.
+
+    Elements are checked in order from broadest to most specific;
+    the last non-None value wins.
+    """
     from plotten.themes._elements import ElementLine
 
     if isinstance(base_line, ElementLine):
         val = getattr(base_line, attr, None)
         if val is not None:
             default = val
-    if isinstance(global_el, ElementLine):
-        val = getattr(global_el, attr, None)
-        if val is not None:
-            default = val
-    if isinstance(per_axis_el, ElementLine):
-        val = getattr(per_axis_el, attr, None)
-        if val is not None:
-            default = val
+    for el in elements:
+        if isinstance(el, ElementLine):
+            val = getattr(el, attr, None)
+            if val is not None:
+                default = val
     return default
 
 
@@ -63,85 +65,98 @@ def render_panel(
     theme: Theme,
 ) -> None:
     """Draw layers and apply theme to a single axes."""
-    from plotten.themes._elements import ElementBlank, ElementLine
+    from plotten.themes._elements import ElementBlank, ElementLine, ElementRect, resolve_background
 
-    # Background
-    if theme.panel_background != "none":
-        ax.set_facecolor(theme.panel_background)
+    panel_fill, panel_edge, panel_edge_w = resolve_background(theme.panel_background)
+    if panel_fill and panel_fill != "none":
+        ax.set_facecolor(panel_fill)
     else:
         ax.set_facecolor("none")
+    if panel_edge is not None:
+        ax.patch.set_edgecolor(panel_edge)
+        ax.patch.set_linewidth(panel_edge_w or 1.0)
 
     # Grid — element overrides take precedence
+    # Cascade: panel_grid → panel_grid_major/minor → panel_grid_major/minor_x/y
+    pg = theme.panel_grid
     grid_major_x = _resolve_visibility(
-        theme.grid_major_x, theme.panel_grid_major, theme.panel_grid_major_x
+        theme.grid_major_x, pg, theme.panel_grid_major, theme.panel_grid_major_x
     )
     grid_major_y = _resolve_visibility(
-        theme.grid_major_y, theme.panel_grid_major, theme.panel_grid_major_y
+        theme.grid_major_y, pg, theme.panel_grid_major, theme.panel_grid_major_y
     )
     grid_minor_x = _resolve_visibility(
-        theme.grid_minor_x, theme.panel_grid_minor, theme.panel_grid_minor_x
+        theme.grid_minor_x, pg, theme.panel_grid_minor, theme.panel_grid_minor_x
     )
     grid_minor_y = _resolve_visibility(
-        theme.grid_minor_y, theme.panel_grid_minor, theme.panel_grid_minor_y
+        theme.grid_minor_y, pg, theme.panel_grid_minor, theme.panel_grid_minor_y
     )
 
     # Resolve grid colors and widths per axis
     base_line = theme.line
     major_grid_color_x = _resolve_line_prop(
         theme.grid_color,
+        pg,
         theme.panel_grid_major,
         theme.panel_grid_major_x,
-        "color",
+        attr="color",
         base_line=base_line,
     )
     major_grid_color_y = _resolve_line_prop(
         theme.grid_color,
+        pg,
         theme.panel_grid_major,
         theme.panel_grid_major_y,
-        "color",
+        attr="color",
         base_line=base_line,
     )
     major_grid_width_x = _resolve_line_prop(
         theme.grid_line_width,
+        pg,
         theme.panel_grid_major,
         theme.panel_grid_major_x,
-        "size",
+        attr="size",
         base_line=base_line,
     )
     major_grid_width_y = _resolve_line_prop(
         theme.grid_line_width,
+        pg,
         theme.panel_grid_major,
         theme.panel_grid_major_y,
-        "size",
+        attr="size",
         base_line=base_line,
     )
 
     minor_grid_color_x = _resolve_line_prop(
         theme.grid_color,
+        pg,
         theme.panel_grid_minor,
         theme.panel_grid_minor_x,
-        "color",
+        attr="color",
         base_line=base_line,
     )
     minor_grid_color_y = _resolve_line_prop(
         theme.grid_color,
+        pg,
         theme.panel_grid_minor,
         theme.panel_grid_minor_y,
-        "color",
+        attr="color",
         base_line=base_line,
     )
     minor_grid_width_x = _resolve_line_prop(
         theme.grid_line_width * 0.5,
+        pg,
         theme.panel_grid_minor,
         theme.panel_grid_minor_x,
-        "size",
+        attr="size",
         base_line=base_line,
     )
     minor_grid_width_y = _resolve_line_prop(
         theme.grid_line_width * 0.5,
+        pg,
         theme.panel_grid_minor,
         theme.panel_grid_minor_y,
-        "size",
+        attr="size",
         base_line=base_line,
     )
 
@@ -199,7 +214,7 @@ def render_panel(
         ax.spines["right"].set_visible(axis_line_y)
 
     # Panel border — inherit from theme.rect
-    from plotten.themes._elements import ElementRect, merge_rect
+    from plotten.themes._elements import merge_rect
 
     base_rect = theme.rect if isinstance(theme.rect, ElementRect) else None
     panel_border_color = theme.panel_border_color
@@ -263,28 +278,28 @@ def render_panel(
         axis_text_x_kw.get("color", "#000000"),
         theme.axis_ticks,
         theme.axis_ticks_x,
-        "color",
+        attr="color",
         base_line=base_line,
     )
     tick_color_y = _resolve_line_prop(
         axis_text_y_kw.get("color", "#000000"),
         theme.axis_ticks,
         theme.axis_ticks_y,
-        "color",
+        attr="color",
         base_line=base_line,
     )
     tick_width_x = _resolve_line_prop(
         line_width,
         theme.axis_ticks,
         theme.axis_ticks_x,
-        "size",
+        attr="size",
         base_line=base_line,
     )
     tick_width_y = _resolve_line_prop(
         line_width,
         theme.axis_ticks,
         theme.axis_ticks_y,
-        "size",
+        attr="size",
         base_line=base_line,
     )
 
@@ -469,7 +484,10 @@ def _inject_theme_text_defaults(
     # Label background/border defaults from theme for GeomLabel
     if isinstance(geom, GeomLabel):
         # Detect dark themes and adjust label fill/color defaults
-        bg = theme.panel_background
+        from plotten.themes._elements import resolve_background
+
+        bg_fill, _, _ = resolve_background(theme.panel_background)
+        bg = bg_fill or "none"
         if updated.get("fill") is None and _is_dark_color(bg):
             updated["fill"] = bg  # label fill matches panel background
         if updated.get("color") is None and _is_dark_color(theme.background):
