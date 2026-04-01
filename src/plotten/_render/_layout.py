@@ -101,7 +101,7 @@ def create_figure(
     ratios: list[float] = []
 
     # Check if legend needs a dedicated top region
-    legend_top = isinstance(theme.legend_position, str) and theme.legend_position == "top"
+    legend_top = theme.legend_position == "top"
 
     if has_title or has_subtitle:
         header_h = (
@@ -247,12 +247,10 @@ def render_caption(
     # Resolve caption x-alignment from plot_caption_position
     # "plot" (default) → right-aligned to full plot area (ggplot2 hjust=1)
     # "panel" → right-aligned to panel area (approximated)
-    if theme.plot_caption_position == "panel":
-        cap_x = 0.99
-        cap_ha = "right"
-    else:
-        cap_x = 1.0
-        cap_ha = "right"
+    # Caption positioning: "plot" → right-aligned to full plot area (default),
+    # "panel" → right-aligned but inset slightly from edge.
+    cap_ha = "right"
+    cap_x = 0.95 if theme.plot_caption_position == "panel" else 1.0
     caption_subfig.text(
         cap_x,
         0.5,
@@ -359,6 +357,41 @@ def create_axes(
     return axes
 
 
+def _resolve_strip_axis_props(
+    bg_element: Any,
+    text_element: Any,
+    theme: Theme,
+    fallback_bbox: dict,
+    fallback_kw: dict,
+) -> tuple[dict, dict]:
+    """Resolve strip background and text props for one axis, applying overrides."""
+    from plotten.themes._elements import resolve_background
+
+    if bg_element is not None:
+        fill, edge, edge_w = resolve_background(bg_element)
+        bbox = {
+            "facecolor": fill or "none",
+            "edgecolor": edge or "none",
+            "linewidth": edge_w or 0,
+            "pad": DEFAULT_STRIP_BOX_PAD,
+        }
+    else:
+        bbox = fallback_bbox
+
+    kw = (
+        text_props(
+            text_element,
+            theme,
+            default_size=theme.strip_text_size or theme.label_size,
+            default_color=theme.strip_text_color,
+            is_title=True,
+        )
+        if text_element is not None
+        else fallback_kw
+    )
+    return bbox, kw
+
+
 def apply_facet_decorations(
     main_subfig: Figure | SubFigure,
     axes: Any,
@@ -396,49 +429,19 @@ def apply_facet_decorations(
     strip_position = getattr(resolved.facet, "strip_position", "top")
 
     # Per-axis strip overrides
-    if theme.strip_background_x is not None:
-        sx_fill, sx_edge, sx_edge_w = resolve_background(theme.strip_background_x)
-        strip_bg_bbox_x = {
-            "facecolor": sx_fill or "none",
-            "edgecolor": sx_edge or "none",
-            "linewidth": sx_edge_w or 0,
-            "pad": DEFAULT_STRIP_BOX_PAD,
-        }
-    else:
-        strip_bg_bbox_x = strip_bg_bbox
-    strip_kw_x = (
-        text_props(
-            theme.strip_text_x,
-            theme,
-            default_size=theme.strip_text_size or theme.label_size,
-            default_color=theme.strip_text_color,
-            is_title=True,
-        )
-        if theme.strip_text_x is not None
-        else strip_kw
+    strip_bg_bbox_x, strip_kw_x = _resolve_strip_axis_props(
+        theme.strip_background_x,
+        theme.strip_text_x,
+        theme,
+        strip_bg_bbox,
+        strip_kw,
     )
-
-    # Per-axis y-strip overrides (row strips on the right side)
-    if theme.strip_background_y is not None:
-        sy_fill, sy_edge, sy_edge_w = resolve_background(theme.strip_background_y)
-        strip_bg_bbox_y = {
-            "facecolor": sy_fill or "none",
-            "edgecolor": sy_edge or "none",
-            "linewidth": sy_edge_w or 0,
-            "pad": DEFAULT_STRIP_BOX_PAD,
-        }
-    else:
-        strip_bg_bbox_y = strip_bg_bbox
-    strip_kw_y = (
-        text_props(
-            theme.strip_text_y,
-            theme,
-            default_size=theme.strip_text_size or theme.label_size,
-            default_color=theme.strip_text_color,
-            is_title=True,
-        )
-        if theme.strip_text_y is not None
-        else strip_kw
+    strip_bg_bbox_y, strip_kw_y = _resolve_strip_axis_props(
+        theme.strip_background_y,
+        theme.strip_text_y,
+        theme,
+        strip_bg_bbox,
+        strip_kw,
     )
 
     # Detect whether facet has separate row/col labels

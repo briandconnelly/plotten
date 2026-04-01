@@ -34,7 +34,6 @@ Issues = "https://github.com/briandconnelly/plotten/issues"
 
 [project.optional-dependencies]
 scipy = ["scipy>=1.10"]
-smooth = ["scipy>=1.10"]
 
 docs = [
     "mkdocs-material>=9.6",

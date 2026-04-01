@@ -34,7 +34,7 @@ mpg = load_dataset("mpg")
 - **45+ geometry layers** -- points, lines, bars, histograms, density, boxplots, violins, ridgeplots, contours, hex bins, and more
 - **50+ scales** -- color, fill, size, shape, alpha, linetype, linewidth, hatch, and position with manual, identity, Brewer, viridis, gradient, and binned variants
 - **Full faceting** -- `facet_wrap()` and `facet_grid()` with free/fixed scales and custom labellers
-- **12 built-in themes** -- from `theme_minimal` to `theme_tufte` to `theme_economist`, plus full customization via `theme()`
+- **13 built-in themes** -- from `theme_minimal` to `theme_tufte` to `theme_economist`, plus full customization via `theme()`
 - **Plot composition** -- combine plots with `|` and `/`, or use `plot_grid()` for arbitrary layouts
 - **Works with pandas and polars** -- via [narwhals](https://github.com/narwhals-dev/narwhals), no conversion needed
 - **Publication-quality export** -- `ggsave()` with 300 DPI default, size in inches/cm/mm

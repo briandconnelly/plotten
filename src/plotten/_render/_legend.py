@@ -19,6 +19,7 @@ _COLORBAR_HEIGHT = 0.6
 _MARKER_SIZE_BASE = 30
 _LEGEND_RIGHT_X = 0.88
 _LEGEND_LEFT_X = 0.01
+_LEGEND_TOP_Y = 0.88
 _LEGEND_WIDTH_PER_COL = 0.12
 _SWATCH_LEFT = 0.05
 _SWATCH_CENTER = 0.12
@@ -542,7 +543,7 @@ def _draw_discrete_legend(
             total_height = 1.0
         else:
             x0 = 0.5 - legend_width / 2
-            y0 = _LEGEND_RIGHT_X - y_offset
+            y0 = _LEGEND_TOP_Y - y_offset
     else:  # bottom
         x0 = 0.5 - legend_width / 2
         y0 = _LEGEND_LEFT_X + y_offset
@@ -615,16 +616,6 @@ def _draw_discrete_legend(
     title_kw.pop("ha", None)
     title_kw.setdefault("fontweight", "bold")
 
-    entry_text_kw = text_props(
-        theme.legend_text_element,
-        theme,
-        default_size=legend_text_size,
-        default_color="#000000",
-    )
-    # Remove keys that are handled positionally
-    for k in ("ha", "va", "fontsize", "fontfamily"):
-        entry_text_kw.pop(k, None)
-    # Extract overridden size/family for positional args
     lt_kw = text_props(
         theme.legend_text_element,
         theme,
@@ -633,6 +624,10 @@ def _draw_discrete_legend(
     )
     effective_text_size = lt_kw.get("fontsize", legend_text_size)
     effective_text_family = lt_kw.get("fontfamily", theme.font_family)
+    # Build per-entry text kwargs (strip positional keys handled elsewhere)
+    entry_text_kw = {
+        k: v for k, v in lt_kw.items() if k not in ("ha", "va", "fontsize", "fontfamily")
+    }
 
     # Resolve effective key size (width/height override key_size)
     effective_key_w = theme.legend_key_width or theme.legend_key_size
@@ -848,7 +843,7 @@ def _draw_continuous_legend(
             x0 = ax_bbox.x1 + 0.01
             mid_y = ax_bbox.y0 + ax_bbox.height / 2
         else:
-            x0 = 0.89
+            x0 = _LEGEND_RIGHT_X
             mid_y = 0.5
         stack_top = mid_y + effective_height / 2
         y0 = max(stack_top - y_offset - h, 0.05)

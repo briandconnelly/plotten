@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, cast
 
 from plotten.themes._text_props import text_props
@@ -58,6 +59,247 @@ def _resolve_line_prop[T](
     return default
 
 
+# ---------------------------------------------------------------------------
+# Grid resolution helpers
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class _GridProps:
+    visible: bool
+    color: Any
+    width: Any
+
+
+def _resolve_grid_axis(
+    default_visible: bool,
+    default_color: Any,
+    default_width: Any,
+    base_line: ElementLine | None,
+    pg: ElementLine | ElementBlank | None,
+    level_element: ElementLine | ElementBlank | None,
+    axis_element: ElementLine | ElementBlank | None,
+) -> _GridProps:
+    """Resolve grid visibility, color, and width for one axis+level combo."""
+    return _GridProps(
+        visible=_resolve_visibility(default_visible, pg, level_element, axis_element),
+        color=_resolve_line_prop(
+            default_color, pg, level_element, axis_element, attr="color", base_line=base_line
+        ),
+        width=_resolve_line_prop(
+            default_width, pg, level_element, axis_element, attr="size", base_line=base_line
+        ),
+    )
+
+
+def _apply_grid(ax: Axes, theme: Theme) -> tuple[bool, bool]:
+    """Apply grid styling to axes. Returns (grid_minor_x, grid_minor_y)."""
+    pg = theme.panel_grid
+    base_line = theme.line
+
+    major_x = _resolve_grid_axis(
+        theme.grid_major_x,
+        theme.grid_color,
+        theme.grid_line_width,
+        base_line,
+        pg,
+        theme.panel_grid_major,
+        theme.panel_grid_major_x,
+    )
+    major_y = _resolve_grid_axis(
+        theme.grid_major_y,
+        theme.grid_color,
+        theme.grid_line_width,
+        base_line,
+        pg,
+        theme.panel_grid_major,
+        theme.panel_grid_major_y,
+    )
+    minor_x = _resolve_grid_axis(
+        theme.grid_minor_x,
+        theme.grid_color,
+        theme.grid_line_width * 0.5,
+        base_line,
+        pg,
+        theme.panel_grid_minor,
+        theme.panel_grid_minor_x,
+    )
+    minor_y = _resolve_grid_axis(
+        theme.grid_minor_y,
+        theme.grid_color,
+        theme.grid_line_width * 0.5,
+        base_line,
+        pg,
+        theme.panel_grid_minor,
+        theme.panel_grid_minor_y,
+    )
+
+    ax.grid(False)
+    if major_x.visible:
+        ax.xaxis.grid(True, which="major", color=major_x.color, linewidth=major_x.width)
+    if major_y.visible:
+        ax.yaxis.grid(True, which="major", color=major_y.color, linewidth=major_y.width)
+    if minor_x.visible or minor_y.visible:
+        ax.minorticks_on()
+        if minor_x.visible:
+            ax.xaxis.grid(True, which="minor", color=minor_x.color, linewidth=minor_x.width)
+        if minor_y.visible:
+            ax.yaxis.grid(True, which="minor", color=minor_y.color, linewidth=minor_y.width)
+    ax.set_axisbelow(not theme.panel_ontop)
+
+    return minor_x.visible, minor_y.visible
+
+
+# ---------------------------------------------------------------------------
+# Polar theme helper
+# ---------------------------------------------------------------------------
+
+
+def _apply_polar_theme(ax: Axes, theme: Theme) -> None:
+    """Apply polar-axis-specific theme overrides (theta=x, r=y)."""
+    from plotten.themes._elements import ElementBlank, ElementLine
+
+    # axis_text_theta / axis_text_r
+    if isinstance(theme.axis_text_theta, ElementBlank):
+        ax.tick_params(axis="x", labelbottom=False)
+    elif theme.axis_text_theta is not None:
+        theta_kw = text_props(theme.axis_text_theta, theme, default_size=theme.tick_size)
+        ax.tick_params(
+            axis="x",
+            labelsize=theta_kw.get("fontsize", theme.tick_size),
+            labelcolor=theta_kw.get("color", "#000000"),
+        )
+        if "rotation" in theta_kw:
+            ax.tick_params(axis="x", labelrotation=theta_kw["rotation"])
+
+    if isinstance(theme.axis_text_r, ElementBlank):
+        ax.tick_params(axis="y", labelleft=False)
+    elif theme.axis_text_r is not None:
+        r_kw = text_props(theme.axis_text_r, theme, default_size=theme.tick_size)
+        ax.tick_params(
+            axis="y",
+            labelsize=r_kw.get("fontsize", theme.tick_size),
+            labelcolor=r_kw.get("color", "#000000"),
+        )
+
+    # axis_ticks_theta / axis_ticks_r
+    theta_tick_len = theme.axis_ticks_length_theta or theme.tick_length
+    r_tick_len = theme.axis_ticks_length_r or theme.tick_length
+
+    if isinstance(theme.axis_ticks_theta, ElementBlank):
+        ax.tick_params(axis="x", length=0)
+    elif isinstance(theme.axis_ticks_theta, ElementLine):
+        tkw: dict[str, Any] = {"axis": "x", "length": theta_tick_len}
+        if theme.axis_ticks_theta.color is not None:
+            tkw["color"] = theme.axis_ticks_theta.color
+        if theme.axis_ticks_theta.size is not None:
+            tkw["width"] = theme.axis_ticks_theta.size
+        ax.tick_params(**tkw)
+
+    if isinstance(theme.axis_ticks_r, ElementBlank):
+        ax.tick_params(axis="y", length=0)
+    elif isinstance(theme.axis_ticks_r, ElementLine):
+        rkw: dict[str, Any] = {"axis": "y", "length": r_tick_len}
+        if theme.axis_ticks_r.color is not None:
+            rkw["color"] = theme.axis_ticks_r.color
+        if theme.axis_ticks_r.size is not None:
+            rkw["width"] = theme.axis_ticks_r.size
+        ax.tick_params(**rkw)
+
+    # axis_line_theta / axis_line_r — polar spine styling
+    if isinstance(theme.axis_line_theta, ElementBlank) and "polar" in ax.spines:
+        ax.spines["polar"].set_visible(False)
+    elif isinstance(theme.axis_line_theta, ElementLine) and "polar" in ax.spines:
+        ax.spines["polar"].set_visible(True)
+        if theme.axis_line_theta.color is not None:
+            ax.spines["polar"].set_edgecolor(theme.axis_line_theta.color)
+        if theme.axis_line_theta.size is not None:
+            ax.spines["polar"].set_linewidth(theme.axis_line_theta.size)
+
+    if isinstance(theme.axis_line_r, ElementBlank):
+        if "start" in ax.spines:
+            ax.spines["start"].set_visible(False)
+        if "end" in ax.spines:
+            ax.spines["end"].set_visible(False)
+    elif isinstance(theme.axis_line_r, ElementLine):
+        for sp_name in ("start", "end"):
+            if sp_name in ax.spines:
+                ax.spines[sp_name].set_visible(True)
+                if theme.axis_line_r.color is not None:
+                    ax.spines[sp_name].set_edgecolor(theme.axis_line_r.color)
+                if theme.axis_line_r.size is not None:
+                    ax.spines[sp_name].set_linewidth(theme.axis_line_r.size)
+
+
+# ---------------------------------------------------------------------------
+# Axis title theme helper
+# ---------------------------------------------------------------------------
+
+
+def _apply_axis_title_theme(ax: Axes, theme: Theme) -> None:
+    """Apply axis title font properties from theme element cascade."""
+    from plotten.themes._elements import ElementBlank
+
+    axis_title_kw = text_props(
+        theme.axis_title,
+        theme,
+        default_size=theme.label_size,
+        default_color="#000000",
+        is_title=True,
+    )
+
+    axis_title_x_kw = _resolve_per_axis_text(
+        theme.axis_title_x,
+        axis_title_kw,
+        theme,
+        size_override=theme.axis_title_x_size,
+    )
+    axis_title_y_kw = _resolve_per_axis_text(
+        theme.axis_title_y,
+        axis_title_kw,
+        theme,
+        size_override=theme.axis_title_y_size,
+    )
+    axis_title_x_kw = _resolve_per_axis_text(theme.axis_title_x_bottom, axis_title_x_kw, theme)
+    axis_title_y_kw = _resolve_per_axis_text(theme.axis_title_y_left, axis_title_y_kw, theme)
+
+    suppress_x = isinstance(theme.axis_title_x_bottom, ElementBlank) or (
+        theme.axis_title_x_bottom is None and isinstance(theme.axis_title_x, ElementBlank)
+    )
+    suppress_y = isinstance(theme.axis_title_y_left, ElementBlank) or (
+        theme.axis_title_y_left is None and isinstance(theme.axis_title_y, ElementBlank)
+    )
+
+    if not suppress_x:
+        ax.xaxis.label.set_fontfamily(axis_title_x_kw.get("fontfamily", theme.font_family))
+        ax.xaxis.label.set_fontsize(axis_title_x_kw.get("fontsize", theme.label_size))
+        if "fontweight" in axis_title_x_kw:
+            ax.xaxis.label.set_fontweight(axis_title_x_kw["fontweight"])
+        if "fontstyle" in axis_title_x_kw:
+            ax.xaxis.label.set_fontstyle(axis_title_x_kw["fontstyle"])
+        if "color" in axis_title_x_kw:
+            ax.xaxis.label.set_color(axis_title_x_kw["color"])
+    else:
+        ax.xaxis.label.set_fontsize(0)
+
+    if not suppress_y:
+        ax.yaxis.label.set_fontfamily(axis_title_y_kw.get("fontfamily", theme.font_family))
+        ax.yaxis.label.set_fontsize(axis_title_y_kw.get("fontsize", theme.label_size))
+        if "fontweight" in axis_title_y_kw:
+            ax.yaxis.label.set_fontweight(axis_title_y_kw["fontweight"])
+        if "fontstyle" in axis_title_y_kw:
+            ax.yaxis.label.set_fontstyle(axis_title_y_kw["fontstyle"])
+        if "color" in axis_title_y_kw:
+            ax.yaxis.label.set_color(axis_title_y_kw["color"])
+    else:
+        ax.yaxis.label.set_fontsize(0)
+
+
+# ---------------------------------------------------------------------------
+# Main render_panel
+# ---------------------------------------------------------------------------
+
+
 def render_panel(
     panel: ResolvedPanel,
     ax: Axes,
@@ -76,110 +318,12 @@ def render_panel(
         ax.patch.set_edgecolor(panel_edge)
         ax.patch.set_linewidth(panel_edge_w or 1.0)
 
-    # Grid — element overrides take precedence
-    # Cascade: panel_grid → panel_grid_major/minor → panel_grid_major/minor_x/y
-    pg = theme.panel_grid
-    grid_major_x = _resolve_visibility(
-        theme.grid_major_x, pg, theme.panel_grid_major, theme.panel_grid_major_x
-    )
-    grid_major_y = _resolve_visibility(
-        theme.grid_major_y, pg, theme.panel_grid_major, theme.panel_grid_major_y
-    )
-    grid_minor_x = _resolve_visibility(
-        theme.grid_minor_x, pg, theme.panel_grid_minor, theme.panel_grid_minor_x
-    )
-    grid_minor_y = _resolve_visibility(
-        theme.grid_minor_y, pg, theme.panel_grid_minor, theme.panel_grid_minor_y
-    )
-
-    # Resolve grid colors and widths per axis
-    base_line = theme.line
-    major_grid_color_x = _resolve_line_prop(
-        theme.grid_color,
-        pg,
-        theme.panel_grid_major,
-        theme.panel_grid_major_x,
-        attr="color",
-        base_line=base_line,
-    )
-    major_grid_color_y = _resolve_line_prop(
-        theme.grid_color,
-        pg,
-        theme.panel_grid_major,
-        theme.panel_grid_major_y,
-        attr="color",
-        base_line=base_line,
-    )
-    major_grid_width_x = _resolve_line_prop(
-        theme.grid_line_width,
-        pg,
-        theme.panel_grid_major,
-        theme.panel_grid_major_x,
-        attr="size",
-        base_line=base_line,
-    )
-    major_grid_width_y = _resolve_line_prop(
-        theme.grid_line_width,
-        pg,
-        theme.panel_grid_major,
-        theme.panel_grid_major_y,
-        attr="size",
-        base_line=base_line,
-    )
-
-    minor_grid_color_x = _resolve_line_prop(
-        theme.grid_color,
-        pg,
-        theme.panel_grid_minor,
-        theme.panel_grid_minor_x,
-        attr="color",
-        base_line=base_line,
-    )
-    minor_grid_color_y = _resolve_line_prop(
-        theme.grid_color,
-        pg,
-        theme.panel_grid_minor,
-        theme.panel_grid_minor_y,
-        attr="color",
-        base_line=base_line,
-    )
-    minor_grid_width_x = _resolve_line_prop(
-        theme.grid_line_width * 0.5,
-        pg,
-        theme.panel_grid_minor,
-        theme.panel_grid_minor_x,
-        attr="size",
-        base_line=base_line,
-    )
-    minor_grid_width_y = _resolve_line_prop(
-        theme.grid_line_width * 0.5,
-        pg,
-        theme.panel_grid_minor,
-        theme.panel_grid_minor_y,
-        attr="size",
-        base_line=base_line,
-    )
-
-    # Clear any default grid, then apply per-axis
-    ax.grid(False)
-    if grid_major_x:
-        ax.xaxis.grid(True, which="major", color=major_grid_color_x, linewidth=major_grid_width_x)
-    if grid_major_y:
-        ax.yaxis.grid(True, which="major", color=major_grid_color_y, linewidth=major_grid_width_y)
-    if grid_minor_x or grid_minor_y:
-        ax.minorticks_on()
-        if grid_minor_x:
-            ax.xaxis.grid(
-                True, which="minor", color=minor_grid_color_x, linewidth=minor_grid_width_x
-            )
-        if grid_minor_y:
-            ax.yaxis.grid(
-                True, which="minor", color=minor_grid_color_y, linewidth=minor_grid_width_y
-            )
-    ax.set_axisbelow(not theme.panel_ontop)
+    # Grid
+    grid_minor_x, grid_minor_y = _apply_grid(ax, theme)
 
     # Spine styling (polar axes have different spine names)
     is_polar_ax = ax.name == "polar"
+    base_line = theme.line
 
     # Resolve axis line element properties — inherit from theme.line
     from plotten.themes._elements import merge_line
@@ -213,9 +357,25 @@ def render_panel(
         ax.spines["left"].set_visible(axis_line_y)
         ax.spines["right"].set_visible(axis_line_y)
 
-        # Per-position spine overrides (axis_line_x_bottom, axis_line_y_left, etc.)
         from plotten.themes._elements import ElementLine as _EL
 
+        # Per-axis element overrides (axis_line_x_element, axis_line_y_element)
+        for spines, el in [
+            (("bottom", "top"), theme.axis_line_x_element),
+            (("left", "right"), theme.axis_line_y_element),
+        ]:
+            if isinstance(el, ElementBlank):
+                for s in spines:
+                    ax.spines[s].set_visible(False)
+            elif isinstance(el, _EL):
+                for s in spines:
+                    ax.spines[s].set_visible(True)
+                    if el.color is not None:
+                        ax.spines[s].set_edgecolor(el.color)
+                    if el.size is not None:
+                        ax.spines[s].set_linewidth(el.size)
+
+        # Per-position spine overrides (axis_line_x_bottom, axis_line_y_left, etc.)
         for spine_name, el in [
             ("bottom", theme.axis_line_x_bottom),
             ("top", theme.axis_line_x_top),
@@ -439,79 +599,9 @@ def render_panel(
         if "fontstyle" in axis_text_y_kw:
             label.set_fontstyle(axis_text_y_kw["fontstyle"])
 
-    # Polar axis theme overrides — theta maps to x, r maps to y in matplotlib
+    # Polar axis theme overrides
     if is_polar_ax:
-        # axis_text_theta / axis_text_r — override tick label styling
-        if isinstance(theme.axis_text_theta, ElementBlank):
-            ax.tick_params(axis="x", labelbottom=False)
-        elif theme.axis_text_theta is not None:
-            theta_kw = text_props(theme.axis_text_theta, theme, default_size=theme.tick_size)
-            ax.tick_params(
-                axis="x",
-                labelsize=theta_kw.get("fontsize", theme.tick_size),
-                labelcolor=theta_kw.get("color", "#000000"),
-            )
-            if "rotation" in theta_kw:
-                ax.tick_params(axis="x", labelrotation=theta_kw["rotation"])
-
-        if isinstance(theme.axis_text_r, ElementBlank):
-            ax.tick_params(axis="y", labelleft=False)
-        elif theme.axis_text_r is not None:
-            r_kw = text_props(theme.axis_text_r, theme, default_size=theme.tick_size)
-            ax.tick_params(
-                axis="y",
-                labelsize=r_kw.get("fontsize", theme.tick_size),
-                labelcolor=r_kw.get("color", "#000000"),
-            )
-
-        # axis_ticks_theta / axis_ticks_r — tick mark visibility and styling
-        theta_tick_len = theme.axis_ticks_length_theta or theme.tick_length
-        r_tick_len = theme.axis_ticks_length_r or theme.tick_length
-
-        if isinstance(theme.axis_ticks_theta, ElementBlank):
-            ax.tick_params(axis="x", length=0)
-        elif isinstance(theme.axis_ticks_theta, ElementLine):
-            tkw: dict[str, Any] = {"axis": "x", "length": theta_tick_len}
-            if theme.axis_ticks_theta.color is not None:
-                tkw["color"] = theme.axis_ticks_theta.color
-            if theme.axis_ticks_theta.size is not None:
-                tkw["width"] = theme.axis_ticks_theta.size
-            ax.tick_params(**tkw)
-
-        if isinstance(theme.axis_ticks_r, ElementBlank):
-            ax.tick_params(axis="y", length=0)
-        elif isinstance(theme.axis_ticks_r, ElementLine):
-            rkw: dict[str, Any] = {"axis": "y", "length": r_tick_len}
-            if theme.axis_ticks_r.color is not None:
-                rkw["color"] = theme.axis_ticks_r.color
-            if theme.axis_ticks_r.size is not None:
-                rkw["width"] = theme.axis_ticks_r.size
-            ax.tick_params(**rkw)
-
-        # axis_line_theta / axis_line_r — polar spine styling
-        # Polar axes have "polar" spine (outer circle) and "start"/"end" spines
-        if isinstance(theme.axis_line_theta, ElementBlank) and "polar" in ax.spines:
-            ax.spines["polar"].set_visible(False)
-        elif isinstance(theme.axis_line_theta, ElementLine) and "polar" in ax.spines:
-            ax.spines["polar"].set_visible(True)
-            if theme.axis_line_theta.color is not None:
-                ax.spines["polar"].set_edgecolor(theme.axis_line_theta.color)
-            if theme.axis_line_theta.size is not None:
-                ax.spines["polar"].set_linewidth(theme.axis_line_theta.size)
-
-        if isinstance(theme.axis_line_r, ElementBlank):
-            if "start" in ax.spines:
-                ax.spines["start"].set_visible(False)
-            if "end" in ax.spines:
-                ax.spines["end"].set_visible(False)
-        elif isinstance(theme.axis_line_r, ElementLine):
-            for sp_name in ("start", "end"):
-                if sp_name in ax.spines:
-                    ax.spines[sp_name].set_visible(True)
-                    if theme.axis_line_r.color is not None:
-                        ax.spines[sp_name].set_edgecolor(theme.axis_line_r.color)
-                    if theme.axis_line_r.size is not None:
-                        ax.spines[sp_name].set_linewidth(theme.axis_line_r.size)
+        _apply_polar_theme(ax, theme)
 
     # Draw layers — assign incrementing zorder so layer order is respected
     coord = resolved.coord
@@ -542,63 +632,8 @@ def render_panel(
             if artist not in artists_before:
                 artist.set_zorder(base_zorder)
 
-    # Font — axis titles with per-axis element overrides
-    axis_title_kw = text_props(
-        theme.axis_title,
-        theme,
-        default_size=theme.label_size,
-        default_color="#000000",
-        is_title=True,
-    )
-
-    # Per-axis title element overrides
-    axis_title_x_kw = _resolve_per_axis_text(
-        theme.axis_title_x,
-        axis_title_kw,
-        theme,
-        size_override=theme.axis_title_x_size,
-    )
-    axis_title_y_kw = _resolve_per_axis_text(
-        theme.axis_title_y,
-        axis_title_kw,
-        theme,
-        size_override=theme.axis_title_y_size,
-    )
-    # Per-position overrides (bottom/left for primary axes)
-    axis_title_x_kw = _resolve_per_axis_text(theme.axis_title_x_bottom, axis_title_x_kw, theme)
-    axis_title_y_kw = _resolve_per_axis_text(theme.axis_title_y_left, axis_title_y_kw, theme)
-
-    # Check if per-position or per-axis title elements suppress the title
-    suppress_x = isinstance(theme.axis_title_x_bottom, ElementBlank) or (
-        theme.axis_title_x_bottom is None and isinstance(theme.axis_title_x, ElementBlank)
-    )
-    suppress_y = isinstance(theme.axis_title_y_left, ElementBlank) or (
-        theme.axis_title_y_left is None and isinstance(theme.axis_title_y, ElementBlank)
-    )
-
-    if not suppress_x:
-        ax.xaxis.label.set_fontfamily(axis_title_x_kw.get("fontfamily", theme.font_family))
-        ax.xaxis.label.set_fontsize(axis_title_x_kw.get("fontsize", theme.label_size))
-        if "fontweight" in axis_title_x_kw:
-            ax.xaxis.label.set_fontweight(axis_title_x_kw["fontweight"])
-        if "fontstyle" in axis_title_x_kw:
-            ax.xaxis.label.set_fontstyle(axis_title_x_kw["fontstyle"])
-        if "color" in axis_title_x_kw:
-            ax.xaxis.label.set_color(axis_title_x_kw["color"])
-    else:
-        ax.xaxis.label.set_fontsize(0)
-
-    if not suppress_y:
-        ax.yaxis.label.set_fontfamily(axis_title_y_kw.get("fontfamily", theme.font_family))
-        ax.yaxis.label.set_fontsize(axis_title_y_kw.get("fontsize", theme.label_size))
-        if "fontweight" in axis_title_y_kw:
-            ax.yaxis.label.set_fontweight(axis_title_y_kw["fontweight"])
-        if "fontstyle" in axis_title_y_kw:
-            ax.yaxis.label.set_fontstyle(axis_title_y_kw["fontstyle"])
-        if "color" in axis_title_y_kw:
-            ax.yaxis.label.set_color(axis_title_y_kw["color"])
-    else:
-        ax.yaxis.label.set_fontsize(0)
+    # Axis titles
+    _apply_axis_title_theme(ax, theme)
 
 
 def _resolve_per_axis_text(

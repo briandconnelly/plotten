@@ -965,9 +965,6 @@ docs = [
 scipy = [
     { name = "scipy" },
 ]
-smooth = [
-    { name = "scipy" },
-]
 
 [package.dev-dependencies]
 dev = [
@@ -992,9 +989,8 @@ requires-dist = [
     { name = "narwhals", specifier = ">=1.0" },
     { name = "numpy", specifier = ">=1.24" },
     { name = "scipy", marker = "extra == 'scipy'", specifier = ">=1.10" },
-    { name = "scipy", marker = "extra == 'smooth'", specifier = ">=1.10" },
 ]
-provides-extras = ["scipy", "smooth", "docs"]
+provides-extras = ["scipy", "docs"]
 
 [package.metadata.requires-dev]
 dev = [

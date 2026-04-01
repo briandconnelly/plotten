@@ -547,4 +547,53 @@ theme(
 )
 ```
 
+## Advanced theme fields
+
+### Minor ticks
+
+Control minor tick marks with the `axis_minor_ticks` family:
+
+```python
+theme(
+    axis_minor_ticks=element_line(color="#cccccc"),  # all minor ticks
+    axis_minor_ticks_x=element_blank(),               # hide x minor ticks
+    axis_minor_ticks_length=2.0,                       # minor tick length
+)
+```
+
+### Legend layout
+
+Fine-tune legend layout with dedicated fields:
+
+- `legend_direction` — `"vertical"` (default) or `"horizontal"`
+- `legend_byrow` — arrange entries by row when using multiple columns
+- `legend_box` — `"vertical"` or `"horizontal"` stacking of multiple legends
+- `legend_box_spacing` — spacing between multiple legend groups
+- `legend_text_position` / `legend_title_position` — position of text/title relative to keys
+
+Note: `legend_title_element` and `legend_text_element` use the `_element` suffix to avoid
+conflicting with the scalar fields `legend_title_size` and `legend_text_size`.
+
+### Panel sizing
+
+Control relative panel sizes in faceted plots:
+
+```python
+theme(
+    panel_widths=[2, 1, 1],   # relative column widths
+    panel_heights=[1, 2],      # relative row heights
+)
+```
+
+### Plot tags
+
+Add panel tags (e.g. "A", "B", "C") for multi-panel figures:
+
+```python
+theme(
+    plot_tag=element_text(size=14, weight="bold"),
+    plot_tag_position="topleft",   # or "topright", "bottomleft", etc.
+)
+```
+
 For the complete list of theme fields, see the [Themes reference](../reference/themes.md).

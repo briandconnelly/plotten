@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import matplotlib
-import matplotlib.pyplot as plt
 import pandas as pd
 import polars as pl
 import pytest
@@ -11,7 +10,6 @@ matplotlib.use("Agg")
 from typing import TYPE_CHECKING
 
 from plotten import (
-    Aes,
     Theme,
     aes,
     element_blank,
@@ -39,16 +37,17 @@ from plotten.themes import (
     theme_538,
     theme_default,
     theme_economist,
+    theme_light,
+    theme_linedraw,
     theme_minimal,
     theme_seaborn,
+    theme_test,
     theme_tufte,
 )
 from plotten.themes._elements import ElementBlank, ElementLine, ElementRect, ElementText
 
 if TYPE_CHECKING:
     from pathlib import Path
-
-# --- from test_themes.py ---
 
 
 def test_theme_defaults():
@@ -86,8 +85,6 @@ def test_theme_frozen():
     except AttributeError:
         pass
 
-
-# --- from test_v06_themes.py ---
 
 """Tests for v0.6.0 theme granularity and new predefined themes."""
 
@@ -155,60 +152,69 @@ class TestThemeNewFields:
 class TestPerAxisRendering:
     def test_rotated_x_ticks(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + Theme(axis_text_x_rotation=45)
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + Theme(axis_text_x_rotation=45)
+        fig = render(p)
+        ax = fig.axes[0]
+        for label in ax.get_xticklabels():
+            if label.get_text():
+                assert label.get_rotation() == pytest.approx(45)
 
     def test_per_axis_title_sizes(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
         p = (
-            ggplot(df, Aes(x="x", y="y"))
+            ggplot(df, aes(x="x", y="y"))
             + geom_point()
             + Theme(axis_title_x_size=18, axis_title_y_size=8)
         )
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        fig = render(p)
+        ax = fig.axes[0]
+        assert ax.xaxis.label.get_fontsize() == pytest.approx(18)
+        assert ax.yaxis.label.get_fontsize() == pytest.approx(8)
 
     def test_panel_border(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
         p = (
-            ggplot(df, Aes(x="x", y="y"))
+            ggplot(df, aes(x="x", y="y"))
             + geom_point()
             + Theme(panel_border_color="#000000", panel_border_width=2.0)
         )
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        fig = render(p)
+        ax = fig.axes[0]
+        for spine in ax.spines.values():
+            assert spine.get_linewidth() == pytest.approx(2.0)
 
     def test_grid_per_axis(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
         p = (
-            ggplot(df, Aes(x="x", y="y"))
+            ggplot(df, aes(x="x", y="y"))
             + geom_point()
             + Theme(grid_major_x=False, grid_major_y=True, grid_minor_y=True)
         )
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        fig = render(p)
+        assert fig is not None
 
     def test_axis_line_visibility(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
         p = (
-            ggplot(df, Aes(x="x", y="y"))
+            ggplot(df, aes(x="x", y="y"))
             + geom_point()
             + Theme(axis_line_x=False, axis_line_y=False)
         )
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        fig = render(p)
+        ax = fig.axes[0]
+        assert not ax.spines["bottom"].get_visible()
+        assert not ax.spines["left"].get_visible()
 
     def test_title_subtitle_colors(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
         p = (
-            ggplot(df, Aes(x="x", y="y"))
+            ggplot(df, aes(x="x", y="y"))
             + geom_point()
             + labs(title="Title", subtitle="Subtitle")
             + Theme(title_color="#ff0000", subtitle_color="#00ff00", subtitle_size=10)
         )
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        fig = render(p)
+        assert fig is not None
 
 
 # ── Predefined themes ──────────────────────────────────────────────
@@ -225,9 +231,9 @@ class TestThemeBw:
 
     def test_renders(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + theme_bw()
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_bw()
+        fig = render(p)
+        assert fig is not None
 
 
 class TestThemeClassic:
@@ -242,9 +248,9 @@ class TestThemeClassic:
 
     def test_renders(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + theme_classic()
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_classic()
+        fig = render(p)
+        assert fig is not None
 
 
 class TestThemeVoid:
@@ -265,20 +271,13 @@ class TestThemeVoid:
 
     def test_renders(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + theme_void()
-        fig = p._repr_png_()
-        assert len(fig) > 0
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_void()
+        fig = render(p)
+        assert fig is not None
 
 
 # ── Import smoke test ───────────────────────────────────────────────
 
-
-class TestImports:
-    def test_all_new_exports(self):
-        pass
-
-
-# --- from test_v08_themes.py ---
 
 """Tests for v0.8.0 theme element system."""
 
@@ -388,7 +387,6 @@ class TestElementRendering:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_render_blank_major_grid(self):
         df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
@@ -396,7 +394,6 @@ class TestElementRendering:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_render_custom_grid_color(self):
         df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
@@ -404,7 +401,6 @@ class TestElementRendering:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_render_element_text_title(self):
         df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
@@ -412,7 +408,6 @@ class TestElementRendering:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="Big Title") + theme
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_render_blank_title(self):
         df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
@@ -420,7 +415,6 @@ class TestElementRendering:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="Hidden") + theme
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_render_blank_caption(self):
         df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
@@ -428,7 +422,6 @@ class TestElementRendering:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(caption="Hidden") + theme
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_render_blank_subtitle(self):
         df = pl.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3]})
@@ -441,10 +434,7 @@ class TestElementRendering:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
-
-# --- from test_v10_theme_function.py ---
 
 """Tests for theme() convenience function (1A)."""
 
@@ -479,20 +469,16 @@ def test_theme_empty():
     assert t == Theme()
 
 
-# --- from test_v11_theme.py ---
-
 """Tests for v0.11.0 theme additions."""
 
 
-@pytest.fixture(autouse=True)
-def _reset_global_theme():
-    """Reset global theme before and after each test."""
-    theme_set(Theme())
-    yield
-    theme_set(Theme())
-
-
 class TestThemeSetGet:
+    @pytest.fixture(autouse=True)
+    def _reset_global_theme(self):
+        theme_set(Theme())
+        yield
+        theme_set(Theme())
+
     def test_default_is_base_theme(self):
         assert theme_get() == Theme()
 
@@ -509,7 +495,7 @@ class TestThemeSetGet:
         """Global theme should affect rendered plot."""
         theme_set(theme_dark())
         df = pd.DataFrame({"x": [1, 2], "y": [1, 2]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point()
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
         fig = render(p)
         # dark theme has dark background
         assert fig.get_facecolor() != (1.0, 1.0, 1.0, 1.0)
@@ -518,7 +504,7 @@ class TestThemeSetGet:
         """Plot-level theme should override global theme."""
         theme_set(theme_dark())
         df = pd.DataFrame({"x": [1, 2], "y": [1, 2]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + theme(background="#ff0000")
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(background="#ff0000")
         fig = render(p)
         # The plot-level red background should win
         fc = fig.get_facecolor()
@@ -526,6 +512,12 @@ class TestThemeSetGet:
 
 
 class TestThemeUpdate:
+    @pytest.fixture(autouse=True)
+    def _reset_global_theme(self):
+        theme_set(Theme())
+        yield
+        theme_set(Theme())
+
     def test_update_changes_global(self):
         theme_update(title_size=24)
         assert theme_get().title_size == 24
@@ -565,19 +557,17 @@ class TestThemeGrey:
 
     def test_grey_renders(self):
         df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + theme_grey()
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_grey()
         fig = render(p)
         assert fig is not None
 
-
-# --- from test_v110_themes.py ---
 
 """Tests for v1.1.0 Phase 1 theme gallery: theme_538, theme_economist, theme_tufte, theme_seaborn."""
 
 
 def _make_plot():
     df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
-    return ggplot(df, Aes(x="x", y="y")) + geom_point()
+    return ggplot(df, aes(x="x", y="y")) + geom_point()
 
 
 # --- theme_538 ---
@@ -934,8 +924,7 @@ class TestNewThemeFields:
                 panel_grid_major_y=element_line(color="#cccccc", size=0.5),
             )
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_render_with_aspect_ratio(self):
         """Smoke test: aspect_ratio affects figure size."""
@@ -945,7 +934,6 @@ class TestNewThemeFields:
         w, h = fig.get_size_inches()
         # aspect_ratio=0.5 means h = w * 0.5
         assert abs(h - w * 0.5) < 0.1
-        plt.close(fig)
 
     def test_render_with_plot_margin(self):
         """Smoke test: plot_margin doesn't crash rendering."""
@@ -955,8 +943,7 @@ class TestNewThemeFields:
             + geom_point()
             + theme(plot_margin=(0.05, 0.05, 0.05, 0.05))
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_render_with_panel_spacing(self):
         """Smoke test: panel_spacing doesn't crash faceted rendering."""
@@ -969,8 +956,7 @@ class TestNewThemeFields:
             + facet_wrap("g")
             + theme(panel_spacing=0.15)
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestDarkThemeTextColors:
@@ -1016,8 +1002,7 @@ class TestDarkThemeTextColors:
 
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_dark()
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestGeomFontInheritance:
@@ -1037,7 +1022,6 @@ class TestGeomFontInheritance:
         texts = [t for t in ax.texts if t.get_text() == "hello"]
         assert len(texts) == 1
         assert "monospace" in str(texts[0].get_fontfamily())
-        plt.close(fig)
 
     def test_geom_text_explicit_family_overrides(self):
         from plotten import geom_text
@@ -1053,126 +1037,106 @@ class TestGeomFontInheritance:
         texts = [t for t in ax.texts if t.get_text() == "hello"]
         assert len(texts) == 1
         assert "serif" in str(texts[0].get_fontfamily())
-        plt.close(fig)
 
 
 class TestThemeLinedraw:
     """Fix 3: theme_linedraw() should exist."""
 
     def test_linedraw_exists(self):
-        from plotten import theme_linedraw
 
         t = theme_linedraw()
         assert isinstance(t, Theme)
 
     def test_linedraw_has_white_background(self):
-        from plotten import theme_linedraw
 
         t = theme_linedraw()
         assert t.panel_background == "#ffffff"
 
     def test_linedraw_has_border(self):
-        from plotten import theme_linedraw
 
         t = theme_linedraw()
         assert t.panel_border_color == "#000000"
 
     def test_linedraw_composable(self):
-        from plotten import theme_linedraw
 
         combined = theme_linedraw() + Theme(title_size=20)
         assert combined.title_size == 20
         assert combined.panel_border_color == "#000000"
 
     def test_linedraw_renders(self):
-        from plotten import theme_linedraw
 
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_linedraw()
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestThemeLight:
     """theme_light() — light grey axes directing attention to data."""
 
     def test_light_exists(self):
-        from plotten import theme_light
 
         t = theme_light()
         assert isinstance(t, Theme)
 
     def test_light_has_white_panel(self):
-        from plotten import theme_light
 
         t = theme_light()
         assert t.panel_background == "#ffffff"
 
     def test_light_has_grey_border(self):
-        from plotten import theme_light
 
         t = theme_light()
         assert t.panel_border_color == "#999999"
 
     def test_light_composable(self):
-        from plotten import theme_light
 
         combined = theme_light() + Theme(title_size=20)
         assert combined.title_size == 20
         assert combined.panel_border_color == "#999999"
 
     def test_light_renders(self):
-        from plotten import theme_light
 
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_light()
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestThemeTest:
     """theme_test() — stable theme for visual unit tests."""
 
     def test_test_exists(self):
-        from plotten import theme_test
 
         t = theme_test()
         assert isinstance(t, Theme)
 
     def test_test_has_white_background(self):
-        from plotten import theme_test
 
         t = theme_test()
         assert t.panel_background == "#ffffff"
         assert t.background == "#ffffff"
 
     def test_test_no_grid(self):
-        from plotten import theme_test
 
         t = theme_test()
         assert t.grid_major_x is False
         assert t.grid_major_y is False
 
     def test_test_has_border(self):
-        from plotten import theme_test
 
         t = theme_test()
         assert t.panel_border_color == "#000000"
 
     def test_test_composable(self):
-        from plotten import theme_test
 
         combined = theme_test() + Theme(title_size=20)
         assert combined.title_size == 20
         assert combined.panel_border_color == "#000000"
 
     def test_test_renders(self):
-        from plotten import theme_test
 
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [4.0, 5.0, 6.0]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme_test()
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestSecAxisThemeStyling:
@@ -1204,7 +1168,6 @@ class TestSecAxisThemeStyling:
         sec = self._find_sec_axis(fig)
         assert sec is not None
         assert sec.get_ylabel() == "Secondary"
-        plt.close(fig)
 
     def test_sec_axis_text_y_right(self):
         """axis_text_y_right should style secondary y-axis tick labels."""
@@ -1220,7 +1183,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
     def test_sec_axis_text_y_right_blank(self):
         """axis_text_y_right=element_blank() should hide secondary tick labels."""
@@ -1236,7 +1198,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
     def test_sec_axis_title_y_right(self):
         """axis_title_y_right should style secondary y-axis title."""
@@ -1254,7 +1215,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
     def test_sec_axis_title_y_right_blank(self):
         """axis_title_y_right=element_blank() should suppress secondary title."""
@@ -1274,7 +1234,6 @@ class TestSecAxisThemeStyling:
         assert sec is not None
         # Title should be suppressed
         assert sec.get_ylabel() == ""
-        plt.close(fig)
 
     def test_sec_axis_ticks_y_right(self):
         """axis_ticks_y_right should style secondary tick marks."""
@@ -1290,7 +1249,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
     def test_sec_axis_ticks_y_right_blank(self):
         """axis_ticks_y_right=element_blank() should suppress secondary tick marks."""
@@ -1306,7 +1264,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
     def test_sec_axis_line_y_right(self):
         """axis_line_y_right should style secondary spine."""
@@ -1322,7 +1279,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
     def test_sec_axis_x_top(self):
         """Secondary x-axis (top) should respect per-position theme fields."""
@@ -1346,7 +1302,6 @@ class TestSecAxisThemeStyling:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_sec_axis_ticks_length_y_right(self):
         """axis_ticks_length_y_right should control tick length on secondary axis."""
@@ -1362,7 +1317,6 @@ class TestSecAxisThemeStyling:
         fig = render(p)
         sec = self._find_sec_axis(fig)
         assert sec is not None
-        plt.close(fig)
 
 
 class TestPerPositionPrimaryAxis:
@@ -1378,7 +1332,6 @@ class TestPerPositionPrimaryAxis:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_text_y_left(self):
         """axis_text_y_left should override primary y tick labels."""
@@ -1390,7 +1343,6 @@ class TestPerPositionPrimaryAxis:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_title_x_bottom_blank(self):
         """axis_title_x_bottom=element_blank() should suppress primary x title."""
@@ -1403,7 +1355,6 @@ class TestPerPositionPrimaryAxis:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_title_y_left(self):
         """axis_title_y_left should style primary y-axis title."""
@@ -1416,7 +1367,6 @@ class TestPerPositionPrimaryAxis:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_ticks_x_bottom(self):
         """axis_ticks_x_bottom should style primary x tick marks."""
@@ -1428,7 +1378,6 @@ class TestPerPositionPrimaryAxis:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_line_x_bottom_blank(self):
         """axis_line_x_bottom=element_blank() should hide bottom spine."""
@@ -1444,7 +1393,6 @@ class TestPerPositionPrimaryAxis:
         fig = render(p)
         ax = fig.axes[0]
         assert not ax.spines["bottom"].get_visible()
-        plt.close(fig)
 
     def test_axis_line_y_left_styled(self):
         """axis_line_y_left=element_line() should show and style left spine."""
@@ -1459,7 +1407,6 @@ class TestPerPositionPrimaryAxis:
         fig = render(p)
         ax = fig.axes[0]
         assert ax.spines["left"].get_visible()
-        plt.close(fig)
 
     def test_axis_ticks_length_x_bottom(self):
         """axis_ticks_length_x_bottom should override primary x tick length."""
@@ -1467,7 +1414,6 @@ class TestPerPositionPrimaryAxis:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(axis_ticks_length_x_bottom=8.0)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendInside:
@@ -1483,8 +1429,7 @@ class TestLegendInside:
             + scale_color_discrete()
             + theme(legend_position=(0.8, 0.8))
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestLegendKeySize:
@@ -1500,8 +1445,7 @@ class TestLegendKeySize:
             + scale_color_discrete()
             + theme(legend_key_size=30.0, legend_spacing=8.0, legend_margin=12.0)
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestGeomLabelThemeAware:
@@ -1512,107 +1456,110 @@ class TestGeomLabelThemeAware:
 
         df = pl.DataFrame({"x": [1.0], "y": [1.0], "lab": ["hello"]})
         p = ggplot(df, aes(x="x", y="y", label="lab")) + geom_label() + theme_dark()
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_label_on_light_theme(self):
         from plotten import geom_label
 
         df = pl.DataFrame({"x": [1.0], "y": [1.0], "lab": ["hello"]})
         p = ggplot(df, aes(x="x", y="y", label="lab")) + geom_label()
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestCompleteThemeFields:
     """Tests for new ggplot2 gap-closure fields."""
 
-    def test_all_new_fields_exist_with_defaults(self):
-        t = Theme()
+    _NONE_DEFAULT_FIELDS = (
         # Per-position axis variants
-        assert t.axis_title_x_top is None
-        assert t.axis_title_x_bottom is None
-        assert t.axis_title_y_left is None
-        assert t.axis_title_y_right is None
-        assert t.axis_text_x_top is None
-        assert t.axis_text_x_bottom is None
-        assert t.axis_text_y_left is None
-        assert t.axis_text_y_right is None
-        assert t.axis_ticks_x_top is None
-        assert t.axis_ticks_x_bottom is None
-        assert t.axis_ticks_y_left is None
-        assert t.axis_ticks_y_right is None
-        assert t.axis_ticks_length is None
-        assert t.axis_ticks_length_x_top is None
-        assert t.axis_ticks_length_x_bottom is None
-        assert t.axis_ticks_length_y_left is None
-        assert t.axis_ticks_length_y_right is None
-        assert t.axis_line_x_element is None
-        assert t.axis_line_y_element is None
-        assert t.axis_line_x_top is None
-        assert t.axis_line_x_bottom is None
-        assert t.axis_line_y_left is None
-        assert t.axis_line_y_right is None
+        "axis_title_x_top",
+        "axis_title_x_bottom",
+        "axis_title_y_left",
+        "axis_title_y_right",
+        "axis_text_x_top",
+        "axis_text_x_bottom",
+        "axis_text_y_left",
+        "axis_text_y_right",
+        "axis_ticks_x_top",
+        "axis_ticks_x_bottom",
+        "axis_ticks_y_left",
+        "axis_ticks_y_right",
+        "axis_ticks_length",
+        "axis_ticks_length_x_top",
+        "axis_ticks_length_x_bottom",
+        "axis_ticks_length_y_left",
+        "axis_ticks_length_y_right",
+        "axis_line_x_element",
+        "axis_line_y_element",
+        "axis_line_x_top",
+        "axis_line_x_bottom",
+        "axis_line_y_left",
+        "axis_line_y_right",
         # Polar
-        assert t.axis_text_theta is None
-        assert t.axis_text_r is None
-        assert t.axis_ticks_theta is None
-        assert t.axis_ticks_r is None
-        assert t.axis_line_theta is None
-        assert t.axis_line_r is None
+        "axis_text_theta",
+        "axis_text_r",
+        "axis_ticks_theta",
+        "axis_ticks_r",
+        "axis_line_theta",
+        "axis_line_r",
         # Minor ticks
-        assert t.axis_minor_ticks is None
-        assert t.axis_minor_ticks_x is None
-        assert t.axis_minor_ticks_y is None
-        assert t.axis_minor_ticks_length is None
-        assert t.axis_minor_ticks_length_x is None
-        assert t.axis_minor_ticks_length_y is None
+        "axis_minor_ticks",
+        "axis_minor_ticks_x",
+        "axis_minor_ticks_y",
+        "axis_minor_ticks_length",
+        "axis_minor_ticks_length_x",
+        "axis_minor_ticks_length_y",
         # Legend layout
-        assert t.legend_direction is None
-        assert t.legend_byrow is False
-        assert t.legend_justification is None
-        assert t.legend_position_inside is None
-        assert t.legend_box is None
-        assert t.legend_box_just is None
-        assert t.legend_box_margin is None
-        assert t.legend_box_background is None
-        assert t.legend_box_spacing is None
-        assert t.legend_text_position is None
-        assert t.legend_title_position is None
-        assert t.legend_frame is None
-        assert t.legend_ticks is None
-        assert t.legend_ticks_length is None
-        assert t.legend_axis_line is None
-        assert t.legend_key_spacing is None
-        assert t.legend_key_spacing_x is None
-        assert t.legend_key_spacing_y is None
+        "legend_direction",
+        "legend_justification",
+        "legend_position_inside",
+        "legend_box",
+        "legend_box_just",
+        "legend_box_margin",
+        "legend_box_background",
+        "legend_box_spacing",
+        "legend_text_position",
+        "legend_title_position",
+        "legend_frame",
+        "legend_ticks",
+        "legend_ticks_length",
+        "legend_axis_line",
+        "legend_key_spacing",
+        "legend_key_spacing_x",
+        "legend_key_spacing_y",
         # Plot tags
-        assert t.plot_tag is None
-        assert t.plot_tag_position is None
-        assert t.plot_tag_location is None
-        # Plot title/caption position (ggplot2 ≥3.5 default: "plot")
+        "plot_tag",
+        "plot_tag_position",
+        "plot_tag_location",
+        # Panel control
+        "panel_widths",
+        "panel_heights",
+        # Strip refinements
+        "strip_text_x_top",
+        "strip_text_x_bottom",
+        "strip_text_y_left",
+        "strip_text_y_right",
+        "strip_switch_pad_grid",
+        "strip_switch_pad_wrap",
+        # Base element inheritance
+        "line",
+        "rect",
+        "text",
+        "title",
+        "spacing",
+        "margins",
+    )
+
+    @pytest.mark.parametrize("field", _NONE_DEFAULT_FIELDS)
+    def test_field_defaults_to_none(self, field: str):
+        assert getattr(Theme(), field) is None
+
+    def test_non_none_defaults(self):
+        t = Theme()
+        assert t.legend_byrow is False
         assert t.plot_title_position == "plot"
         assert t.plot_caption_position == "plot"
-        # Panel control
         assert t.panel_ontop is False
-        assert t.panel_widths is None
-        assert t.panel_heights is None
-        # Strip refinements
         assert t.strip_clip == "inherit"
-        assert t.strip_text_x_top is None
-        assert t.strip_text_x_bottom is None
-        assert t.strip_text_y_left is None
-        assert t.strip_text_y_right is None
-        assert t.strip_switch_pad_grid is None
-        assert t.strip_switch_pad_wrap is None
-        # Base element inheritance
-        assert t.line is None
-        assert t.rect is None
-        assert t.text is None
-        assert t.title is None
-        assert t.spacing is None
-        assert t.margins is None
-        # Function control
         assert t.complete is False
         assert t.validate is True
 
@@ -1755,8 +1702,7 @@ class TestBaseSize:
             + labs(title="Big text", caption="Small caption")
             + theme(base_size=16)
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestBackgroundTypeUpgrades:
@@ -1766,8 +1712,7 @@ class TestBackgroundTypeUpgrades:
         """String value still works as fill color."""
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(panel_background="#f0f0f0")
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_panel_background_element_rect(self):
         from plotten import element_rect
@@ -1781,7 +1726,6 @@ class TestBackgroundTypeUpgrades:
         fig = render(p)
         ax = fig.axes[0]
         assert ax.get_facecolor()[:3] != (1.0, 1.0, 1.0)  # not default white
-        plt.close(fig)
 
     def test_legend_background_element_rect(self):
         from plotten import element_rect
@@ -1792,8 +1736,7 @@ class TestBackgroundTypeUpgrades:
             + geom_point()
             + theme(legend_background=element_rect(fill="#eeeeee", color="#999999"))
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_strip_background_element_rect(self):
         from plotten import element_rect, facet_wrap
@@ -1805,8 +1748,7 @@ class TestBackgroundTypeUpgrades:
             + facet_wrap("g")
             + theme(strip_background=element_rect(fill="#d9d9d9", color="#333333", size=0.5))
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_resolve_background_str(self):
         from plotten.themes._elements import resolve_background
@@ -1922,20 +1864,17 @@ class TestLegendLocationAndSpacing:
             + geom_point()
             + theme(legend_location="panel")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_legend_location_plot_renders(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3], "c": ["a", "b", "a"]})
         p = ggplot(df, aes(x="x", y="y", color="c")) + geom_point() + theme(legend_location="plot")
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_legend_spacing_y_renders(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3], "c": ["a", "b", "a"]})
         p = ggplot(df, aes(x="x", y="y", color="c")) + geom_point() + theme(legend_spacing_y=10.0)
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_legend_location_preserved_through_add(self):
         t1 = Theme(legend_location="panel")
@@ -1960,9 +1899,10 @@ class TestPanelGrid:
         fig = render(p)
         ax = fig.axes[0]
         # All grid lines should be hidden
-        assert not ax.xaxis.get_gridlines()[0].get_visible()
-        assert not ax.yaxis.get_gridlines()[0].get_visible()
-        plt.close(fig)
+        x_lines = ax.xaxis.get_gridlines()
+        assert len(x_lines) == 0 or not x_lines[0].get_visible()
+        y_lines = ax.yaxis.get_gridlines()
+        assert len(y_lines) == 0 or not y_lines[0].get_visible()
 
     def test_panel_grid_blank_with_major_override(self):
         """panel_grid=blank still wins even when grid_major_x=True."""
@@ -1974,9 +1914,10 @@ class TestPanelGrid:
         )
         fig = render(p)
         ax = fig.axes[0]
-        assert not ax.xaxis.get_gridlines()[0].get_visible()
-        assert not ax.yaxis.get_gridlines()[0].get_visible()
-        plt.close(fig)
+        x_lines = ax.xaxis.get_gridlines()
+        assert len(x_lines) == 0 or not x_lines[0].get_visible()
+        y_lines = ax.yaxis.get_gridlines()
+        assert len(y_lines) == 0 or not y_lines[0].get_visible()
 
     def test_panel_grid_element_line_sets_color(self):
         """panel_grid=element_line(color=...) propagates to all grid lines."""
@@ -1992,7 +1933,6 @@ class TestPanelGrid:
         y_lines = ax.yaxis.get_gridlines()
         assert x_lines[0].get_color() == "#ff0000"
         assert y_lines[0].get_color() == "#ff0000"
-        plt.close(fig)
 
     def test_panel_grid_default_is_none(self):
         t = Theme()
@@ -2014,7 +1954,6 @@ class TestPanelOntop:
         fig = render(p)
         ax = fig.axes[0]
         assert ax.get_axisbelow() is True
-        plt.close(fig)
 
     def test_panel_ontop_true(self):
         df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1, 2, 3]})
@@ -2022,7 +1961,6 @@ class TestPanelOntop:
         fig = render(p)
         ax = fig.axes[0]
         assert ax.get_axisbelow() is not True
-        plt.close(fig)
 
 
 class TestLegendDirection:
@@ -2038,8 +1976,7 @@ class TestLegendDirection:
             + scale_color_discrete()
             + theme(legend_direction="horizontal")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_vertical_legend_renders(self):
         from plotten import scale_color_discrete
@@ -2051,8 +1988,7 @@ class TestLegendDirection:
             + scale_color_discrete()
             + theme(legend_direction="vertical")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestPlotTitlePosition:
@@ -2066,8 +2002,7 @@ class TestPlotTitlePosition:
             + labs(title="Centered")
             + theme(plot_title_position="panel")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_title_position_plot(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
@@ -2077,8 +2012,7 @@ class TestPlotTitlePosition:
             + labs(title="Left-aligned")
             + theme(plot_title_position="plot")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_caption_position_plot(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
@@ -2088,8 +2022,7 @@ class TestPlotTitlePosition:
             + labs(caption="Right caption")
             + theme(plot_caption_position="plot")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_caption_position_panel(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
@@ -2099,15 +2032,13 @@ class TestPlotTitlePosition:
             + labs(caption="Panel caption")
             + theme(plot_caption_position="panel")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
     def test_default_title_left_aligned(self):
         """Default theme left-aligns title (plot_title_position='plot')."""
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="Left by default")
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestStripPlacement:
@@ -2123,8 +2054,7 @@ class TestStripPlacement:
             + facet_wrap("g")
             + theme(strip_placement="inside")
         )
-        fig = render(p)
-        plt.close(fig)
+        render(p)
 
 
 class TestIsDarkColor:
@@ -2247,7 +2177,6 @@ class TestMargin:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_margin_with_inch_unit_render(self):
         from plotten import margin
@@ -2260,7 +2189,6 @@ class TestMargin:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendKey:
@@ -2276,7 +2204,6 @@ class TestLegendKey:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_key_blank(self):
         """legend_key=element_blank() should suppress key background."""
@@ -2288,7 +2215,6 @@ class TestLegendKey:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_key_none_default(self):
         """Default legend_key=None renders without error."""
@@ -2296,7 +2222,6 @@ class TestLegendKey:
         p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point()
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendSpacingX:
@@ -2312,7 +2237,6 @@ class TestLegendSpacingX:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_spacing_x_multicol(self):
         """legend_spacing_x with multi-column layout should render."""
@@ -2327,7 +2251,6 @@ class TestLegendSpacingX:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestPlotTag:
@@ -2342,7 +2265,6 @@ class TestPlotTag:
         # Check that a text artist with "A" exists on the figure
         texts = [t.get_text() for t in fig.texts]
         assert "A" in texts
-        plt.close(fig)
 
     def test_tag_position_topright(self):
         """plot_tag_position='topright' should render without error."""
@@ -2355,7 +2277,6 @@ class TestPlotTag:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_tag_position_tuple(self):
         """plot_tag_position=(x, y) tuple should render."""
@@ -2368,7 +2289,6 @@ class TestPlotTag:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_tag_element_blank_suppresses(self):
         """plot_tag=element_blank() should suppress the tag."""
@@ -2383,7 +2303,6 @@ class TestPlotTag:
         assert fig is not None
         texts = [t.get_text() for t in fig.texts]
         assert "D" not in texts
-        plt.close(fig)
 
     def test_tag_custom_styling(self):
         """plot_tag=element_text() should style the tag."""
@@ -2396,7 +2315,6 @@ class TestPlotTag:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_tag_none_no_render(self):
         """No tag should render when labs has no tag."""
@@ -2407,7 +2325,6 @@ class TestPlotTag:
         # No tag text on the figure
         texts = [t.get_text() for t in fig.texts]
         assert all(t != "A" for t in texts)
-        plt.close(fig)
 
     def test_labs_tag_field(self):
         """Labs dataclass should have tag field."""
@@ -2436,7 +2353,6 @@ class TestMinorTicks:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(grid_minor_x=True)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_minor_ticks_element_styling(self):
         """axis_minor_ticks element should style minor ticks."""
@@ -2452,7 +2368,6 @@ class TestMinorTicks:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_minor_ticks_per_axis(self):
         """Per-axis minor tick elements should work."""
@@ -2467,7 +2382,6 @@ class TestMinorTicks:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_minor_ticks_blank_suppresses(self):
         """element_blank() on axis_minor_ticks should suppress minor ticks."""
@@ -2482,7 +2396,6 @@ class TestMinorTicks:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_minor_ticks_length(self):
         """axis_minor_ticks_length should control minor tick length."""
@@ -2494,7 +2407,6 @@ class TestMinorTicks:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_minor_ticks_length_per_axis(self):
         """Per-axis minor tick length should work."""
@@ -2511,7 +2423,6 @@ class TestMinorTicks:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestRowStrips:
@@ -2525,7 +2436,6 @@ class TestRowStrips:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="r")
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_facet_grid_rows_and_cols(self):
         """facet_grid(rows=..., cols=...) should render both strips."""
@@ -2542,7 +2452,6 @@ class TestRowStrips:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="r", cols="c")
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_row_strip_col_label_separation(self):
         """Row and col labels should be separated in facet_grid."""
@@ -2587,7 +2496,6 @@ class TestRowStrips:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_strip_background_y_styling(self):
         """strip_background_y should style row strip background."""
@@ -2602,7 +2510,6 @@ class TestRowStrips:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_resolved_panel_row_col_labels(self):
         """ResolvedPanel should have row_label and col_label fields."""
@@ -2631,7 +2538,6 @@ class TestPanelWidthsHeights:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_panel_heights(self):
         """panel_heights should set row height ratios."""
@@ -2646,7 +2552,6 @@ class TestPanelWidthsHeights:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_panel_widths_and_heights(self):
         """Both panel_widths and panel_heights together."""
@@ -2668,7 +2573,6 @@ class TestPanelWidthsHeights:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_panel_widths_none_default(self):
         """Default panel_widths=None should produce equal columns."""
@@ -2678,7 +2582,6 @@ class TestPanelWidthsHeights:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g")
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendColorbarRefinements:
@@ -2703,28 +2606,24 @@ class TestLegendColorbarRefinements:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_ticks_styling(self):
         """legend_ticks=element_line() should style tick marks."""
         p = self._make_continuous_plot() + theme(legend_ticks=element_line(color="red", size=2.0))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_ticks_blank(self):
         """legend_ticks=element_blank() should suppress tick marks."""
         p = self._make_continuous_plot() + theme(legend_ticks=element_blank())
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_ticks_length(self):
         """legend_ticks_length should control tick mark length."""
         p = self._make_continuous_plot() + theme(legend_ticks_length=8.0)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_axis_line(self):
         """legend_axis_line=element_line() should show the value axis spine."""
@@ -2733,7 +2632,6 @@ class TestLegendColorbarRefinements:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_frame_and_ticks_combined(self):
         """Frame, ticks, and ticks_length should all work together."""
@@ -2745,7 +2643,6 @@ class TestLegendColorbarRefinements:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestPolarThemeFields:
@@ -2762,91 +2659,78 @@ class TestPolarThemeFields:
         p = self._make_polar_plot() + theme(axis_text_theta=element_text(color="red", size=14))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_text_theta_blank(self):
         """axis_text_theta=element_blank() should suppress theta labels."""
         p = self._make_polar_plot() + theme(axis_text_theta=element_blank())
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_text_r_styling(self):
         """axis_text_r should style radial tick labels."""
         p = self._make_polar_plot() + theme(axis_text_r=element_text(color="blue", size=10))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_text_r_blank(self):
         """axis_text_r=element_blank() should suppress radial labels."""
         p = self._make_polar_plot() + theme(axis_text_r=element_blank())
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_ticks_theta_styling(self):
         """axis_ticks_theta should style theta tick marks."""
         p = self._make_polar_plot() + theme(axis_ticks_theta=element_line(color="red", size=2.0))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_ticks_theta_blank(self):
         """axis_ticks_theta=element_blank() should suppress theta ticks."""
         p = self._make_polar_plot() + theme(axis_ticks_theta=element_blank())
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_ticks_r_styling(self):
         """axis_ticks_r should style radial tick marks."""
         p = self._make_polar_plot() + theme(axis_ticks_r=element_line(color="blue", size=1.5))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_ticks_length_theta(self):
         """axis_ticks_length_theta should control theta tick length."""
         p = self._make_polar_plot() + theme(axis_ticks_length_theta=8.0)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_ticks_length_r(self):
         """axis_ticks_length_r should control radial tick length."""
         p = self._make_polar_plot() + theme(axis_ticks_length_r=6.0)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_line_theta_styling(self):
         """axis_line_theta should style the outer circle spine."""
         p = self._make_polar_plot() + theme(axis_line_theta=element_line(color="black", size=2.0))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_line_theta_blank(self):
         """axis_line_theta=element_blank() should hide the outer circle."""
         p = self._make_polar_plot() + theme(axis_line_theta=element_blank())
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_line_r_styling(self):
         """axis_line_r should style the radial spines."""
         p = self._make_polar_plot() + theme(axis_line_r=element_line(color="grey", size=1.0))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_axis_line_r_blank(self):
         """axis_line_r=element_blank() should hide radial spines."""
         p = self._make_polar_plot() + theme(axis_line_r=element_blank())
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_combined_polar_styling(self):
         """Multiple polar theme fields should work together."""
@@ -2861,7 +2745,6 @@ class TestPolarThemeFields:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendBoxLayout:
@@ -2891,21 +2774,18 @@ class TestLegendBoxLayout:
         p = self._make_multi_legend_plot()
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_box_horizontal(self):
         """legend_box='horizontal' should stack legend groups side by side."""
         p = self._make_multi_legend_plot() + theme(legend_box="horizontal")
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_box_spacing(self):
         """legend_box_spacing should control gap between legend groups."""
         p = self._make_multi_legend_plot() + theme(legend_box_spacing=0.05)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_box_background(self):
         """legend_box_background should draw a background behind all legends."""
@@ -2915,7 +2795,6 @@ class TestLegendBoxLayout:
         fig = render(p)
         # Check that a patch was added to the figure
         assert len(fig.patches) > 0
-        plt.close(fig)
 
     def test_legend_box_horizontal_with_spacing(self):
         """Horizontal box with custom spacing."""
@@ -2925,7 +2804,6 @@ class TestLegendBoxLayout:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_byrow(self):
         """legend_byrow should reorder entries in row-first order."""
@@ -2947,7 +2825,6 @@ class TestLegendBoxLayout:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_position_inside(self):
         """legend_position_inside should override position to axes-relative coords."""
@@ -2968,7 +2845,6 @@ class TestLegendBoxLayout:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_legend_position_inside_overrides_position(self):
         """legend_position_inside takes precedence over legend_position."""
@@ -2989,7 +2865,6 @@ class TestLegendBoxLayout:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendTextPosition:
@@ -3007,7 +2882,6 @@ class TestLegendTextPosition:
         p = self._make_plot() + theme(legend_text_position=pos)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendTitlePosition:
@@ -3025,7 +2899,6 @@ class TestLegendTitlePosition:
         p = self._make_plot() + theme(legend_title_position=pos)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestLegendBoxJustAndMargin:
@@ -3043,13 +2916,11 @@ class TestLegendBoxJustAndMargin:
         p = self._make_plot() + theme(legend_box_just=just)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_box_margin(self):
         p = self._make_plot() + theme(legend_box_margin=(10, 5, 10, 5))
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
 
 class TestStripMiscFields:
@@ -3067,7 +2938,6 @@ class TestStripMiscFields:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_strip_switch_pad_wrap(self):
         from plotten.facets import facet_wrap
@@ -3081,7 +2951,6 @@ class TestStripMiscFields:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_strip_switch_pad_grid(self):
         from plotten.facets import facet_grid
@@ -3095,7 +2964,6 @@ class TestStripMiscFields:
         )
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_global_spacing(self):
         from plotten.facets import facet_wrap
@@ -3104,7 +2972,6 @@ class TestStripMiscFields:
         p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g") + theme(spacing=2.0)
         fig = render(p)
         assert fig is not None
-        plt.close(fig)
 
     def test_global_spacing_affects_panel_gap(self):
         """spacing=0.5 should halve the effective panel spacing."""

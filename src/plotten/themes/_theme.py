@@ -278,13 +278,14 @@ class Theme:
             bs = self.base_size
             # Derive scalar sizes from base_size when they still equal the
             # class defaults (i.e. the caller didn't explicitly override them).
-            if self.title_size == 16:
+            defs = _FIELD_DEFAULTS
+            if self.title_size == defs["title_size"]:
                 object.__setattr__(self, "title_size", bs * 1.2)
-            if self.label_size == 11:
+            if self.label_size == defs["label_size"]:
                 object.__setattr__(self, "label_size", bs)
-            if self.tick_size == 10:
+            if self.tick_size == defs["tick_size"]:
                 object.__setattr__(self, "tick_size", bs * 0.8)
-            if self.subtitle_size == 12:
+            if self.subtitle_size == defs["subtitle_size"]:
                 object.__setattr__(self, "subtitle_size", bs * 0.9)
 
     def __add__(self, other: Theme) -> Self:
@@ -319,6 +320,10 @@ class Theme:
             else:
                 kwargs[f.name] = getattr(self, f.name)
         return type(self)(**kwargs)
+
+
+# Cache field defaults so __post_init__ can compare without hardcoded literals.
+_FIELD_DEFAULTS = {f.name: f.default for f in fields(Theme) if f.default is not MISSING}
 
 
 def theme(**kwargs: Any) -> Theme:
@@ -373,7 +378,18 @@ _global_theme: Theme = Theme()
 
 
 def theme_set(new_theme: Theme) -> Theme:
-    """Set the global default theme, returning the previous one."""
+    """Set the global default theme.
+
+    Parameters
+    ----------
+    new_theme : Theme
+        The theme to set as the global default.
+
+    Returns
+    -------
+    Theme
+        The previous global default theme, so it can be restored later.
+    """
     global _global_theme
     old = _global_theme
     _global_theme = new_theme
@@ -388,7 +404,22 @@ def theme_get() -> Theme:
 def theme_update(**kwargs: Any) -> Theme:
     """Update the global default theme with the given overrides.
 
-    Returns the updated theme.
+    Accepts the same keyword arguments as :func:`theme`.
+
+    Parameters
+    ----------
+    **kwargs
+        Theme fields to override (e.g. ``title_size=20``).
+
+    Returns
+    -------
+    Theme
+        The updated global default theme.
+
+    Raises
+    ------
+    ConfigError
+        If any keyword argument is not a valid Theme field.
     """
     global _global_theme
     _global_theme = _global_theme + theme(**kwargs)

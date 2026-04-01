@@ -92,7 +92,7 @@ class StatSmooth:
         try:
             from scipy.interpolate import UnivariateSpline
         except ImportError:
-            msg = "LOESS smoothing requires scipy. Install it with: uv add plotten[smooth]"
+            msg = "LOESS smoothing requires scipy. Install it with: uv add plotten[scipy]"
             raise ImportError(msg) from None
 
         # Use a smoothing spline as LOESS approximation

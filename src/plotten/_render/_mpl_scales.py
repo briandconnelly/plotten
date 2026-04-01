@@ -230,7 +230,6 @@ def _apply_date_scale(ax: Axes, scale: Any, axis: str) -> None:
             ax.xaxis.set_major_locator(locator)
             ax.xaxis.set_major_formatter(formatter)
             ax.set_xlim(scale.get_limits())
-            ax.figure.autofmt_xdate()
         case "y":
             ax.yaxis.set_major_locator(locator)
             ax.yaxis.set_major_formatter(formatter)

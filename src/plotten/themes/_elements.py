@@ -102,19 +102,55 @@ def element_text(**kwargs) -> ElementText:
 
 
 def element_line(**kwargs) -> ElementLine:
-    """Create a line element."""
+    """Create a line element for theme customization.
+
+    Parameters
+    ----------
+    color : str, optional
+        Line color (hex or named color).
+    size : float, optional
+        Line width in points.
+    linetype : str, optional
+        Dash pattern: ``"solid"``, ``"dashed"``, ``"dotted"``, or ``"dashdot"``.
+
+    Raises
+    ------
+    ConfigError
+        If any keyword argument is not a valid ElementLine field.
+    """
     _validate_element_kwargs(ElementLine, "element_line", kwargs)
     return ElementLine(**kwargs)
 
 
 def element_rect(**kwargs) -> ElementRect:
-    """Create a rect element."""
+    """Create a rect element for theme customization.
+
+    Parameters
+    ----------
+    fill : str, optional
+        Fill color (hex or named color).
+    color : str, optional
+        Border color (hex or named color).
+    size : float, optional
+        Border width in points.
+    linetype : str, optional
+        Border dash pattern.
+
+    Raises
+    ------
+    ConfigError
+        If any keyword argument is not a valid ElementRect field.
+    """
     _validate_element_kwargs(ElementRect, "element_rect", kwargs)
     return ElementRect(**kwargs)
 
 
 def element_blank() -> ElementBlank:
-    """Create a blank element that suppresses drawing."""
+    """Create a blank element that suppresses drawing.
+
+    Use this to hide a theme element entirely (e.g. axis lines, grid,
+    strip backgrounds).
+    """
     return ElementBlank()
 
 
