@@ -29,6 +29,8 @@ class ResolvedPanel:
     label: str
     layers: list[ResolvedLayer] = field(default_factory=list)
     scales: dict[str, ScaleBase] = field(default_factory=dict)
+    row_label: str | None = None
+    col_label: str | None = None
 
 
 @dataclass(slots=True)

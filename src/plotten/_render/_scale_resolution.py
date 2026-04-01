@@ -171,9 +171,19 @@ def _resolve_free_panels(
                 elif k in ("x", "y"):
                     _merge_domain(global_scales[k], v)
 
+        from plotten._render._resolve import _split_facet_label
         from plotten._render._structures import ResolvedPanel
 
-        panels.append(ResolvedPanel(label=label, layers=layers, scales=panel_scales))
+        row_label, col_label = _split_facet_label(label, getattr(plot, "facet", None))
+        panels.append(
+            ResolvedPanel(
+                label=label,
+                layers=layers,
+                scales=panel_scales,
+                row_label=row_label,
+                col_label=col_label,
+            )
+        )
 
 
 def _apply_expand_limits(scales: dict[str, ScaleBase], expand_limits: tuple) -> None:

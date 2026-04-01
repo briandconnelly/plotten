@@ -2159,3 +2159,189 @@ class TestPlotTag:
         merged = base + override
         assert merged.tag == "B"
         assert merged.title == "T"
+
+
+class TestMinorTicks:
+    """Tests for minor tick rendering."""
+
+    def test_minor_ticks_with_minor_grid(self):
+        """Minor ticks should render when minor grid is enabled."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(grid_minor_x=True)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_minor_ticks_element_styling(self):
+        """axis_minor_ticks element should style minor ticks."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                grid_minor_x=True,
+                grid_minor_y=True,
+                axis_minor_ticks=element_line(color="red", size=2.0),
+            )
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_minor_ticks_per_axis(self):
+        """Per-axis minor tick elements should work."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                grid_minor_x=True,
+                axis_minor_ticks_x=element_line(color="blue"),
+            )
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_minor_ticks_blank_suppresses(self):
+        """element_blank() on axis_minor_ticks should suppress minor ticks."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                grid_minor_x=True,
+                axis_minor_ticks=element_blank(),
+            )
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_minor_ticks_length(self):
+        """axis_minor_ticks_length should control minor tick length."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(grid_minor_x=True, axis_minor_ticks_length=3.0)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_minor_ticks_length_per_axis(self):
+        """Per-axis minor tick length should work."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + theme(
+                grid_minor_x=True,
+                grid_minor_y=True,
+                axis_minor_ticks_length_x=4.0,
+                axis_minor_ticks_length_y=2.0,
+            )
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestRowStrips:
+    """Tests for facet_grid row strip (y-strip) rendering."""
+
+    def test_facet_grid_rows_only(self):
+        """facet_grid(rows=...) should render row strips."""
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "r": ["a", "a", "b", "b"]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="r")
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_facet_grid_rows_and_cols(self):
+        """facet_grid(rows=..., cols=...) should render both strips."""
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame(
+            {
+                "x": [1, 2, 3, 4],
+                "y": [2, 4, 1, 3],
+                "r": ["a", "a", "b", "b"],
+                "c": ["x", "y", "x", "y"],
+            }
+        )
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + facet_grid(rows="r", cols="c")
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_row_strip_col_label_separation(self):
+        """Row and col labels should be separated in facet_grid."""
+        from plotten._render._resolve import _split_facet_label
+        from plotten.facets._grid import FacetGrid
+
+        facet = FacetGrid(rows="r", cols="c")
+        row, col = _split_facet_label("a ~ x", facet)
+        assert row == "a"
+        assert col == "x"
+
+    def test_row_strip_rows_only_split(self):
+        """Rows-only facet should set row_label, col_label=None."""
+        from plotten._render._resolve import _split_facet_label
+        from plotten.facets._grid import FacetGrid
+
+        facet = FacetGrid(rows="r")
+        row, col = _split_facet_label("a", facet)
+        assert row == "a"
+        assert col is None
+
+    def test_row_strip_cols_only_split(self):
+        """Cols-only facet should set col_label, row_label=None."""
+        from plotten._render._resolve import _split_facet_label
+        from plotten.facets._grid import FacetGrid
+
+        facet = FacetGrid(cols="c")
+        row, col = _split_facet_label("x", facet)
+        assert row is None
+        assert col == "x"
+
+    def test_strip_text_y_styling(self):
+        """strip_text_y should style row strip labels."""
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "r": ["a", "a", "b", "b"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_grid(rows="r")
+            + theme(strip_text_y=element_text(color="red", size=14))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_strip_background_y_styling(self):
+        """strip_background_y should style row strip background."""
+        from plotten.facets import facet_grid
+
+        df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "r": ["a", "a", "b", "b"]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + facet_grid(rows="r")
+            + theme(strip_background_y=element_rect(fill="#f0f0f0", color="#cccccc"))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_resolved_panel_row_col_labels(self):
+        """ResolvedPanel should have row_label and col_label fields."""
+        from plotten._render._structures import ResolvedPanel
+
+        p = ResolvedPanel(label="a ~ x", row_label="a", col_label="x")
+        assert p.row_label == "a"
+        assert p.col_label == "x"

@@ -305,6 +305,7 @@ def render_panel(
 
     ax.tick_params(
         axis="x",
+        which="major",
         labelsize=axis_text_x_kw.get("fontsize", theme.tick_size),
         labelrotation=axis_text_x_kw.get("rotation", 0),
         labelcolor=axis_text_x_kw.get("color", "#000000"),
@@ -316,6 +317,7 @@ def render_panel(
     )
     ax.tick_params(
         axis="y",
+        which="major",
         labelsize=axis_text_y_kw.get("fontsize", theme.tick_size),
         labelrotation=axis_text_y_kw.get("rotation", 0),
         labelcolor=axis_text_y_kw.get("color", "#000000"),
@@ -325,6 +327,68 @@ def render_panel(
         left=show_ticks_y,
         right=show_ticks_y,
     )
+
+    # Minor ticks — cascade: axis_minor_ticks → axis_minor_ticks_x/y
+    show_minor_x = _resolve_visibility(
+        grid_minor_x, theme.axis_minor_ticks, theme.axis_minor_ticks_x
+    )
+    show_minor_y = _resolve_visibility(
+        grid_minor_y, theme.axis_minor_ticks, theme.axis_minor_ticks_y
+    )
+    if show_minor_x or show_minor_y:
+        ax.minorticks_on()
+        minor_length_x = (
+            theme.axis_minor_ticks_length_x or theme.axis_minor_ticks_length or tick_length_x * 0.5
+        )
+        minor_length_y = (
+            theme.axis_minor_ticks_length_y or theme.axis_minor_ticks_length or tick_length_y * 0.5
+        )
+        minor_color_x = _resolve_line_prop(
+            tick_color_x,
+            theme.axis_minor_ticks,
+            theme.axis_minor_ticks_x,
+            attr="color",
+            base_line=base_line,
+        )
+        minor_color_y = _resolve_line_prop(
+            tick_color_y,
+            theme.axis_minor_ticks,
+            theme.axis_minor_ticks_y,
+            attr="color",
+            base_line=base_line,
+        )
+        minor_width_x = _resolve_line_prop(
+            tick_width_x * 0.5,
+            theme.axis_minor_ticks,
+            theme.axis_minor_ticks_x,
+            attr="size",
+            base_line=base_line,
+        )
+        minor_width_y = _resolve_line_prop(
+            tick_width_y * 0.5,
+            theme.axis_minor_ticks,
+            theme.axis_minor_ticks_y,
+            attr="size",
+            base_line=base_line,
+        )
+        ax.tick_params(
+            axis="x",
+            which="minor",
+            length=minor_length_x if show_minor_x else 0,
+            width=minor_width_x,
+            color=minor_color_x,
+            bottom=show_minor_x,
+            top=show_minor_x,
+        )
+        ax.tick_params(
+            axis="y",
+            which="minor",
+            length=minor_length_y if show_minor_y else 0,
+            width=minor_width_y,
+            color=minor_color_y,
+            left=show_minor_y,
+            right=show_minor_y,
+        )
 
     # Apply font family/weight/style to tick labels
     tick_family_x = axis_text_x_kw.get("fontfamily", theme.font_family)

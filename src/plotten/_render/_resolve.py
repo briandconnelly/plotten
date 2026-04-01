@@ -40,6 +40,29 @@ if TYPE_CHECKING:
     from plotten.scales._base import ScaleBase
 
 
+def _split_facet_label(label: str, facet: Any) -> tuple[str | None, str | None]:
+    """Split a combined facet label into (row_label, col_label).
+
+    For ``FacetGrid`` with both rows and cols, the label is
+    ``"row_val ~ col_val"``; for rows-only, the label is the row value;
+    for cols-only, it is the col value.
+    """
+    from plotten.facets._grid import FacetGrid
+
+    if not isinstance(facet, FacetGrid):
+        return None, label  # facet_wrap → col-like strip
+    if facet.rows is not None and facet.cols is not None:
+        parts = label.split(" ~ ", 1)
+        if len(parts) == 2:
+            return parts[0], parts[1]
+        return label, label
+    if facet.rows is not None:
+        return label, None
+    if facet.cols is not None:
+        return None, label
+    return None, None
+
+
 def resolve(plot: Any) -> ResolvedPlot:
     """Walk a Plot spec and produce a ResolvedPlot."""
     from plotten._plot import Plot
@@ -89,7 +112,16 @@ def resolve(plot: Any) -> ResolvedPlot:
                 layers, global_scales = _resolve_layers(
                     subset, plot.mapping, plot.layers, global_scales
                 )
-                panels.append(ResolvedPanel(label=label, layers=layers, scales={}))
+                row_label, col_label = _split_facet_label(label, facet)
+                panels.append(
+                    ResolvedPanel(
+                        label=label,
+                        layers=layers,
+                        scales={},
+                        row_label=row_label,
+                        col_label=col_label,
+                    )
+                )
 
         case FacetScales.FREE | FacetScales.FREE_X | FacetScales.FREE_Y:
             free_axes: frozenset[str] = {

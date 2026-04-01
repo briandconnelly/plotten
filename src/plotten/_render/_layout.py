@@ -404,13 +404,54 @@ def apply_facet_decorations(
         else strip_kw
     )
 
+    # Per-axis y-strip overrides (row strips on the right side)
+    if theme.strip_background_y is not None:
+        sy_fill, sy_edge, sy_edge_w = resolve_background(theme.strip_background_y)
+        strip_bg_bbox_y = {
+            "facecolor": sy_fill or "none",
+            "edgecolor": sy_edge or "none",
+            "linewidth": sy_edge_w or 0,
+            "pad": DEFAULT_STRIP_BOX_PAD,
+        }
+    else:
+        strip_bg_bbox_y = strip_bg_bbox
+    strip_kw_y = (
+        text_props(
+            theme.strip_text_y,
+            theme,
+            default_size=theme.strip_text_size or theme.label_size,
+            default_color=theme.strip_text_color,
+            is_title=True,
+        )
+        if theme.strip_text_y is not None
+        else strip_kw
+    )
+
+    # Detect whether facet has separate row/col labels
+    from plotten.facets._grid import FacetGrid
+
+    has_row_strips = isinstance(resolved.facet, FacetGrid) and resolved.facet.rows is not None
+    has_col_strips = not isinstance(resolved.facet, FacetGrid) or resolved.facet.cols is not None
+
     # Track which grid cells are occupied by panels
     occupied: set[tuple[int, int]] = set()
+
+    # Determine right-edge column for y-strip placement
+    max_col_per_row: dict[int, int] = {}
 
     for idx in range(n_panels):
         r, c = panel_pos(idx)
         occupied.add((r, c))
+        if r not in max_col_per_row or c > max_col_per_row[r]:
+            max_col_per_row[r] = c
+
         ax = axes[r][c]
+        panel = resolved.panels[idx]
+
+        # Choose x-strip label: use col_label if available, else full label
+        x_label = (
+            panel.col_label if (has_row_strips and panel.col_label is not None) else panel.label
+        )
 
         # Strip label kwargs — use per-axis overrides for x (top/bottom) strips
         skw = dict(strip_kw_x)
@@ -423,21 +464,60 @@ def apply_facet_decorations(
         strip_y = 1.0 if not inside else 0.97
         strip_pad = 6 if not inside else -14
 
-        if strip_position == "bottom":
-            # Use xlabel for bottom strip — constrained_layout handles spacing
-            ax.set_title("")
-            ax.set_xlabel(
-                resolved.panels[idx].label,
-                **skw,
-                bbox=effective_bbox,
-            )
+        # For facet_grid with rows+cols, only show col strip on first row
+        show_x_strip = has_col_strips and bool(x_label)
+        if has_row_strips and has_col_strips and r > 0:
+            show_x_strip = False
+
+        if show_x_strip:
+            if strip_position == "bottom":
+                ax.set_title("")
+                ax.set_xlabel(
+                    x_label,
+                    **skw,
+                    bbox=effective_bbox,
+                )
+            else:
+                ax.set_title(
+                    x_label,
+                    pad=strip_pad,
+                    y=strip_y,
+                    **skw,
+                    bbox=effective_bbox,
+                )
         else:
-            ax.set_title(
-                resolved.panels[idx].label,
-                pad=strip_pad,
-                y=strip_y,
-                **skw,
-                bbox=effective_bbox,
+            ax.set_title("")
+
+    # Y-strips (row labels) on the right edge of each row
+    if has_row_strips:
+        skw_y = dict(strip_kw_y)
+        skw_y.pop("ha", None)
+        skw_y.pop("va", None)
+        effective_bbox_y = dict(strip_bg_bbox_y)
+        # Track which rows already have a y-strip
+        rows_with_strip: set[int] = set()
+        for idx in range(n_panels):
+            r, c = panel_pos(idx)
+            if r in rows_with_strip:
+                continue
+            if c != max_col_per_row.get(r, ncol - 1):
+                continue
+            row_label = resolved.panels[idx].row_label
+            if not row_label:
+                continue
+            rows_with_strip.add(r)
+            ax = axes[r][c]
+            ax.annotate(
+                row_label,
+                xy=(1.0, 0.5),
+                xycoords="axes fraction",
+                xytext=(6, 0),
+                textcoords="offset points",
+                ha="left",
+                va="center",
+                rotation=-90,
+                bbox=effective_bbox_y,
+                **skw_y,
             )
 
     # Hide empty axes (cells not occupied by any panel)
