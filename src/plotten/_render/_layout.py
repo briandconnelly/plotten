@@ -191,9 +191,12 @@ def _render_header(
     subtitle_text = labs.subtitle
 
     # Resolve title x-alignment from plot_title_position
-    title_ha = "center"
-    title_x = 0.5
-    if theme.plot_title_position == "plot":
+    # "plot" (default) → left-aligned to full plot area (ggplot2 hjust=0)
+    # "panel" → centered over panel area
+    if theme.plot_title_position == "panel":
+        title_ha = "center"
+        title_x = 0.5
+    else:
         title_ha = "left"
         title_x = 0.0
 
@@ -234,15 +237,17 @@ def render_caption(
     caption_kw = text_props(
         theme.plot_caption,
         theme,
-        default_size=theme.tick_size,
+        default_size=theme.base_size if theme.base_size is not None else theme.tick_size,
         default_color="#000000",
     )
     # Resolve caption x-alignment from plot_caption_position
-    if theme.plot_caption_position == "plot":
-        cap_x = 0.0
-        cap_ha = "left"
-    else:
+    # "plot" (default) → right-aligned to full plot area (ggplot2 hjust=1)
+    # "panel" → right-aligned to panel area (approximated)
+    if theme.plot_caption_position == "panel":
         cap_x = 0.99
+        cap_ha = "right"
+    else:
+        cap_x = 1.0
         cap_ha = "right"
     caption_subfig.text(
         cap_x,

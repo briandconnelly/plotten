@@ -25,7 +25,7 @@
 Run before presenting work as complete:
 
 ```bash
-uvx ruff check src/ tests/ && uvx ruff format --check src/ tests/ && uv run pytest tests/ -x
+uv run ruff check src/ tests/ && uv run ruff format --check src/ tests/ && uv run pytest tests/ -x
 ```
 
 Pre-commit hooks run ruff, ty (type checker), and other checks — fix issues rather than skipping hooks.

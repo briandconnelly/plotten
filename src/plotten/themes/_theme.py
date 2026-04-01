@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import difflib
-from dataclasses import MISSING, dataclass, fields
+from dataclasses import MISSING, dataclass, field, fields
 from typing import TYPE_CHECKING, Any, Self
 
 if TYPE_CHECKING:
@@ -14,11 +14,21 @@ if TYPE_CHECKING:
     )
 
 
+def _default_plot_caption() -> ElementText:
+    """Default plot.caption element: rel(0.8) size, matching ggplot2."""
+    from plotten.themes._elements import ElementText, Rel
+
+    return ElementText(size=Rel(0.8))
+
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Theme:
     """Visual theme controlling the appearance of a plot."""
 
-    # Text
+    # Text — when base_size is set, scalar sizes are derived from it
+    # using ggplot2 multipliers (title 1.2x, subtitle 0.9x, label 1.0x,
+    # tick 0.8x).  Explicit scalar overrides still win.
+    base_size: float | None = None
     title_size: float = 16
     label_size: float = 11
     tick_size: float = 10
@@ -82,7 +92,9 @@ class Theme:
     axis_text: ElementText | ElementBlank | None = None
     plot_title: ElementText | ElementBlank | None = None
     plot_subtitle: ElementText | ElementBlank | None = None
-    plot_caption: ElementText | ElementBlank | None = None
+    plot_caption: ElementText | ElementBlank | None = field(
+        default_factory=lambda: _default_plot_caption(),
+    )
     panel_grid_major: ElementLine | ElementBlank | None = None
     panel_grid_minor: ElementLine | ElementBlank | None = None
     panel_border: ElementRect | ElementBlank | None = None
@@ -206,8 +218,10 @@ class Theme:
     plot_tag_location: str | None = None
 
     # --- Plot title/caption position (ggplot2: plot.title.position, etc.) ---
-    plot_title_position: str | None = None
-    plot_caption_position: str | None = None
+    # "plot" = align to full plot area (ggplot2 ≥3.5 default);
+    # "panel" = align to panel area.
+    plot_title_position: str | None = "plot"
+    plot_caption_position: str | None = "plot"
 
     # --- Panel control (ggplot2: panel.ontop, etc.) ---
     panel_ontop: bool = False
@@ -235,6 +249,20 @@ class Theme:
     complete: bool = False
     validate: bool = True
 
+    def __post_init__(self) -> None:
+        if self.base_size is not None:
+            bs = self.base_size
+            # Derive scalar sizes from base_size when they still equal the
+            # class defaults (i.e. the caller didn't explicitly override them).
+            if self.title_size == 16:
+                object.__setattr__(self, "title_size", bs * 1.2)
+            if self.label_size == 11:
+                object.__setattr__(self, "label_size", bs)
+            if self.tick_size == 10:
+                object.__setattr__(self, "tick_size", bs * 0.8)
+            if self.subtitle_size == 12:
+                object.__setattr__(self, "subtitle_size", bs * 0.9)
+
     def __add__(self, other: Theme) -> Self:
         """Layer *other* on top of *self*.
 
@@ -253,7 +281,16 @@ class Theme:
         kwargs: dict[str, Any] = {}
         for f in fields(self):
             other_val = getattr(other, f.name)
-            if f.default is MISSING or other_val != f.default:
+            # Determine the class default for this field
+            if f.default is not MISSING:
+                default = f.default
+            elif f.default_factory is not MISSING:  # type: ignore[arg-type]
+                default = f.default_factory()  # type: ignore[misc]
+            else:
+                # No default — always take other_val
+                kwargs[f.name] = other_val
+                continue
+            if other_val != default:
                 kwargs[f.name] = other_val
             else:
                 kwargs[f.name] = getattr(self, f.name)
@@ -270,7 +307,7 @@ def theme(**kwargs: Any) -> Theme:
     ----------
     **kwargs
         Any valid :class:`Theme` field. Common fields include
-        ``title_size``, ``label_size``, ``font_family``,
+        ``base_size``, ``title_size``, ``label_size``, ``font_family``,
         ``background``, ``panel_background``, ``legend_position``,
         ``axis_text_x_rotation``, and ``panel_spacing``.
 

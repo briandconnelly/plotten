@@ -1324,9 +1324,9 @@ class TestCompleteThemeFields:
         assert t.plot_tag is None
         assert t.plot_tag_position is None
         assert t.plot_tag_location is None
-        # Plot title/caption position
-        assert t.plot_title_position is None
-        assert t.plot_caption_position is None
+        # Plot title/caption position (ggplot2 ≥3.5 default: "plot")
+        assert t.plot_title_position == "plot"
+        assert t.plot_caption_position == "plot"
         # Panel control
         assert t.panel_ontop is False
         assert t.panel_widths is None
@@ -1412,6 +1412,87 @@ class TestCompleteFlag:
         assert result.background == theme_bw().background
 
 
+class TestBaseSize:
+    """base_size derives all text sizes from a single parameter."""
+
+    def test_basic_derivation(self):
+        t = Theme(base_size=11)
+        assert t.title_size == pytest.approx(13.2)  # 11 * 1.2
+        assert t.subtitle_size == pytest.approx(9.9)  # 11 * 0.9
+        assert t.label_size == pytest.approx(11.0)  # 11 * 1.0
+        assert t.tick_size == pytest.approx(8.8)  # 11 * 0.8
+
+    def test_explicit_override_wins(self):
+        t = Theme(base_size=11, title_size=20)
+        assert t.title_size == 20
+        assert t.label_size == pytest.approx(11.0)
+        assert t.tick_size == pytest.approx(8.8)
+
+    def test_none_preserves_backward_compat(self):
+        t = Theme()
+        assert t.base_size is None
+        assert t.title_size == 16
+        assert t.label_size == 11
+        assert t.tick_size == 10
+        assert t.subtitle_size == 12
+
+    def test_complete_theme_with_base_size(self):
+        t = theme_grey(base_size=14)
+        assert t.title_size == pytest.approx(16.8)
+        assert t.label_size == pytest.approx(14.0)
+        assert t.tick_size == pytest.approx(11.2)
+        assert t.subtitle_size == pytest.approx(12.6)
+        assert t.base_size == 14
+
+    def test_merge_with_base_size(self):
+        result = theme_grey() + theme(base_size=14)
+        assert result.title_size == pytest.approx(16.8)
+        assert result.tick_size == pytest.approx(11.2)
+
+    def test_theme_void_preserves_tick_size_zero(self):
+        t = theme_void()
+        assert t.tick_size == 0
+
+    def test_theme_538_with_base_size(self):
+        t = theme_538(base_size=14)
+        assert t.title_size == pytest.approx(16.8)  # derived, not hardcoded 18
+
+    def test_theme_538_without_base_size(self):
+        t = theme_538()
+        assert t.title_size == 18  # original hardcoded value
+
+    def test_theme_economist_with_base_size(self):
+        t = theme_economist(base_size=14)
+        assert t.title_size == pytest.approx(16.8)
+
+    def test_theme_economist_without_base_size(self):
+        t = theme_economist()
+        assert t.title_size == 18
+
+    def test_caption_sizing_with_base_size(self):
+        """Caption Rel(0.8) multiplies against base_size, not tick_size."""
+        t = Theme(base_size=10)
+        from plotten.themes._text_props import text_props
+
+        kw = text_props(
+            t.plot_caption,
+            t,
+            default_size=t.base_size if t.base_size is not None else t.tick_size,
+        )
+        assert kw["fontsize"] == pytest.approx(8.0)  # 10 * 0.8
+
+    def test_base_size_renders(self):
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(title="Big text", caption="Small caption")
+            + theme(base_size=16)
+        )
+        fig = render(p)
+        plt.close(fig)
+
+
 class TestPanelOntop:
     """panel_ontop wiring into rendering."""
 
@@ -1492,9 +1573,27 @@ class TestPlotTitlePosition:
         p = (
             ggplot(df, aes(x="x", y="y"))
             + geom_point()
-            + labs(caption="Left caption")
+            + labs(caption="Right caption")
             + theme(plot_caption_position="plot")
         )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_caption_position_panel(self):
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(caption="Panel caption")
+            + theme(plot_caption_position="panel")
+        )
+        fig = render(p)
+        plt.close(fig)
+
+    def test_default_title_left_aligned(self):
+        """Default theme left-aligns title (plot_title_position='plot')."""
+        df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="Left by default")
         fig = render(p)
         plt.close(fig)
 
