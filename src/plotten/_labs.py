@@ -21,6 +21,7 @@ class Labs:
     linewidth: str | None = None
     hatch: str | None = None
     caption: str | None = None
+    tag: str | None = None
 
     def __add__(self, other: Labs) -> Self:
         """Merge labels — other's non-None values win."""
@@ -51,6 +52,8 @@ def labs(**kwargs: str) -> Labs:
         Legend titles for the corresponding aesthetic.
     caption : str, optional
         Caption text below the plot.
+    tag : str, optional
+        Tag label for multi-panel figures (e.g. "A", "B").
 
     Examples
     --------

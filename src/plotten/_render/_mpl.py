@@ -8,6 +8,7 @@ from plotten._render._layout import (
     create_axes,
     create_figure,
     render_caption,
+    render_tag,
 )
 from plotten._render._legend import draw_legend
 from plotten._render._mpl_labels import apply_axis_labs
@@ -101,6 +102,9 @@ def render(plot: Plot) -> Figure:
         # Caption
         render_caption(caption_subfig, resolved, theme)
 
+        # Plot tag
+        render_tag(fig, resolved, theme)
+
         # Legend — make room by adjusting constrained rect, then draw on top-level fig
         _apply_legend(fig, [ax], resolved, theme)
 
@@ -137,6 +141,9 @@ def render(plot: Plot) -> Figure:
 
         # Caption
         render_caption(caption_subfig, resolved, theme)
+
+        # Plot tag
+        render_tag(fig, resolved, theme)
 
         # Legend
         visible_axes = [axes[_pos(idx)[0]][_pos(idx)[1]] for idx in range(n_panels)]

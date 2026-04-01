@@ -1995,3 +1995,167 @@ class TestMargin:
         fig = render(p)
         assert fig is not None
         plt.close(fig)
+
+
+class TestLegendKey:
+    """Tests for legend_key background wiring."""
+
+    def test_legend_key_element_rect(self):
+        """legend_key=element_rect() should render without error."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + theme(legend_key=element_rect(fill="#f0f0f0", color="#cccccc"))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_key_blank(self):
+        """legend_key=element_blank() should suppress key background."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + theme(legend_key=element_blank())
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_legend_key_none_default(self):
+        """Default legend_key=None renders without error."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point()
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestLegendSpacingX:
+    """Tests for legend_spacing_x wiring."""
+
+    def test_spacing_x_horizontal(self):
+        """legend_spacing_x with horizontal direction should render."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9], "g": ["a", "b", "c"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + theme(legend_direction="horizontal", legend_spacing_x=8.0)
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_spacing_x_multicol(self):
+        """legend_spacing_x with multi-column layout should render."""
+        from plotten import guide_legend, guides
+
+        df = pd.DataFrame({"x": range(6), "y": range(6), "g": ["a", "b", "c", "d", "e", "f"]})
+        p = (
+            ggplot(df, aes(x="x", y="y", color="g"))
+            + geom_point()
+            + theme(legend_spacing_x=8.0)
+            + guides(color=guide_legend(ncol=2))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+
+class TestPlotTag:
+    """Tests for plot_tag rendering."""
+
+    def test_tag_renders(self):
+        """labs(tag='A') should render the tag on the figure."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(tag="A")
+        fig = render(p)
+        assert fig is not None
+        # Check that a text artist with "A" exists on the figure
+        texts = [t.get_text() for t in fig.texts]
+        assert "A" in texts
+        plt.close(fig)
+
+    def test_tag_position_topright(self):
+        """plot_tag_position='topright' should render without error."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(tag="B")
+            + theme(plot_tag_position="topright")
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_tag_position_tuple(self):
+        """plot_tag_position=(x, y) tuple should render."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(tag="C")
+            + theme(plot_tag_position=(0.1, 0.9))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_tag_element_blank_suppresses(self):
+        """plot_tag=element_blank() should suppress the tag."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(tag="D")
+            + theme(plot_tag=element_blank())
+        )
+        fig = render(p)
+        assert fig is not None
+        texts = [t.get_text() for t in fig.texts]
+        assert "D" not in texts
+        plt.close(fig)
+
+    def test_tag_custom_styling(self):
+        """plot_tag=element_text() should style the tag."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = (
+            ggplot(df, aes(x="x", y="y"))
+            + geom_point()
+            + labs(tag="E")
+            + theme(plot_tag=element_text(size=24, color="red"))
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_tag_none_no_render(self):
+        """No tag should render when labs has no tag."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        fig = render(p)
+        assert fig is not None
+        # No tag text on the figure
+        texts = [t.get_text() for t in fig.texts]
+        assert all(t != "A" for t in texts)
+        plt.close(fig)
+
+    def test_labs_tag_field(self):
+        """Labs dataclass should have tag field."""
+        from plotten._labs import Labs
+
+        lab = Labs(tag="X")
+        assert lab.tag == "X"
+
+    def test_labs_merge_tag(self):
+        """Labs merge should preserve tag from override."""
+        from plotten._labs import Labs
+
+        base = Labs(title="T", tag="A")
+        override = Labs(tag="B")
+        merged = base + override
+        assert merged.tag == "B"
+        assert merged.title == "T"

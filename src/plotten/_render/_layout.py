@@ -259,6 +259,63 @@ def render_caption(
     )
 
 
+def render_tag(
+    fig: Figure,
+    resolved: ResolvedPlot,
+    theme: Theme,
+) -> None:
+    """Render plot tag (e.g. 'A', 'B') into the figure.
+
+    Positioning follows ``theme.plot_tag_position``:
+    - ``"topleft"`` (default), ``"topright"``, ``"bottomleft"``, ``"bottomright"``
+    - ``tuple[float, float]`` for custom (x, y) in figure coordinates.
+
+    ``theme.plot_tag_location`` controls whether the tag is placed relative
+    to the ``"plot"`` (default) or ``"panel"`` area (currently only "plot").
+    """
+    labs = resolved.labs
+    if labs is None or labs.tag is None:
+        return
+
+    from plotten.themes._elements import ElementBlank
+
+    if isinstance(theme.plot_tag, ElementBlank):
+        return
+
+    tag_kw = text_props(
+        theme.plot_tag,
+        theme,
+        default_size=theme.title_size,
+        default_color=theme.title_color,
+        is_title=True,
+    )
+    tag_kw.setdefault("fontweight", "bold")
+
+    # Determine position
+    pos = theme.plot_tag_position or "topleft"
+    if isinstance(pos, tuple):
+        x, y = pos
+        ha = "left"
+        va = "top"
+    else:
+        positions = {
+            "topleft": (0.02, 0.98, "left", "top"),
+            "topright": (0.98, 0.98, "right", "top"),
+            "bottomleft": (0.02, 0.02, "left", "bottom"),
+            "bottomright": (0.98, 0.02, "right", "bottom"),
+        }
+        x, y, ha, va = positions.get(pos, positions["topleft"])
+
+    fig.text(
+        x,
+        y,
+        labs.tag,
+        ha=tag_kw.pop("ha", ha),
+        va=tag_kw.pop("va", va),
+        **tag_kw,
+    )
+
+
 def create_axes(
     main_subfig: Figure | SubFigure,
     resolved: ResolvedPlot,

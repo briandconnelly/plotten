@@ -171,8 +171,24 @@ def _draw_legend_entry_at(
     text_kw: dict[str, Any] | None = None,
     *,
     key_size: float = 20.0,
+    key_bg: tuple[str | None, str | None, float | None] = (None, None, None),
 ) -> None:
     """Draw a legend entry at a specific column offset for multi-column layout."""
+    # Draw legend key background if specified
+    key_fill, key_edge, key_edge_w = key_bg
+    if key_fill is not None or key_edge is not None:
+        key_rect = Rectangle(
+            (x_offset + _SWATCH_LEFT * col_width - 0.02 * col_width, y - step * 0.35),
+            _SWATCH_WIDTH * col_width + 0.04 * col_width,
+            step * 0.7,
+            facecolor=key_fill or "none",
+            edgecolor=key_edge or "none",
+            linewidth=key_edge_w or 0.5,
+            transform=legend_ax.transAxes,
+            zorder=0,
+        )
+        legend_ax.add_patch(key_rect)
+
     swatch_x = x_offset + _SWATCH_LEFT * col_width
     swatch_cx = x_offset + _SWATCH_CENTER * col_width
     swatch_w = _SWATCH_WIDTH * col_width
@@ -410,7 +426,16 @@ def _draw_discrete_legend(
         legend_ax.patch.set_linewidth(leg_edge_w or 0.5)
         legend_ax.patch.set_visible(True)
 
-    # Legend key background is available via theme.legend_key for future use
+    # Resolve legend key background
+    from plotten.themes._elements import ElementBlank as _EB
+    from plotten.themes._elements import ElementRect as _ER
+
+    if isinstance(theme.legend_key, _EB):
+        key_bg: tuple[str | None, str | None, float | None] = (None, None, None)
+    elif isinstance(theme.legend_key, _ER):
+        key_bg = (theme.legend_key.fill, theme.legend_key.color, theme.legend_key.size)
+    else:
+        key_bg = (None, None, None)
 
     legend_title_size = theme.legend_title_size or theme.label_size
     legend_text_size = theme.legend_text_size or theme.tick_size
@@ -494,6 +519,7 @@ def _draw_discrete_legend(
                 effective_text_family,
                 text_kw=entry_text_kw or None,
                 key_size=effective_key_w,
+                key_bg=key_bg,
             )
         return
 
@@ -510,9 +536,12 @@ def _draw_discrete_legend(
     step = entry_height / total_height
     col_width = 1.0 / ncol
 
+    # Apply legend_spacing_x to horizontal/multi-column layouts
+    spacing_x_factor = theme.legend_spacing_x / 4.0 if theme.legend_spacing_x is not None else 1.0
+
     if direction == "horizontal" and ncol == 1:
         # Horizontal layout: all entries in a single row
-        h_col_width = 1.0 / max(len(entries), 1)
+        h_col_width = (1.0 / max(len(entries), 1)) * spacing_x_factor
         for i, entry in enumerate(entries):
             x_offset = i * h_col_width
             y = y_start - 0.5 * step
@@ -527,6 +556,7 @@ def _draw_discrete_legend(
                 effective_text_family,
                 text_kw=entry_text_kw or None,
                 key_size=effective_key_w,
+                key_bg=key_bg,
             )
     else:
         for i, entry in enumerate(entries):
@@ -534,7 +564,7 @@ def _draw_discrete_legend(
             col_idx = i % ncol
             y = y_start - (row_idx + 0.5) * step
             if ncol > 1:
-                x_offset = col_idx * col_width
+                x_offset = col_idx * col_width * spacing_x_factor
                 _draw_legend_entry_at(
                     legend_ax,
                     entry,
@@ -546,6 +576,7 @@ def _draw_discrete_legend(
                     effective_text_family,
                     text_kw=entry_text_kw or None,
                     key_size=effective_key_w,
+                    key_bg=key_bg,
                 )
             else:
                 _draw_legend_entry_at(
@@ -559,6 +590,7 @@ def _draw_discrete_legend(
                     font_family=effective_text_family,
                     text_kw=entry_text_kw or None,
                     key_size=effective_key_h,
+                    key_bg=key_bg,
                 )
 
 
