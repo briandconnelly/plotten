@@ -406,6 +406,80 @@ def render_panel(
         if "fontstyle" in axis_text_y_kw:
             label.set_fontstyle(axis_text_y_kw["fontstyle"])
 
+    # Polar axis theme overrides — theta maps to x, r maps to y in matplotlib
+    if is_polar_ax:
+        # axis_text_theta / axis_text_r — override tick label styling
+        if isinstance(theme.axis_text_theta, ElementBlank):
+            ax.tick_params(axis="x", labelbottom=False)
+        elif theme.axis_text_theta is not None:
+            theta_kw = text_props(theme.axis_text_theta, theme, default_size=theme.tick_size)
+            ax.tick_params(
+                axis="x",
+                labelsize=theta_kw.get("fontsize", theme.tick_size),
+                labelcolor=theta_kw.get("color", "#000000"),
+            )
+            if "rotation" in theta_kw:
+                ax.tick_params(axis="x", labelrotation=theta_kw["rotation"])
+
+        if isinstance(theme.axis_text_r, ElementBlank):
+            ax.tick_params(axis="y", labelleft=False)
+        elif theme.axis_text_r is not None:
+            r_kw = text_props(theme.axis_text_r, theme, default_size=theme.tick_size)
+            ax.tick_params(
+                axis="y",
+                labelsize=r_kw.get("fontsize", theme.tick_size),
+                labelcolor=r_kw.get("color", "#000000"),
+            )
+
+        # axis_ticks_theta / axis_ticks_r — tick mark visibility and styling
+        theta_tick_len = theme.axis_ticks_length_theta or theme.tick_length
+        r_tick_len = theme.axis_ticks_length_r or theme.tick_length
+
+        if isinstance(theme.axis_ticks_theta, ElementBlank):
+            ax.tick_params(axis="x", length=0)
+        elif isinstance(theme.axis_ticks_theta, ElementLine):
+            tkw: dict[str, Any] = {"axis": "x", "length": theta_tick_len}
+            if theme.axis_ticks_theta.color is not None:
+                tkw["color"] = theme.axis_ticks_theta.color
+            if theme.axis_ticks_theta.size is not None:
+                tkw["width"] = theme.axis_ticks_theta.size
+            ax.tick_params(**tkw)
+
+        if isinstance(theme.axis_ticks_r, ElementBlank):
+            ax.tick_params(axis="y", length=0)
+        elif isinstance(theme.axis_ticks_r, ElementLine):
+            rkw: dict[str, Any] = {"axis": "y", "length": r_tick_len}
+            if theme.axis_ticks_r.color is not None:
+                rkw["color"] = theme.axis_ticks_r.color
+            if theme.axis_ticks_r.size is not None:
+                rkw["width"] = theme.axis_ticks_r.size
+            ax.tick_params(**rkw)
+
+        # axis_line_theta / axis_line_r — polar spine styling
+        # Polar axes have "polar" spine (outer circle) and "start"/"end" spines
+        if isinstance(theme.axis_line_theta, ElementBlank) and "polar" in ax.spines:
+            ax.spines["polar"].set_visible(False)
+        elif isinstance(theme.axis_line_theta, ElementLine) and "polar" in ax.spines:
+            ax.spines["polar"].set_visible(True)
+            if theme.axis_line_theta.color is not None:
+                ax.spines["polar"].set_edgecolor(theme.axis_line_theta.color)
+            if theme.axis_line_theta.size is not None:
+                ax.spines["polar"].set_linewidth(theme.axis_line_theta.size)
+
+        if isinstance(theme.axis_line_r, ElementBlank):
+            if "start" in ax.spines:
+                ax.spines["start"].set_visible(False)
+            if "end" in ax.spines:
+                ax.spines["end"].set_visible(False)
+        elif isinstance(theme.axis_line_r, ElementLine):
+            for sp_name in ("start", "end"):
+                if sp_name in ax.spines:
+                    ax.spines[sp_name].set_visible(True)
+                    if theme.axis_line_r.color is not None:
+                        ax.spines[sp_name].set_edgecolor(theme.axis_line_r.color)
+                    if theme.axis_line_r.size is not None:
+                        ax.spines[sp_name].set_linewidth(theme.axis_line_r.size)
+
     # Draw layers — assign incrementing zorder so layer order is respected
     coord = resolved.coord
     for layer_idx, layer in enumerate(panel.layers):

@@ -2480,3 +2480,119 @@ class TestLegendColorbarRefinements:
         fig = render(p)
         assert fig is not None
         plt.close(fig)
+
+
+class TestPolarThemeFields:
+    """Tests for polar axis theme field wiring."""
+
+    def _make_polar_plot(self):
+        from plotten.coords import coord_polar
+
+        df = pd.DataFrame({"cat": ["a", "b", "c", "d"], "val": [3, 1, 2, 4]})
+        return ggplot(df, aes(x="cat", y="val")) + geom_point() + coord_polar()
+
+    def test_axis_text_theta_styling(self):
+        """axis_text_theta should style theta tick labels."""
+        p = self._make_polar_plot() + theme(axis_text_theta=element_text(color="red", size=14))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_text_theta_blank(self):
+        """axis_text_theta=element_blank() should suppress theta labels."""
+        p = self._make_polar_plot() + theme(axis_text_theta=element_blank())
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_text_r_styling(self):
+        """axis_text_r should style radial tick labels."""
+        p = self._make_polar_plot() + theme(axis_text_r=element_text(color="blue", size=10))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_text_r_blank(self):
+        """axis_text_r=element_blank() should suppress radial labels."""
+        p = self._make_polar_plot() + theme(axis_text_r=element_blank())
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_ticks_theta_styling(self):
+        """axis_ticks_theta should style theta tick marks."""
+        p = self._make_polar_plot() + theme(axis_ticks_theta=element_line(color="red", size=2.0))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_ticks_theta_blank(self):
+        """axis_ticks_theta=element_blank() should suppress theta ticks."""
+        p = self._make_polar_plot() + theme(axis_ticks_theta=element_blank())
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_ticks_r_styling(self):
+        """axis_ticks_r should style radial tick marks."""
+        p = self._make_polar_plot() + theme(axis_ticks_r=element_line(color="blue", size=1.5))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_ticks_length_theta(self):
+        """axis_ticks_length_theta should control theta tick length."""
+        p = self._make_polar_plot() + theme(axis_ticks_length_theta=8.0)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_ticks_length_r(self):
+        """axis_ticks_length_r should control radial tick length."""
+        p = self._make_polar_plot() + theme(axis_ticks_length_r=6.0)
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_line_theta_styling(self):
+        """axis_line_theta should style the outer circle spine."""
+        p = self._make_polar_plot() + theme(axis_line_theta=element_line(color="black", size=2.0))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_line_theta_blank(self):
+        """axis_line_theta=element_blank() should hide the outer circle."""
+        p = self._make_polar_plot() + theme(axis_line_theta=element_blank())
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_line_r_styling(self):
+        """axis_line_r should style the radial spines."""
+        p = self._make_polar_plot() + theme(axis_line_r=element_line(color="grey", size=1.0))
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_axis_line_r_blank(self):
+        """axis_line_r=element_blank() should hide radial spines."""
+        p = self._make_polar_plot() + theme(axis_line_r=element_blank())
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
+
+    def test_combined_polar_styling(self):
+        """Multiple polar theme fields should work together."""
+        p = self._make_polar_plot() + theme(
+            axis_text_theta=element_text(color="white", size=12),
+            axis_text_r=element_blank(),
+            axis_ticks_theta=element_line(color="grey"),
+            axis_ticks_r=element_blank(),
+            axis_line_theta=element_line(color="white", size=1.5),
+            axis_line_r=element_blank(),
+            axis_ticks_length_theta=4.0,
+        )
+        fig = render(p)
+        assert fig is not None
+        plt.close(fig)
