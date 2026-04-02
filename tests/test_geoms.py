@@ -1485,3 +1485,207 @@ class TestStatEllipse:
         ey = np.array(frame.get_column("y").to_list())
         # The y range should be much larger than x range
         assert (ey.max() - ey.min()) > (ex.max() - ex.min())
+
+
+# ---------------------------------------------------------------------------
+# Draw helpers unit tests
+# ---------------------------------------------------------------------------
+
+
+class TestDrawHelpers:
+    """Unit tests for geoms/_draw_helpers.py."""
+
+    def test_scalar_from_list(self):
+        from plotten.geoms._draw_helpers import scalar
+
+        assert scalar([10, 20, 30]) == 10
+
+    def test_scalar_passthrough(self):
+        from plotten.geoms._draw_helpers import scalar
+
+        assert scalar(5.0) == 5.0
+        assert scalar("red") == "red"
+
+    def test_extract_aesthetic_from_data(self):
+        from plotten.geoms._draw_helpers import extract_aesthetic
+
+        data: GeomDrawData = {"x": [1, 2], "y": [3, 4], "color": ["red", "blue"]}
+        assert extract_aesthetic(data, "color", {}) == ["red", "blue"]
+
+    def test_extract_aesthetic_scalar(self):
+        from plotten.geoms._draw_helpers import extract_aesthetic
+
+        data: GeomDrawData = {"x": [1, 2], "y": [3, 4], "color": ["red", "blue"]}
+        assert extract_aesthetic(data, "color", {}, as_scalar=True) == "red"
+
+    def test_extract_aesthetic_param_key(self):
+        from plotten.geoms._draw_helpers import extract_aesthetic
+
+        data: GeomDrawData = {"x": [1, 2], "y": [3, 4]}
+        params: GeomParams = {"linestyle": "dashed"}
+        result = extract_aesthetic(data, "linetype", params, param_key="linestyle")
+        assert result == "dashed"
+
+    def test_extract_fill_or_color_fill(self):
+        from plotten.geoms._draw_helpers import extract_fill_or_color
+
+        data: GeomDrawData = {"x": [1], "y": [2], "fill": ["blue"]}
+        assert extract_fill_or_color(data) == ["blue"]
+
+    def test_extract_fill_or_color_color_string(self):
+        from plotten.geoms._draw_helpers import extract_fill_or_color
+
+        data: GeomDrawData = {"x": [1], "y": [2], "color": "red"}
+        assert extract_fill_or_color(data) == "red"
+
+    def test_extract_fill_or_color_from_params(self):
+        from plotten.geoms._draw_helpers import extract_fill_or_color
+
+        data: GeomDrawData = {"x": [1], "y": [2]}
+        assert extract_fill_or_color(data, {"fill": "green"}) == "green"
+        assert extract_fill_or_color(data, {"color": "blue"}) == "blue"
+
+    def test_extract_fill_or_color_none(self):
+        from plotten.geoms._draw_helpers import extract_fill_or_color
+
+        data: GeomDrawData = {"x": [1], "y": [2]}
+        assert extract_fill_or_color(data) is None
+
+    def test_resolve_ls_list(self):
+        from plotten.geoms._draw_helpers import resolve_ls
+
+        result = resolve_ls(["solid", "dashed"])
+        assert isinstance(result, list)
+        assert len(result) == 2
+
+    def test_extract_per_index_list(self):
+        from plotten.geoms._draw_helpers import extract_per_index
+
+        assert extract_per_index(["a", "b", "c"], [0, 2]) == ["a", "c"]
+
+    def test_extract_per_index_broadcast(self):
+        from plotten.geoms._draw_helpers import extract_per_index
+
+        assert extract_per_index(5.0, [0, 1, 2]) == 5.0
+
+    def test_build_line_kwargs_linetype_from_params(self):
+        from plotten.geoms._draw_helpers import build_line_kwargs
+
+        data: GeomDrawData = {"x": [1], "y": [2]}
+        params: GeomParams = {"linetype": "dashed"}
+        result = build_line_kwargs(data, params)
+        assert "linestyle" in result
+
+    def test_build_fill_kwargs_linewidth_list(self):
+        from plotten.geoms._draw_helpers import build_fill_kwargs
+
+        data: GeomDrawData = {"x": [1], "y": [2], "linewidth": [2.0, 3.0]}
+        result = build_fill_kwargs(data, {})
+        assert result["linewidth"] == 2.0
+
+
+# ---------------------------------------------------------------------------
+# Text helpers unit tests
+# ---------------------------------------------------------------------------
+
+
+class TestTextHelpers:
+    """Unit tests for geoms/_text_helpers.py."""
+
+    def test_extract_text_params_defaults(self):
+        from plotten.geoms._text_helpers import extract_text_params
+
+        color, fontsize, kw = extract_text_params(cast("GeomParams", {}))
+        assert color == "black"
+        assert fontsize == 10
+        assert kw["ha"] == "center"
+        assert kw["va"] == "center"
+
+    def test_extract_text_params_with_weight_and_style(self):
+        from plotten.geoms._text_helpers import extract_text_params
+
+        params = cast("GeomParams", {"weight": "bold", "style": "italic", "family": "serif"})
+        _color, _fontsize, kw = extract_text_params(params)
+        assert kw["fontweight"] == "bold"
+        assert kw["fontstyle"] == "italic"
+        assert kw["fontfamily"] == "serif"
+
+    def test_draw_repel_connectors_draws_lines(self):
+        from plotten.geoms._text_helpers import draw_repel_connectors
+
+        fig, ax = plt.subplots()
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 10)
+        fig.canvas.draw()  # needed for transData to work
+
+        xs = [1.0, 5.0]
+        ys = [1.0, 5.0]
+        adjusted = [(3.0, 3.0), (7.0, 7.0)]
+
+        draw_repel_connectors(
+            ax,
+            xs,
+            ys,
+            adjusted,
+            segment_color="gray",
+            segment_size=0.5,
+            segment_alpha=0.5,
+            min_segment_length=0.0,
+        )
+        assert len(ax.lines) == 2
+
+    def test_draw_repel_connectors_suppresses_short(self):
+        from plotten.geoms._text_helpers import draw_repel_connectors
+
+        fig, ax = plt.subplots()
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 10)
+        fig.canvas.draw()
+
+        xs = [1.0]
+        ys = [1.0]
+        adjusted = [(1.001, 1.001)]
+
+        draw_repel_connectors(
+            ax,
+            xs,
+            ys,
+            adjusted,
+            segment_color="gray",
+            segment_size=0.5,
+            segment_alpha=0.5,
+            min_segment_length=1e6,  # suppress all
+        )
+        assert len(ax.lines) == 0
+
+
+# ---------------------------------------------------------------------------
+# GeomBlank default_stat
+# ---------------------------------------------------------------------------
+
+
+class TestGeomBlankDefaultStat:
+    def test_default_stat_is_identity(self):
+        from plotten.geoms._blank import GeomBlank
+        from plotten.stats import StatIdentity
+
+        assert isinstance(GeomBlank().default_stat(), StatIdentity)
+
+
+# ---------------------------------------------------------------------------
+# Histogram edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestGeomHistogramParams:
+    def test_histogram_with_color_param(self):
+        df = pl.DataFrame({"x": np.random.default_rng(42).normal(0, 1, 100).tolist()})
+        p = ggplot(df, aes(x="x")) + geom_histogram(color="red", bins=10)
+        fig = render(p)
+        assert fig is not None
+
+    def test_histogram_with_alpha(self):
+        df = pl.DataFrame({"x": np.random.default_rng(42).normal(0, 1, 100).tolist()})
+        p = ggplot(df, aes(x="x")) + geom_histogram(alpha=0.5, bins=10)
+        fig = render(p)
+        assert fig is not None

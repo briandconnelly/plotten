@@ -380,3 +380,61 @@ class TestLegendPosition:
         p = ggplot(df, Aes(x="x", y="y", color="g")) + geom_point() + theme(legend_position="left")
         fig = render(p)
         assert fig is not None
+
+
+# ---------------------------------------------------------------------------
+# CoordFlip edge cases
+# ---------------------------------------------------------------------------
+
+
+class TestCoordFlipEdgeCases:
+    """Test CoordFlip with data that has only x or only y."""
+
+    def test_flip_resolved_x_only(self):
+        """When layer data has only 'x', flip should rename to 'y'."""
+        from plotten._render._structures import ResolvedLayer, ResolvedPanel, ResolvedPlot
+        from plotten.coords._flip import CoordFlip
+        from plotten.geoms._point import GeomPoint
+        from plotten.themes._theme import Theme
+
+        layer = ResolvedLayer(geom=GeomPoint(), data={"x": [1, 2, 3]}, params={})
+        panel = ResolvedPanel(label="", layers=[layer], scales={})
+        resolved = ResolvedPlot(
+            panels=[panel],
+            scales={},
+            coord=CoordFlip(),
+            theme=Theme(),
+        )
+        result = CoordFlip.flip_resolved(resolved)
+        assert "y" in result.panels[0].layers[0].data
+        assert "x" not in result.panels[0].layers[0].data
+
+    def test_flip_resolved_y_only(self):
+        """When layer data has only 'y', flip should rename to 'x'."""
+        from plotten._render._structures import ResolvedLayer, ResolvedPanel, ResolvedPlot
+        from plotten.coords._flip import CoordFlip
+        from plotten.geoms._point import GeomPoint
+        from plotten.themes._theme import Theme
+
+        layer = ResolvedLayer(geom=GeomPoint(), data={"y": [1, 2, 3]}, params={})
+        panel = ResolvedPanel(label="", layers=[layer], scales={})
+        resolved = ResolvedPlot(
+            panels=[panel],
+            scales={},
+            coord=CoordFlip(),
+            theme=Theme(),
+        )
+        result = CoordFlip.flip_resolved(resolved)
+        assert "x" in result.panels[0].layers[0].data
+        assert "y" not in result.panels[0].layers[0].data
+
+    def test_flip_transform_passthrough(self):
+        """CoordFlip.transform() is a no-op identity."""
+        from plotten.coords._flip import CoordFlip
+
+        fig, ax = plt.subplots()
+        coord = CoordFlip()
+        data = {"x": [1, 2]}
+        result = coord.transform(data, ax)
+        assert result is data
+        plt.close(fig)

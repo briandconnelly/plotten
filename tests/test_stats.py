@@ -187,9 +187,23 @@ def test_stat_violin_pandas():
     assert len(result) == 2
 
 
+def test_stat_violin_single_point():
+    """A group with only 1 data point should produce a degenerate density."""
+    pytest.importorskip("scipy")
+
+    df = pl.DataFrame({"x": ["a", "b", "b"], "y": [5.0, 1.0, 2.0]})
+    stat = StatViolin(n_points=50)
+    result = cast("pl.DataFrame", stat.compute(df))
+    # Group "a" has 1 point → density=[0.4], y_grid=[5.0]
+    a_row = result.filter(pl.col("x") == "a")
+    assert len(a_row) == 1
+    density = a_row["density"][0].to_list()
+    assert density == [pytest.approx(0.4)]
+
+
 # --- from test_v08_stats.py ---
 
-"""Tests for v0.8.0 new stats: ECDF, QQ, Bin2d."""
+# ── Tests for v0.8.0 new stats: ECDF, QQ, Bin2d ─────────────────
 
 
 class TestStatECDF:
@@ -590,10 +604,26 @@ class TestStatFunction:
         assert float(xdata[0]) == pytest.approx(-3.0)  # type: ignore[index]
         assert float(xdata[-1]) == pytest.approx(3.0)  # type: ignore[index]
 
+    def test_x_column_type_error_falls_back(self):
+        """When x column operations raise TypeError, defaults to [0, 1]."""
+        from unittest.mock import patch
+
+        stat = StatFunction(fun=lambda x: x, n=5)
+        df = pd.DataFrame({"x": [1.0, 2.0, 3.0]})
+
+        # Patch narwhals Series.min to raise TypeError, triggering the fallback
+        with (
+            patch("narwhals.series.Series.min", side_effect=TypeError("mock")),
+            pytest.warns(match="Could not determine x range"),
+        ):
+            result = cast("pd.DataFrame", stat.compute(df))
+        assert result["x"].iloc[0] == pytest.approx(0.0)
+        assert result["x"].iloc[-1] == pytest.approx(1.0)
+
 
 # --- from test_v12_smooth.py ---
 
-"""Tests for v0.12.0 smooth enhancements."""
+# ── Tests for v0.12.0 smooth enhancements ────────────────────────
 
 
 class TestPolynomialSmooth:
@@ -902,6 +932,129 @@ class TestStatCorFactory:
     def test_stat_cor_exported_from_top_level(self) -> None:
 
         assert hasattr(plotten, "stat_cor")
+
+
+# ---------------------------------------------------------------------------
+# 3A-extra: StatCor fallback (no scipy) and internal helpers
+# ---------------------------------------------------------------------------
+
+
+class TestStatCorFallback:
+    """Tests for the pure-numpy fallback path when scipy is unavailable."""
+
+    def _make_df(self, x: list[float], y: list[float]) -> pl.DataFrame:
+        return pl.DataFrame({"x": x, "y": y})
+
+    def test_fallback_pearson(self) -> None:
+        """Pearson via numpy fallback produces correct R for near-perfect data."""
+        import sys
+        from unittest.mock import patch
+
+        x = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+        y = [2.1, 3.9, 6.1, 7.9, 10.1, 11.9, 14.1, 15.9]
+        stat = StatCor(method="pearson")
+        with patch.dict(sys.modules, {"scipy": None, "scipy.stats": None}):
+            r, p = stat._correlate_fallback(np.array(x), np.array(y))
+        assert r == pytest.approx(1.0, abs=0.01)
+        assert p < 0.05
+
+    def test_fallback_spearman(self) -> None:
+        """Spearman via numpy fallback rank-transforms then computes Pearson."""
+        import sys
+        from unittest.mock import patch
+
+        x = [1.0, 2.0, 3.0, 4.0, 5.0]
+        y = [1.0, 8.0, 27.0, 64.0, 125.0]  # monotonic but non-linear
+        stat = StatCor(method="spearman")
+        with patch.dict(sys.modules, {"scipy": None, "scipy.stats": None}):
+            r, _p = stat._correlate_fallback(np.array(x), np.array(y))
+        # Perfect monotonic → rho = 1.0
+        assert r == pytest.approx(1.0, abs=1e-10)
+
+    def test_fallback_small_sample(self) -> None:
+        """With n < 3, fallback returns r=0.0, p=1.0."""
+        stat = StatCor(method="pearson")
+        r, p = stat._correlate_fallback(np.array([1.0, 2.0]), np.array([3.0, 4.0]))
+        assert r == 0.0
+        assert p == 1.0
+
+    def test_fallback_perfect_correlation_branch(self) -> None:
+        """When abs(r) >= 1.0, p should be 0.0."""
+        from unittest.mock import patch
+
+        stat = StatCor(method="pearson")
+        x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        y = np.array([2.0, 4.0, 6.0, 8.0, 10.0])
+        # Mock corrcoef to return exactly 1.0 to hit the abs(r) >= 1.0 branch
+        with patch("numpy.corrcoef", return_value=np.array([[1.0, 1.0], [1.0, 1.0]])):
+            r, p = stat._correlate_fallback(x, y)
+        assert r == 1.0
+        assert p == 0.0
+
+    def test_fallback_near_perfect_correlation(self) -> None:
+        """Near-perfect data via fallback gives very small p-value."""
+        stat = StatCor(method="pearson")
+        x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        y = np.array([2.0, 4.0, 6.0, 8.0, 10.0])
+        r, p = stat._correlate_fallback(x, y)
+        assert r == pytest.approx(1.0, abs=1e-10)
+        assert p < 0.001
+
+
+class TestStatCorInternals:
+    """Tests for internal helpers: _rank, _t_sf, _betai."""
+
+    def test_rank_simple(self) -> None:
+        from plotten.stats._cor import _rank
+
+        result = _rank(np.array([3.0, 1.0, 2.0]))
+        np.testing.assert_array_equal(result, [3.0, 1.0, 2.0])
+
+    def test_rank_with_ties(self) -> None:
+        from plotten.stats._cor import _rank
+
+        result = _rank(np.array([1.0, 2.0, 2.0, 4.0]))
+        # Tied values at positions 2 and 3 get average rank 2.5
+        np.testing.assert_array_almost_equal(result, [1.0, 2.5, 2.5, 4.0])
+
+    def test_t_sf_large_df(self) -> None:
+        """df > 100 uses normal approximation."""
+        from plotten.stats._cor import _t_sf
+
+        result = _t_sf(1.96, 200)
+        assert result == pytest.approx(0.025, abs=0.005)
+
+    def test_t_sf_small_df(self) -> None:
+        """df <= 100 uses beta function path."""
+        from plotten.stats._cor import _t_sf
+
+        result = _t_sf(2.0, 10)
+        # t=2.0, df=10 → two-tailed p ≈ 0.037 (one-tailed ≈ 0.037)
+        assert 0.01 < result < 0.1
+
+    def test_betai_boundary_zero(self) -> None:
+        from plotten.stats._cor import _betai
+
+        assert _betai(1.0, 1.0, 0.0) == 0.0
+
+    def test_betai_boundary_one(self) -> None:
+        from plotten.stats._cor import _betai
+
+        assert _betai(1.0, 1.0, 1.0) == 1.0
+
+    def test_betai_mid(self) -> None:
+        from plotten.stats._cor import _betai
+
+        # I_0.5(1, 1) = 0.5 for uniform beta
+        assert _betai(1.0, 1.0, 0.5) == pytest.approx(0.5, abs=1e-6)
+
+    def test_betai_swapped_branch(self) -> None:
+        """When x >= (a+1)/(a+b+2), the swapped branch is used."""
+        from plotten.stats._cor import _betai
+
+        # a=0.5, b=5.0 → threshold = 1.5/7.5 = 0.2; x=0.8 triggers swap
+        result = _betai(0.5, 5.0, 0.8)
+        assert 0.0 < result < 1.0
 
 
 # ---------------------------------------------------------------------------

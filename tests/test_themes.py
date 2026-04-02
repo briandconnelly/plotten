@@ -86,7 +86,7 @@ def test_theme_frozen():
         pass
 
 
-"""Tests for v0.6.0 theme granularity and new predefined themes."""
+# ── Tests for v0.6.0 theme granularity and new predefined themes ───
 
 # ── New Theme fields ────────────────────────────────────────────────
 
@@ -191,7 +191,10 @@ class TestPerAxisRendering:
             + Theme(grid_major_x=False, grid_major_y=True, grid_minor_y=True)
         )
         fig = render(p)
-        assert fig is not None
+        ax = fig.axes[0]
+        # y-axis major gridlines should be visible
+        y_gridlines = ax.yaxis.get_gridlines()
+        assert any(gl.get_visible() for gl in y_gridlines)
 
     def test_axis_line_visibility(self):
         df = pl.DataFrame({"x": [1.0, 2.0], "y": [1, 2]})
@@ -214,7 +217,9 @@ class TestPerAxisRendering:
             + Theme(title_color="#ff0000", subtitle_color="#00ff00", subtitle_size=10)
         )
         fig = render(p)
-        assert fig is not None
+        # Title and subtitle should appear somewhere in the figure's text artists
+        all_texts = [t.get_text() for sf in fig.subfigs for t in sf.texts]
+        assert "Title" in all_texts
 
 
 # ── Predefined themes ──────────────────────────────────────────────
@@ -279,7 +284,7 @@ class TestThemeVoid:
 # ── Import smoke test ───────────────────────────────────────────────
 
 
-"""Tests for v0.8.0 theme element system."""
+# ── Tests for v0.8.0 theme element system ─────────────────────────
 
 
 class TestElementClasses:
@@ -436,7 +441,7 @@ class TestElementRendering:
         assert fig is not None
 
 
-"""Tests for theme() convenience function (1A)."""
+# ── Tests for theme() convenience function (1A) ──────────────────
 
 
 def test_theme_basic():
@@ -469,7 +474,7 @@ def test_theme_empty():
     assert t == Theme()
 
 
-"""Tests for v0.11.0 theme additions."""
+# ── Tests for v0.11.0 theme additions ─────────────────────────────
 
 
 class TestThemeSetGet:
@@ -562,12 +567,20 @@ class TestThemeGrey:
         assert fig is not None
 
 
-"""Tests for v1.1.0 Phase 1 theme gallery: theme_538, theme_economist, theme_tufte, theme_seaborn."""
+# ── Tests for v1.1.0 Phase 1 theme gallery ────────────────────────
 
 
 def _make_plot():
     df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
     return ggplot(df, aes(x="x", y="y")) + geom_point()
+
+
+def _make_legend_plot():
+    """Standard colored scatter plot for legend tests."""
+    from plotten import scale_color_discrete
+
+    df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
+    return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
 
 
 # --- theme_538 ---
@@ -2870,16 +2883,9 @@ class TestLegendBoxLayout:
 class TestLegendTextPosition:
     """legend_text_position controls text placement relative to swatch."""
 
-    @staticmethod
-    def _make_plot():
-        from plotten import scale_color_discrete
-
-        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
-        return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
-
     @pytest.mark.parametrize("pos", ["right", "left", "top", "bottom"])
     def test_text_position(self, pos):
-        p = self._make_plot() + theme(legend_text_position=pos)
+        p = _make_legend_plot() + theme(legend_text_position=pos)
         fig = render(p)
         assert fig is not None
 
@@ -2887,16 +2893,9 @@ class TestLegendTextPosition:
 class TestLegendTitlePosition:
     """legend_title_position controls title placement in legend."""
 
-    @staticmethod
-    def _make_plot():
-        from plotten import scale_color_discrete
-
-        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
-        return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
-
     @pytest.mark.parametrize("pos", ["top", "bottom", "left", "right"])
     def test_title_position(self, pos):
-        p = self._make_plot() + theme(legend_title_position=pos)
+        p = _make_legend_plot() + theme(legend_title_position=pos)
         fig = render(p)
         assert fig is not None
 
@@ -2904,21 +2903,14 @@ class TestLegendTitlePosition:
 class TestLegendBoxJustAndMargin:
     """legend_box_just and legend_box_margin positioning."""
 
-    @staticmethod
-    def _make_plot():
-        from plotten import scale_color_discrete
-
-        df = pl.DataFrame({"x": [1.0, 2.0, 3.0], "y": [1.0, 2.0, 3.0], "g": ["a", "b", "c"]})
-        return ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete()
-
     @pytest.mark.parametrize("just", ["left", "right", "top", "bottom"])
     def test_box_just(self, just):
-        p = self._make_plot() + theme(legend_box_just=just)
+        p = _make_legend_plot() + theme(legend_box_just=just)
         fig = render(p)
         assert fig is not None
 
     def test_box_margin(self):
-        p = self._make_plot() + theme(legend_box_margin=(10, 5, 10, 5))
+        p = _make_legend_plot() + theme(legend_box_margin=(10, 5, 10, 5))
         fig = render(p)
         assert fig is not None
 

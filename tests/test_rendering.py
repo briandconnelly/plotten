@@ -18,7 +18,7 @@ from plotten.themes import Theme
 
 # --- from test_v10_legend.py ---
 
-"""Tests for multi-column legend support (1D)."""
+# ── Tests for multi-column legend support (1D) ───────────────────
 
 
 def test_legend_ncol_renders():
@@ -397,3 +397,89 @@ class TestFacetWrapDir:
         p.save(str(out))
         assert out.exists()
         assert out.stat().st_size > 0
+
+
+# ---------------------------------------------------------------------------
+# Scale resolution internals
+# ---------------------------------------------------------------------------
+
+
+class TestScaleResolutionHelpers:
+    """Unit tests for _render/_scale_resolution.py internals."""
+
+    def test_opt_min_both_none(self):
+        from plotten._render._scale_resolution import _opt_min
+
+        assert _opt_min(None, None) is None
+
+    def test_opt_min_a_none(self):
+        from plotten._render._scale_resolution import _opt_min
+
+        assert _opt_min(None, 5.0) == 5.0
+
+    def test_opt_min_b_none(self):
+        from plotten._render._scale_resolution import _opt_min
+
+        assert _opt_min(3.0, None) == 3.0
+
+    def test_opt_min_both_values(self):
+        from plotten._render._scale_resolution import _opt_min
+
+        assert _opt_min(3.0, 5.0) == 3.0
+
+    def test_opt_max_a_none(self):
+        from plotten._render._scale_resolution import _opt_max
+
+        assert _opt_max(None, 5.0) == 5.0
+
+    def test_opt_max_both_values(self):
+        from plotten._render._scale_resolution import _opt_max
+
+        assert _opt_max(3.0, 5.0) == 5.0
+
+
+class TestTrainScalesNanHandling:
+    """Test that scale training handles NaN/Inf values gracefully."""
+
+    def test_train_with_nan_warns(self):
+        import warnings
+
+        import narwhals as nw
+
+        from plotten._render._scale_resolution import _train_scales
+
+        data = {"x": [1.0, float("nan"), 3.0]}
+        frame = nw.from_native(pl.DataFrame(data))
+        scales: dict = {}
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _train_scales(frame, data, scales)
+        nan_warnings = [x for x in w if "non-finite" in str(x.message)]
+        assert len(nan_warnings) >= 1
+
+    def test_train_with_all_nan_skips(self):
+        import warnings
+
+        import narwhals as nw
+
+        from plotten._render._scale_resolution import _train_scales
+
+        data = {"x": [float("nan"), float("inf")]}
+        frame = nw.from_native(pl.DataFrame(data))
+        scales: dict = {}
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            _train_scales(frame, data, scales)
+        skip_warnings = [x for x in w if "all values are non-finite" in str(x.message)]
+        assert len(skip_warnings) >= 1
+
+    def test_render_with_nan_in_data(self):
+        """Full render should survive NaN values in data."""
+        import warnings
+
+        df = pl.DataFrame({"x": [1.0, float("nan"), 3.0], "y": [1.0, 2.0, 3.0]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            fig = render(p)
+        assert fig is not None
