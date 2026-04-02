@@ -85,6 +85,25 @@ The accessibility auditor checks colorblind safety, contrast ratios, and font si
 
 For examples, guides, and the full API reference, visit the [documentation site](https://briandconnelly.github.io/plotten).
 
+## Contributing
+
+```bash
+git clone https://github.com/briandconnelly/plotten.git
+cd plotten
+uv sync
+uv run prek install
+```
+
+This installs all dev dependencies and sets up pre-commit hooks (ruff, ty, trailing whitespace, etc.).
+Before submitting a PR, run:
+
+```bash
+uv run ruff check src/ tests/ && uv run ruff format --check src/ tests/ && uv run pytest tests/ -x
+```
+
+CI runs linting, type checking, and tests across Python 3.13 and 3.14.
+Test coverage must stay at or above 95%.
+
 ## License
 
 MIT

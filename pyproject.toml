@@ -91,3 +91,9 @@ known-first-party = ["plotten"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-x --tb=short"
+
+[tool.coverage.run]
+source = ["plotten"]
+
+[tool.coverage.report]
+fail_under = 94
