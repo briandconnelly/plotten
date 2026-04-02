@@ -25,7 +25,10 @@
 Run before presenting work as complete:
 
 ```bash
-uv run ruff check src/ tests/ && uv run ruff format --check src/ tests/ && uv run pytest tests/ -x
+just check
 ```
+
+This runs lint, format, type checks, and tests.
+Equivalent to `uv run ruff check src/ tests/ && uv run ruff format --check src/ tests/ && uv run ty check src/ && uv run pytest tests/ -x`.
 
 Pre-commit hooks run ruff, ty (type checker), and other checks — fix issues rather than skipping hooks.
