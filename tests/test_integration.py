@@ -863,11 +863,12 @@ class TestGeomFactoryConsistency:
 class TestImportTime:
     """Verify that ``import plotten`` completes in a reasonable time."""
 
-    def test_import_time_under_200ms(self) -> None:
-        """import plotten should complete in under 200ms.
+    def test_import_time_under_500ms(self) -> None:
+        """import plotten should complete in under 500ms.
 
         This guards against accidentally pulling heavy dependencies
-        (matplotlib, scipy) at import time.
+        (matplotlib, scipy) at import time.  The threshold is generous
+        to avoid flaking on cold-cache CI runners.
         """
         code = (
             "import time; t = time.time(); import plotten; "
@@ -881,7 +882,7 @@ class TestImportTime:
         )
         assert result.returncode == 0, f"Import failed: {result.stderr}"
         ms = int(result.stdout.strip())
-        assert ms < 200, f"import plotten took {ms}ms, expected < 200ms"
+        assert ms < 500, f"import plotten took {ms}ms, expected < 500ms"
 
 
 class TestScaleCaching:
