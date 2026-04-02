@@ -8,7 +8,23 @@ import numpy as np
 
 
 class StatBoxplot:
-    """Compute boxplot summary statistics grouped by x."""
+    """Compute boxplot summary statistics grouped by x.
+
+    Computed Variables
+    ------------------
+    ymin
+        Lower whisker (smallest value within 1.5 * IQR of Q1).
+    lower
+        First quartile (Q1 / 25th percentile).
+    middle
+        Median (Q2 / 50th percentile).
+    upper
+        Third quartile (Q3 / 75th percentile).
+    ymax
+        Upper whisker (largest value within 1.5 * IQR of Q3).
+    outliers_y
+        Values beyond the whiskers.
+    """
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 

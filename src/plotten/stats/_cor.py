@@ -10,7 +10,14 @@ import numpy as np
 
 
 class StatCor:
-    """Compute Pearson or Spearman correlation as annotation text."""
+    """Compute Pearson or Spearman correlation as annotation text.
+
+    Computed Variables
+    ------------------
+    label
+        Formatted string with the correlation coefficient and p-value
+        (e.g., ``"R = 0.95, p < 0.001"``).
+    """
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 

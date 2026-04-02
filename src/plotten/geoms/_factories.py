@@ -120,13 +120,22 @@ x : str
 y : str
     Column name mapped to the y-axis.
 color : str, optional
-    Point color as a column name or fixed value.
+    Point color — a column name (mapped) or fixed color string like ``"steelblue"``
+    or ``"#2ecc71"``.
+fill : str, optional
+    Fill color for filled marker shapes (e.g., ``"o"``). Has no effect on
+    unfilled shapes like ``"+"``.
 size : float, optional
-    Point area in squared points (default 36).
+    Point area in squared points (default 36). Larger values draw bigger markers.
 alpha : float, optional
     Opacity from 0 (transparent) to 1 (opaque).
 shape : str, optional
-    Marker shape such as ``"o"``, ``"s"``, or ``"^"``.
+    Matplotlib marker code such as ``"o"`` (circle), ``"s"`` (square), ``"^"``
+    (triangle), ``"D"`` (diamond), ``"+"`` (plus), or ``"x"`` (cross).
+mapping : Aes, optional
+    An explicit ``aes()`` mapping for this layer only.
+position : Position, optional
+    Position adjustment (default ``position_identity()``).
 
 Examples
 --------
@@ -149,11 +158,15 @@ x : str
 y : str
     Column name mapped to the y-axis.
 color : str, optional
-    Line color as a column name or fixed value.
+    Line color — a column name (mapped, creates one line per group) or fixed value.
 linetype : str, optional
-    Line style such as ``"solid"``, ``"dashed"``, or ``"dotted"``.
+    Line style: ``"solid"``, ``"dashed"``, ``"dotted"``, ``"dashdot"``.
+linewidth : float, optional
+    Line width in points.
 alpha : float, optional
     Opacity from 0 (transparent) to 1 (opaque).
+group : str, optional
+    Column name to group observations into separate lines without a legend.
 
 Examples
 --------
@@ -169,6 +182,9 @@ geom_bar = _make_geom_factory(
     GeomBar,
     """Create a bar layer using stat=count.
 
+Counts rows per unique x value to produce bar heights.
+For pre-computed bar heights, use :func:`geom_col` instead.
+
 Parameters
 ----------
 x : str
@@ -176,11 +192,14 @@ x : str
 fill : str, optional
     Bar fill color as a column name or fixed value.
 color : str, optional
-    Bar outline color.
+    Bar outline (edge) color.
 alpha : float, optional
     Opacity from 0 (transparent) to 1 (opaque).
-position : str, optional
-    Position adjustment: ``"stack"``, ``"dodge"``, or ``"fill"``.
+hatch : str, optional
+    Fill pattern such as ``"/"``, ``"\\\\"``, ``"x"``, or ``"+"``.
+position : Position, optional
+    Position adjustment (default ``position_stack()``). Use ``position_dodge()``
+    for grouped bars or ``position_fill()`` for proportional stacking.
 
 Examples
 --------
@@ -196,18 +215,23 @@ geom_boxplot = _make_geom_factory(
     GeomBoxplot,
     """Create a box-and-whisker plot layer.
 
+Computes five-number summaries (median, quartiles, whiskers) and plots outliers
+as individual points.
+
 Parameters
 ----------
 x : str
-    Column name for the grouping variable.
+    Column name for the grouping variable (categorical).
 y : str
     Column name for the continuous variable.
 fill : str, optional
     Box fill color as a column name or fixed value.
 color : str, optional
-    Box outline color.
+    Box outline and whisker color.
 alpha : float, optional
     Opacity from 0 (transparent) to 1 (opaque).
+width : float, optional
+    Width of the boxes (default 0.75).
 
 Examples
 --------

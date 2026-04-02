@@ -131,6 +131,14 @@ from plotten import (
     theme_void,
 )
 from plotten.datasets import load_dataset
+from plotten.recipes import (
+    plot_dumbbell,
+    plot_forest,
+    plot_lollipop,
+    plot_slope,
+    plot_waffle,
+    plot_waterfall,
+)
 from plotten.scales import (
     breaks_integer,
     breaks_log,
@@ -156,6 +164,7 @@ SUBDIRS = [
     "themes",
     "facets",
     "gallery",
+    "recipes",
 ]
 
 for subdir in SUBDIRS:
@@ -1682,6 +1691,119 @@ save(
     "annotated_scatter",
     width=8,
     height=5,
+)
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RECIPES
+# ═══════════════════════════════════════════════════════════════════════════════
+
+print("Generating recipe images...")
+
+# ── plot_waterfall ─────────────────────────────────────────────────────────
+
+waterfall_df = pl.DataFrame(
+    {
+        "item": ["Revenue", "COGS", "Gross Profit", "OpEx", "Tax", "Net Income"],
+        "amount": [500, -200, 300, -150, -45, 105],
+    }
+)
+
+save(
+    plot_waterfall(waterfall_df, x="item", y="amount", title="Waterfall chart"),
+    "recipes",
+    "waterfall",
+)
+
+# ── plot_dumbbell ──────────────────────────────────────────────────────────
+
+dumbbell_df = pl.DataFrame(
+    {
+        "city": ["New York", "Los Angeles", "Chicago", "Houston", "Phoenix"],
+        "jan": [33, 58, 26, 52, 55],
+        "jul": [77, 75, 73, 84, 95],
+    }
+)
+
+save(
+    plot_dumbbell(
+        dumbbell_df,
+        y="city",
+        x_start="jan",
+        x_end="jul",
+        title="Average temperature: January vs. July",
+    ),
+    "recipes",
+    "dumbbell",
+)
+
+# ── plot_lollipop ──────────────────────────────────────────────────────────
+
+lollipop_df = pl.DataFrame(
+    {
+        "x": [1, 2, 3, 4, 5],
+        "value": [23, 17, 35, 29, 12],
+    }
+)
+
+save(
+    plot_lollipop(lollipop_df, x="x", y="value", title="Lollipop chart"),
+    "recipes",
+    "lollipop",
+)
+
+# ── plot_slope ─────────────────────────────────────────────────────────────
+
+slope_df = pl.DataFrame(
+    {
+        "year": ["2020", "2020", "2020", "2025", "2025", "2025"],
+        "region": ["East", "West", "South", "East", "West", "South"],
+        "sales": [100, 80, 60, 120, 110, 90],
+    }
+)
+
+save(
+    plot_slope(slope_df, x="year", y="sales", group="region", title="Regional sales trend"),
+    "recipes",
+    "slope",
+)
+
+# ── plot_forest ────────────────────────────────────────────────────────────
+
+forest_df = pl.DataFrame(
+    {
+        "study": ["Study A", "Study B", "Study C", "Study D", "Study E"],
+        "estimate": [0.5, 0.8, 0.3, 0.6, 0.1],
+        "ci_low": [0.2, 0.5, -0.1, 0.3, -0.2],
+        "ci_high": [0.8, 1.1, 0.7, 0.9, 0.4],
+    }
+)
+
+save(
+    plot_forest(
+        forest_df,
+        y="study",
+        x="estimate",
+        xmin="ci_low",
+        xmax="ci_high",
+        title="Forest plot",
+    ),
+    "recipes",
+    "forest",
+)
+
+# ── plot_waffle ────────────────────────────────────────────────────────────
+
+waffle_df = pl.DataFrame(
+    {
+        "fuel": ["Regular", "Premium", "Diesel", "Electric"],
+        "count": [45, 25, 15, 15],
+    }
+)
+
+save(
+    plot_waffle(waffle_df, category="fuel", value="count", title="Fuel type breakdown"),
+    "recipes",
+    "waffle",
 )
 
 print("\nDone! All images saved to docs/images/generated/")

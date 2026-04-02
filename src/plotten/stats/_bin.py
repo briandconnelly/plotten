@@ -8,7 +8,17 @@ import numpy as np
 
 
 class StatBin:
-    """Bin continuous x into intervals and count per bin."""
+    """Bin continuous x into intervals and count per bin.
+
+    Computed Variables
+    ------------------
+    count
+        Number of observations in each bin.
+    density
+        Density estimate (count / total / bin width), integrates to 1.
+    width
+        Width of each bin.
+    """
 
     required_aes: frozenset[str] = frozenset({"x"})
 

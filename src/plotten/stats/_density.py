@@ -8,7 +8,13 @@ import numpy as np
 
 
 class StatDensity:
-    """Compute kernel density estimate."""
+    """Compute kernel density estimate.
+
+    Computed Variables
+    ------------------
+    y
+        Density estimate at each x position.
+    """
 
     required_aes: frozenset[str] = frozenset({"x"})
 

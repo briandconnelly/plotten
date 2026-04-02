@@ -94,6 +94,16 @@ def scale_color_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewer
     ----------
     palette : str, optional
         ColorBrewer palette name (default ``"Set1"``).
+
+        **Sequential:** ``Blues``, ``Greens``, ``Greys``, ``Oranges``, ``Purples``,
+        ``Reds``, ``BuGn``, ``BuPu``, ``GnBu``, ``OrRd``, ``PuBu``, ``PuBuGn``,
+        ``PuRd``, ``RdPu``, ``YlGn``, ``YlGnBu``, ``YlOrBr``, ``YlOrRd``.
+
+        **Diverging:** ``BrBG``, ``PiYG``, ``PRGn``, ``PuOr``, ``RdBu``, ``RdGy``,
+        ``RdYlBu``, ``RdYlGn``, ``Spectral``.
+
+        **Qualitative:** ``Accent``, ``Dark2``, ``Paired``, ``Pastel1``, ``Pastel2``,
+        ``Set1``, ``Set2``, ``Set3``.
     direction : int, optional
         Direction of the palette. Use ``1`` for normal order and ``-1``
         for reversed (default ``1``).
@@ -116,6 +126,16 @@ def scale_fill_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewerD
     ----------
     palette : str, optional
         ColorBrewer palette name (default ``"Set1"``).
+
+        **Sequential:** ``Blues``, ``Greens``, ``Greys``, ``Oranges``, ``Purples``,
+        ``Reds``, ``BuGn``, ``BuPu``, ``GnBu``, ``OrRd``, ``PuBu``, ``PuBuGn``,
+        ``PuRd``, ``RdPu``, ``YlGn``, ``YlGnBu``, ``YlOrBr``, ``YlOrRd``.
+
+        **Diverging:** ``BrBG``, ``PiYG``, ``PRGn``, ``PuOr``, ``RdBu``, ``RdGy``,
+        ``RdYlBu``, ``RdYlGn``, ``Spectral``.
+
+        **Qualitative:** ``Accent``, ``Dark2``, ``Paired``, ``Pastel1``, ``Pastel2``,
+        ``Set1``, ``Set2``, ``Set3``.
     direction : int, optional
         Direction of the palette. Use ``1`` for normal order and ``-1``
         for reversed (default ``1``).
@@ -138,6 +158,7 @@ def scale_color_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleB
     ----------
     palette : str, optional
         ColorBrewer palette name (default ``"RdYlBu"``).
+        See :func:`scale_color_brewer` for the full list of palette names.
     direction : int, optional
         Direction of the palette. Use ``1`` for normal order and ``-1``
         for reversed (default ``1``).
@@ -160,6 +181,7 @@ def scale_fill_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleBr
     ----------
     palette : str, optional
         ColorBrewer palette name (default ``"RdYlBu"``).
+        See :func:`scale_fill_brewer` for the full list of palette names.
     direction : int, optional
         Direction of the palette. Use ``1`` for normal order and ``-1``
         for reversed (default ``1``).

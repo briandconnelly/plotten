@@ -10,7 +10,17 @@ from plotten._enums import SmoothMethod
 
 
 class StatSmooth:
-    """Compute a smooth fit line with optional confidence interval."""
+    """Compute a smooth fit line with optional confidence interval.
+
+    Computed Variables
+    ------------------
+    y
+        Fitted values along the smooth line.
+    ymin
+        Lower bound of the confidence interval.
+    ymax
+        Upper bound of the confidence interval.
+    """
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 

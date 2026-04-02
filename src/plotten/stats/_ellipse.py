@@ -14,6 +14,13 @@ class StatEllipse:
 
     Uses the Pearson correlation and chi-squared distribution to compute
     the ellipse boundary at a given confidence level.
+
+    Computed Variables
+    ------------------
+    x
+        X coordinates of the ellipse boundary.
+    y
+        Y coordinates of the ellipse boundary.
     """
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

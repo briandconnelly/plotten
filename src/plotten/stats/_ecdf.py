@@ -8,7 +8,13 @@ import numpy as np
 
 
 class StatECDF:
-    """Compute empirical cumulative distribution function."""
+    """Compute empirical cumulative distribution function.
+
+    Computed Variables
+    ------------------
+    y
+        Cumulative proportion (0 to 1) at each x value.
+    """
 
     required_aes: frozenset[str] = frozenset({"x"})
 

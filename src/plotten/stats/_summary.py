@@ -69,7 +69,17 @@ def _normalize_fun_data_result(result: FunDataResult) -> tuple[float, float, flo
 
 
 class StatSummary:
-    """Compute grouped summary statistics (y, ymin, ymax) per x level."""
+    """Compute grouped summary statistics (y, ymin, ymax) per x level.
+
+    Computed Variables
+    ------------------
+    y
+        Central tendency (default: mean).
+    ymin
+        Lower error bound (default: mean - SE).
+    ymax
+        Upper error bound (default: mean + SE).
+    """
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
 

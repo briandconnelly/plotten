@@ -302,6 +302,31 @@ See the [Composition reference](../reference/composition.md) for more details.
 
 Stat functions use the same names and parameters.
 
+## Position adjustments
+
+Position adjustments use the same names and semantics as ggplot2.
+Pass them to any geom via the `position` parameter:
+
+=== "R"
+
+    ```r
+    ggplot(mpg, aes(x = class, fill = drv)) +
+      geom_bar(position = position_dodge(width = 0.9))
+    ```
+
+=== "Python"
+
+    ```python
+    from plotten import ggplot, aes, geom_bar, position_dodge
+
+    (
+        ggplot(mpg, aes(x="class", fill="drv"))
+        + geom_bar(position=position_dodge(width=0.9))
+    )
+    ```
+
+plotten also includes `position_beeswarm()`, which arranges points to avoid overlap while preserving their distribution — similar to the R ggbeeswarm package.
+
 ## Key differences summary
 
 | Aspect | ggplot2 (R) | plotten (Python) |

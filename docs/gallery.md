@@ -148,10 +148,23 @@ Core geometric layers for building plots.
 
 ??? example "Code"
     ```python
+    import polars as pl
     from plotten import ggplot, aes, geom_tile, scale_fill_gradient2, labs
+    from plotten.datasets import load_dataset
 
-    # Build a correlation-style matrix
-    heat_df = ...  # DataFrame with columns x, y, r
+    mtcars = load_dataset("mtcars")
+
+    # Select numeric columns and compute a correlation matrix
+    cols = ["mpg", "cyl", "disp", "hp", "wt"]
+    pdf = mtcars.select(cols).to_pandas()
+    corr = pdf.corr()
+
+    # Reshape to long format for geom_tile
+    rows = []
+    for r in cols:
+        for c in cols:
+            rows.append({"x": c, "y": r, "r": round(corr.loc[r, c], 2)})
+    heat_df = pl.DataFrame(rows)
 
     (
         ggplot(heat_df, aes(x="x", y="y", fill="r"))
@@ -708,4 +721,105 @@ Multi-layer compositions that combine several plotten features.
             y="Highway MPG",
         )
     )
+    ```
+
+---
+
+## Recipe plots
+
+Pre-built chart types for common analytical patterns.
+Each recipe returns a `Plot` that can be further customized with `+`.
+
+### Waterfall chart
+
+??? example "Code"
+    ```python
+    import polars as pl
+    from plotten import plot_waterfall
+
+    df = pl.DataFrame({
+        "item": ["Revenue", "COGS", "Gross Profit", "OpEx", "Tax", "Net Income"],
+        "amount": [500, -200, 300, -150, -45, 105],
+    })
+
+    plot_waterfall(df, x="item", y="amount")
+    ```
+
+### Lollipop chart
+
+??? example "Code"
+    ```python
+    import polars as pl
+    from plotten import plot_lollipop
+
+    df = pl.DataFrame({
+        "category": ["A", "B", "C", "D", "E"],
+        "value": [23, 17, 35, 29, 12],
+    })
+
+    plot_lollipop(df, x="category", y="value")
+    ```
+
+### Dumbbell chart
+
+??? example "Code"
+    ```python
+    import polars as pl
+    from plotten import plot_dumbbell
+
+    df = pl.DataFrame({
+        "city": ["NYC", "LA", "Chicago", "Houston"],
+        "jan": [32, 58, 26, 52],
+        "jul": [77, 75, 73, 84],
+    })
+
+    plot_dumbbell(df, y="city", x_start="jan", x_end="jul")
+    ```
+
+### Slope chart
+
+??? example "Code"
+    ```python
+    import polars as pl
+    from plotten import plot_slope
+
+    df = pl.DataFrame({
+        "year": ["2020", "2020", "2020", "2025", "2025", "2025"],
+        "region": ["East", "West", "South", "East", "West", "South"],
+        "sales": [100, 80, 60, 120, 110, 90],
+    })
+
+    plot_slope(df, x="year", y="sales", group="region")
+    ```
+
+### Forest plot
+
+??? example "Code"
+    ```python
+    import polars as pl
+    from plotten import plot_forest
+
+    df = pl.DataFrame({
+        "study": ["Study A", "Study B", "Study C", "Study D"],
+        "estimate": [0.5, 0.8, 0.3, 0.6],
+        "ci_low": [0.2, 0.5, 0.0, 0.3],
+        "ci_high": [0.8, 1.1, 0.6, 0.9],
+    })
+
+    plot_forest(df, y="study", x="estimate", xmin="ci_low", xmax="ci_high")
+    ```
+
+### Waffle chart
+
+??? example "Code"
+    ```python
+    import polars as pl
+    from plotten import plot_waffle
+
+    df = pl.DataFrame({
+        "fuel": ["Regular", "Premium", "Diesel", "Electric"],
+        "count": [45, 25, 15, 15],
+    })
+
+    plot_waffle(df, category="fuel", value="count")
     ```

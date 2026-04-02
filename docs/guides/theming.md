@@ -527,23 +527,34 @@ from plotten import ggplot, aes, geom_point, theme_minimal, theme_dark, theme
 
 ## Element override hierarchy
 
-plotten's theme fields follow a hierarchy similar to ggplot2.
-More specific fields override more general ones:
+Theme styling is resolved in three layers, from most general to most specific:
 
-1. `axis_text` — applies to all axis tick labels
-2. `axis_text_x` — overrides `axis_text` for the x-axis only
-3. `axis_text_x_bottom` — overrides `axis_text_x` for the bottom x-axis only
+1. **Base theme** — a built-in theme like `theme_minimal()` or `theme_gray()` sets defaults for every element.
+2. **`theme()` overrides** — fields passed to `theme()` override the base theme's values. Only the fields you specify are changed; everything else is inherited from the base.
+3. **Element specificity** — within `theme()`, more specific fields override more general ones:
+    - `axis_text` — applies to all axis tick labels
+    - `axis_text_x` — overrides `axis_text` for the x-axis only
+    - `axis_text_x_bottom` — overrides `axis_text_x` for the bottom x-axis only
 
-The same pattern applies to `axis_title`, `axis_ticks`, `axis_line`, `panel_grid`, and `strip_text`.
-This lets you set a base style and selectively override it for specific axes or positions.
+The specificity pattern applies to `axis_title`, `axis_ticks`, `axis_line`, `panel_grid`, and `strip_text`.
+
+When a specific field inherits from a general one, only the properties you set on the specific field override — unset properties fall through to the parent.
 
 ```python
-from plotten import theme, element_text, element_blank
+from plotten import ggplot, aes, geom_point, theme_minimal, theme, element_text, element_blank
+from plotten.datasets import load_dataset
 
-theme(
-    axis_text=element_text(size=10, color="#333333"),       # base
-    axis_text_x=element_text(rotation=45, ha="right"),      # x-axis override
-    axis_text_y=element_blank(),                             # hide y tick labels
+mpg = load_dataset("mpg")
+
+(
+    ggplot(mpg, aes(x="displ", y="hwy"))
+    + geom_point()
+    + theme_minimal()                                          # layer 1: base theme
+    + theme(
+        axis_text=element_text(size=10, color="#333333"),       # layer 2: override base
+        axis_text_x=element_text(rotation=45, ha="right"),     # layer 3: x-axis specific
+        axis_text_y=element_blank(),                           # layer 3: hide y tick labels
+    )
 )
 ```
 

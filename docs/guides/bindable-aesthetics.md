@@ -158,6 +158,29 @@ Common computed variables:
 - `after_stat("ncount")` — count normalized to a maximum of 1
 - `after_stat("ndensity")` — density normalized to a maximum of 1
 
+### Computed variables by stat
+
+Each stat computes specific variables you can reference with `after_stat()`.
+The table below lists what each stat produces:
+
+| Stat | Computed variables | Description |
+|------|--------------------|-------------|
+| `stat_bin` | `count`, `density`, `width` | Histogram binning of continuous x |
+| `stat_count` | `count`, `prop` | Row counts per unique x |
+| `stat_density` | `y` (density) | Kernel density estimate |
+| `stat_ecdf` | `y` (ecdf) | Empirical cumulative distribution |
+| `stat_smooth` | `y`, `ymin`, `ymax` | Fitted line with confidence band |
+| `stat_summary` | `y`, `ymin`, `ymax` | Summary statistics per x group |
+| `stat_summary_bin` | `y`, `ymin`, `ymax` | Summary statistics per x bin |
+| `stat_boxplot` | `ymin`, `lower`, `middle`, `upper`, `ymax`, `outliers_y` | Five-number summary |
+| `stat_cor` | `label` | Correlation coefficient text |
+| `stat_poly_eq` | `label` | Polynomial equation and R² text |
+| `stat_ellipse` | `x`, `y` | Confidence ellipse boundary |
+| `stat_function` | `x`, `y` | Evaluated y = f(x) |
+| `stat_quantile` | `x`, `y`, `group` | Quantile regression lines |
+| `stat_sum` | `x`, `y`, `n` | Counts at each (x, y) position |
+| `stat_unique` | *(original columns)* | Deduplicated observations |
+
 ### `after_scale()`
 
 Use `after_scale()` to reference an aesthetic value after it has been mapped through its scale.

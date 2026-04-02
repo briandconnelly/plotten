@@ -12,7 +12,15 @@ if TYPE_CHECKING:
 
 
 class StatFunction:
-    """Stat that evaluates y = f(x) over an x grid."""
+    """Stat that evaluates y = f(x) over an x grid.
+
+    Computed Variables
+    ------------------
+    x
+        Evenly spaced x values over the specified range.
+    y
+        Function values f(x) at each x position.
+    """
 
     required_aes: frozenset[str] = frozenset()
 

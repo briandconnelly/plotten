@@ -7,7 +7,15 @@ import narwhals.typing
 
 
 class StatCount:
-    """Group by x and count rows to produce y."""
+    """Group by x and count rows to produce y.
+
+    Computed Variables
+    ------------------
+    count
+        Number of observations per group.
+    prop
+        Proportion of total observations per group.
+    """
 
     required_aes: frozenset[str] = frozenset({"x"})
 
