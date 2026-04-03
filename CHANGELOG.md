@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### Pythonic API improvements
+
+- **Enum parameters**: `facet_wrap()`, `facet_grid()`, `geom_smooth()`, `Plot.save()`, and `PlotGrid.save()` now advertise `StrEnum` types (`FacetScales`, `SmoothMethod`, `SizeUnit`, `StripPosition`, `Direction`) in their signatures and defaults.
+Bare strings continue to work — this is a type-annotation-only change for better IDE autocomplete.
+- **`options()` context manager**: Temporarily override global theme or strict mode with automatic restore, similar to pandas `option_context`.
+- **`ggsave()` deprecated**: Use `plot.save()` instead. `ggsave()` now emits a `DeprecationWarning` and delegates to `Plot.save()`.
+- **`Plot.save()` enhanced**: Added `transparent` parameter, changed default `dpi` from 150 to 300 (matching the old `ggsave` default), and improved single-dimension sizing to preserve aspect ratio.
+- **`PlotGrid.save()` enhanced**: Same improvements as `Plot.save()` — `transparent`, `dpi=300`, aspect-ratio-preserving sizing.
+
 ## 0.1.0 — Initial Public Release
 
 First public release of plotten, a grammar-of-graphics plotting library for Python.

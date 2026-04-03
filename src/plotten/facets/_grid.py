@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 
+from plotten._enums import FacetScales
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -16,7 +18,7 @@ class FacetGrid:
 
     rows: str | None = None
     cols: str | None = None
-    scales: str = "fixed"
+    scales: str | FacetScales = FacetScales.FIXED
     labeller: Callable[[str], str] | None = None
 
     def facet_data(self, data: Any) -> list[tuple[str, Any]]:
@@ -66,7 +68,7 @@ class FacetGrid:
 def facet_grid(
     rows: str | None = None,
     cols: str | None = None,
-    scales: str = "fixed",
+    scales: str | FacetScales = FacetScales.FIXED,
     labeller: Callable[[str], str] | None = None,
 ) -> FacetGrid:
     """Create a grid of panels defined by row and/or column variables.
@@ -77,9 +79,10 @@ def facet_grid(
         Column name whose unique values define the panel rows.
     cols : str or None
         Column name whose unique values define the panel columns.
-    scales : str
-        Whether axis scales are shared: ``"fixed"`` (default), ``"free"``,
-        ``"free_x"``, or ``"free_y"``.
+    scales : str or FacetScales
+        Whether axis scales are shared: ``FacetScales.FIXED`` (default),
+        ``FacetScales.FREE``, ``FacetScales.FREE_X``, or ``FacetScales.FREE_Y``.
+        Plain strings like ``"fixed"`` are also accepted.
     labeller : callable or None
         Function that transforms facet level strings into strip labels.
 

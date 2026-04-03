@@ -41,3 +41,15 @@ class SizeUnit(StrEnum):
     CM = "cm"
     MM = "mm"
     PX = "px"
+
+
+class StripPosition(StrEnum):
+    TOP = "top"
+    BOTTOM = "bottom"
+    LEFT = "left"
+    RIGHT = "right"
+
+
+class Direction(StrEnum):
+    HORIZONTAL = "h"
+    VERTICAL = "v"

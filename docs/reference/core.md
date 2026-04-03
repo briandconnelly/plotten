@@ -22,6 +22,28 @@ The essential functions for creating and configuring plots.
 
 ::: plotten.ggsave
 
+## Options
+
+::: plotten.options
+
+## Enums
+
+::: plotten.FacetScales
+
+::: plotten.SmoothMethod
+
+::: plotten.SizeUnit
+
+::: plotten.LegendPosition
+
+::: plotten.StripPosition
+
+::: plotten.Direction
+
+::: plotten.AnnotationType
+
+::: plotten.AnnotationCoord
+
 ## Computed aesthetics
 
 ::: plotten.after_stat

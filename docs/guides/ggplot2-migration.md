@@ -94,18 +94,18 @@ The vast majority of the API is intentionally identical:
 === "Python"
 
     ```python
-    from plotten import ggplot, aes, geom_point, ggsave
+    from plotten import ggplot, aes, geom_point
 
     p = ggplot(mpg, aes(x="displ", y="hwy")) + geom_point()
 
-    ggsave(p, "scatter.png", width=8, height=5, dpi=300)
+    p.save("scatter.png", width=8, height=5, dpi=300)
     ```
 
-!!! warning "ggsave takes the plot as the first argument"
+!!! note "Use `plot.save()` instead of `ggsave()`"
 
-    In ggplot2, `ggsave()` defaults to saving the last plot.
-    In plotten, the plot is always the first argument: `ggsave(plot, filename)`.
-    There is no implicit "last plot" concept.
+    plotten provides `plot.save()` as the Pythonic way to save plots.
+    The standalone `ggsave()` function is deprecated — use the method instead.
+    Unlike ggplot2, there is no implicit "last plot" concept.
 
 ## Scales
 
@@ -334,7 +334,7 @@ plotten also includes `position_beeswarm()`, which arranges points to avoid over
 | Column names in `aes()` | Bare names: `aes(x = displ)` | Strings: `aes(x="displ")` |
 | Facet syntax | Formula: `facet_wrap(~class)` | String: `facet_wrap("class")` |
 | Facet grid | `facet_grid(drv ~ cyl)` | `facet_grid(rows="drv", cols="cyl")` |
-| `ggsave()` | `ggsave(path)` (uses last plot) | `ggsave(plot, path)` (explicit plot) |
+| Saving | `ggsave(path)` (uses last plot) | `plot.save(path)` (method on Plot) |
 | Theme properties | Dots: `plot.title` | Underscores: `plot_title` |
 | Font weight | `face = "bold"` | `weight="bold"` |
 | Text rotation | `angle = 45` | `rotation=45` |

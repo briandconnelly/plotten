@@ -6,6 +6,8 @@ from typing import TYPE_CHECKING, Any
 
 import narwhals as nw
 
+from plotten._enums import Direction, FacetScales, StripPosition
+
 if TYPE_CHECKING:
     from collections.abc import Callable
 
@@ -17,11 +19,11 @@ class FacetWrap:
     facets: str
     nrow: int | None = None
     ncol: int | None = None
-    scales: str = "fixed"
+    scales: str | FacetScales = FacetScales.FIXED
     labeller: Callable[[str], str] | None = None
     drop: bool = True
-    strip_position: str = "top"
-    dir: str = "h"
+    strip_position: str | StripPosition = StripPosition.TOP
+    dir: str | Direction = Direction.HORIZONTAL
 
     def facet_data(self, data: Any) -> list[tuple[str, Any]]:
         """Split data by faceting column. Returns (label, native_df) pairs."""
@@ -63,11 +65,11 @@ def facet_wrap(
     facets: str,
     nrow: int | None = None,
     ncol: int | None = None,
-    scales: str = "fixed",
+    scales: str | FacetScales = FacetScales.FIXED,
     labeller: Callable[[str], str] | None = None,
     drop: bool = True,
-    strip_position: str = "top",
-    dir: str = "h",
+    strip_position: str | StripPosition = StripPosition.TOP,
+    dir: str | Direction = Direction.HORIZONTAL,
 ) -> FacetWrap:
     """Wrap a one-dimensional sequence of panels into a two-dimensional grid.
 
@@ -79,17 +81,21 @@ def facet_wrap(
         Number of rows in the panel grid.
     ncol : int or None
         Number of columns in the panel grid.
-    scales : str
-        Whether axis scales are shared: ``"fixed"`` (default), ``"free"``,
-        ``"free_x"``, or ``"free_y"``.
+    scales : str or FacetScales
+        Whether axis scales are shared: ``FacetScales.FIXED`` (default),
+        ``FacetScales.FREE``, ``FacetScales.FREE_X``, or ``FacetScales.FREE_Y``.
+        Plain strings like ``"fixed"`` are also accepted.
     labeller : callable or None
         Function that transforms facet level strings into strip labels.
     drop : bool
         Whether to drop unused factor levels.
-    strip_position : str
-        Position of strip labels: ``"top"`` (default) or ``"bottom"``.
-    dir : str
-        Panel fill direction: ``"h"`` for row-major, ``"v"`` for column-major.
+    strip_position : str or StripPosition
+        Position of strip labels: ``StripPosition.TOP`` (default) or
+        ``StripPosition.BOTTOM``. Plain strings are also accepted.
+    dir : str or Direction
+        Panel fill direction: ``Direction.HORIZONTAL`` (default) for row-major,
+        ``Direction.VERTICAL`` for column-major. Plain strings ``"h"``/``"v"``
+        are also accepted.
 
     Examples
     --------

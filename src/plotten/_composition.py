@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Self
 
 from plotten._defaults import MAPPED_AESTHETICS
+from plotten._enums import SizeUnit
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -93,15 +94,30 @@ class PlotGrid:
     def save(
         self,
         path: str,
-        dpi: int = 150,
+        dpi: int = 300,
         width: float | None = None,
         height: float | None = None,
-        units: str = "in",
+        units: str | SizeUnit = SizeUnit.INCHES,
+        transparent: bool = False,
     ) -> None:
-        """Render and save the grid to a file."""
-        import matplotlib.pyplot as plt
+        """Render and save the grid to a file.
 
-        from plotten._enums import SizeUnit
+        Parameters
+        ----------
+        path : str
+            Output file path. Format is inferred from the extension.
+        dpi : int, optional
+            Resolution in dots per inch (default 300).
+        width, height : float, optional
+            Figure dimensions in *units*. If only one is given, the other
+            is calculated to preserve the aspect ratio.
+        units : str or SizeUnit, optional
+            Units for *width* / *height*: ``SizeUnit.INCHES`` (default),
+            ``SizeUnit.CM``, ``SizeUnit.MM``, or ``SizeUnit.PX``.
+        transparent : bool, optional
+            If True, the figure and axes backgrounds are transparent.
+        """
+        import matplotlib.pyplot as plt
 
         fig = render_grid(self)
         if width is not None or height is not None:
@@ -117,10 +133,23 @@ class PlotGrid:
                 case _:
                     factor = 1.0
             cur_w, cur_h = fig.get_size_inches()
-            new_w = width * factor if width is not None else cur_w
-            new_h = height * factor if height is not None else cur_h
+            aspect = cur_w / cur_h
+            if width is not None and height is not None:
+                new_w = width * factor
+                new_h = height * factor
+            elif width is not None:
+                new_w = width * factor
+                new_h = new_w / aspect
+            else:
+                assert height is not None
+                new_h = height * factor
+                new_w = new_h * aspect
             fig.set_size_inches(new_w, new_h)
-        fig.savefig(path, dpi=dpi, bbox_inches="tight")
+        if transparent:
+            fig.patch.set_alpha(0.0)
+            for ax in fig.get_axes():
+                ax.patch.set_alpha(0.0)
+        fig.savefig(path, dpi=dpi, bbox_inches="tight", transparent=transparent)
         plt.close(fig)
 
     def _repr_png_(self) -> bytes:

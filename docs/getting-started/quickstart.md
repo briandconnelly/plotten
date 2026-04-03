@@ -70,10 +70,8 @@ from plotten import theme_minimal, theme, element_text
 Export to any format supported by matplotlib:
 
 ```python
-from plotten import ggsave
-
 plot = ggplot(mpg, aes(x="displ", y="hwy")) + geom_point()
-ggsave(plot, "figure.png", width=6, height=4, dpi=300)
+plot.save("figure.png", width=6, height=4, dpi=300)
 ```
 
 ## Using polars or pandas

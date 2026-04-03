@@ -21,10 +21,12 @@ from plotten._cut import cut_interval, cut_number, cut_width
 from plotten._enums import (
     AnnotationCoord,
     AnnotationType,
+    Direction,
     FacetScales,
     LegendPosition,
     SizeUnit,
     SmoothMethod,
+    StripPosition,
 )
 from plotten._expand_limits import ExpandLimits, expand_limits
 from plotten._ggsave import ggsave
@@ -38,6 +40,7 @@ from plotten._guides import (
 from plotten._interaction import Interaction, interaction
 from plotten._labs import Labs, labs
 from plotten._limits import xlim, ylim
+from plotten._options import options
 from plotten._plot import Plot, ggplot
 from plotten._spec import from_spec, from_spec_json, spec_schema
 from plotten._validation import (
@@ -356,6 +359,7 @@ __all__ = [
     "CoordPolar",
     "CoordTrans",
     "DataError",
+    "Direction",
     "ElementBlank",
     "ElementLine",
     "ElementRect",
@@ -426,6 +430,7 @@ __all__ = [
     "SmoothMethod",
     "SpecError",
     "StatError",
+    "StripPosition",
     "Theme",
     "ValidationError",
     "Watermark",
@@ -542,6 +547,7 @@ __all__ = [
     "oob_censor",
     "oob_keep",
     "oob_squish",
+    "options",
     "plot_annotation",
     "plot_dumbbell",
     "plot_forest",

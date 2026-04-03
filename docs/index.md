@@ -37,7 +37,7 @@ mpg = load_dataset("mpg")
 - **13 built-in themes** -- from `theme_minimal` to `theme_tufte` to `theme_economist`, plus full customization via `theme()`
 - **Plot composition** -- combine plots with `|` and `/`, or use `plot_grid()` for arbitrary layouts
 - **Works with pandas and polars** -- via [narwhals](https://github.com/narwhals-dev/narwhals), no conversion needed
-- **Publication-quality export** -- `ggsave()` with 300 DPI default, size in inches/cm/mm
+- **Publication-quality export** -- `plot.save()` with 300 DPI default, size in inches/cm/mm
 - **Accessibility auditing** -- `accessibility_report()` checks colorblind safety, contrast ratios, and font sizes
 - **Helpful error messages** -- typo suggestions for column names, geom parameters, and theme properties
 - **Vega-Lite export** -- `to_vegalite(plot)` and `to_html(plot)` for web output

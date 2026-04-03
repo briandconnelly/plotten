@@ -103,10 +103,11 @@ class Plot:
     def save(
         self,
         path: str,
-        dpi: int = 150,
+        dpi: int = 300,
         width: float | None = None,
         height: float | None = None,
-        units: str = "in",
+        units: str | SizeUnit = SizeUnit.INCHES,
+        transparent: bool = False,
     ) -> None:
         """Render and save the plot to a file.
 
@@ -116,13 +117,17 @@ class Plot:
             Output file path. Format is inferred from the extension
             (e.g. ``"plot.png"``, ``"plot.pdf"``).
         dpi : int, optional
-            Resolution in dots per inch (default 150).
+            Resolution in dots per inch (default 300).
         width, height : float, optional
             Figure dimensions in *units*. If omitted, matplotlib defaults
             are used.
-        units : str, optional
-            Units for *width* / *height*: ``"in"`` (default), ``"cm"``,
-            ``"mm"``, or ``"px"``.
+        units : str or SizeUnit, optional
+            Units for *width* / *height*: ``SizeUnit.INCHES`` (default),
+            ``SizeUnit.CM``, ``SizeUnit.MM``, or ``SizeUnit.PX``.
+            Plain strings like ``"in"`` are also accepted.
+        transparent : bool, optional
+            If True, the figure and axes backgrounds are transparent
+            (default False).
 
         Examples
         --------
@@ -148,10 +153,24 @@ class Plot:
                 case _:
                     factor = 1.0
             cur_w, cur_h = fig.get_size_inches()
-            new_w = width * factor if width is not None else cur_w
-            new_h = height * factor if height is not None else cur_h
+            aspect = cur_w / cur_h
+            if width is not None and height is not None:
+                new_w = width * factor
+                new_h = height * factor
+            elif width is not None:
+                new_w = width * factor
+                new_h = new_w / aspect
+            else:
+                assert height is not None
+                new_h = height * factor
+                new_w = new_h * aspect
             fig.set_size_inches(new_w, new_h)
-        fig.savefig(path, dpi=dpi, bbox_inches="tight")
+        if transparent:
+            fig.patch.set_alpha(0.0)
+            for ax in fig.get_axes():
+                ax.patch.set_alpha(0.0)
+
+        fig.savefig(path, dpi=dpi, bbox_inches="tight", transparent=transparent)
         import matplotlib.pyplot as plt
 
         plt.close(fig)

@@ -469,6 +469,40 @@ old = theme_set(theme_minimal())
 theme_set(old)  # restore previous theme
 ```
 
+### `options()` context manager
+
+For temporary theme overrides, use the `options()` context manager.
+The previous theme is automatically restored when the block exits — even if an exception occurs:
+
+```python
+from plotten import options, theme_dark
+
+with options(theme=theme_dark()):
+    plot.show()  # renders with dark theme
+# previous theme is restored here
+```
+
+`options()` also accepts a `strict` parameter to temporarily enable strict mode (warnings become errors):
+
+```python
+from plotten import options
+
+with options(strict=True):
+    plot.show()  # any warnings will raise ValidationError
+```
+
+Context managers nest correctly:
+
+```python
+with options(theme=theme_dark()):
+    # dark theme active
+    with options(theme=theme_minimal()):
+        # minimal theme active
+        ...
+    # dark theme active again
+# original theme restored
+```
+
 ### `theme_get()`
 
 Retrieve the current global default theme:

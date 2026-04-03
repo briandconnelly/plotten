@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from plotten._aes import Aes
+from plotten._enums import SmoothMethod
 from plotten._layer import Layer
 from plotten.geoms._blank import GeomBlank
 from plotten.geoms._contour import GeomContour, GeomContourFilled
@@ -138,14 +139,20 @@ def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     )
 
 
-def geom_smooth(method: str = "loess", se: bool = True, degree: int = 2, **params: Any) -> Layer:
+def geom_smooth(
+    method: str | SmoothMethod = SmoothMethod.LOESS,
+    se: bool = True,
+    degree: int = 2,
+    **params: Any,
+) -> Layer:
     """Create a smooth trend line layer.
 
     Parameters
     ----------
-    method : str, optional
-        Smoothing method: ``"loess"`` (default), ``"ols"`` / ``"lm"``
-        (linear), ``"poly"``, or ``"moving_average"``.
+    method : str or SmoothMethod, optional
+        Smoothing method: ``SmoothMethod.LOESS`` (default), ``SmoothMethod.OLS``
+        (linear), ``SmoothMethod.POLY``, or ``SmoothMethod.MOVING_AVERAGE``.
+        Plain strings like ``"loess"`` and ``"lm"`` are also accepted.
     se : bool, optional
         Whether to draw the confidence interval band (default ``True``).
     degree : int, optional
