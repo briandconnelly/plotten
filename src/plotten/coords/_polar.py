@@ -2,19 +2,21 @@ from __future__ import annotations
 
 from typing import Any
 
+from plotten._enums import PolarAxis
+
 
 class CoordPolar:
     """Polar coordinate system."""
 
     def __init__(
         self,
-        theta: str = "x",
+        theta: str | PolarAxis = PolarAxis.X,
         start: float = 0,
-        direction: int = 1,
+        clockwise: bool = True,
     ) -> None:
         self.theta = theta
         self.start = start
-        self.direction = direction
+        self.direction = 1 if clockwise else -1
 
     def transform(self, data: Any, ax: Any) -> Any:
         """Apply polar coordinate settings to the axes."""
@@ -57,7 +59,9 @@ class CoordPolar:
         return data
 
 
-def coord_polar(theta: str = "x", start: float = 0, direction: int = 1) -> CoordPolar:
+def coord_polar(
+    theta: str | PolarAxis = PolarAxis.X, start: float = 0, clockwise: bool = True
+) -> CoordPolar:
     """Create a polar coordinate system for pie and radar charts.
 
     Parameters
@@ -66,8 +70,8 @@ def coord_polar(theta: str = "x", start: float = 0, direction: int = 1) -> Coord
         Which aesthetic maps to the angle: ``"x"`` (default) or ``"y"``.
     start : float
         Offset in radians from 12 o'clock.
-    direction : int
-        ``1`` for clockwise, ``-1`` for counter-clockwise.
+    clockwise : bool
+        ``True`` (default) for clockwise, ``False`` for counter-clockwise.
 
     Examples
     --------
@@ -75,6 +79,6 @@ def coord_polar(theta: str = "x", start: float = 0, direction: int = 1) -> Coord
     >>> from plotten import ggplot, aes, geom_bar
     >>> from plotten.coords import coord_polar
     >>> df = pd.DataFrame({"cat": ["a", "b", "c"], "val": [3, 1, 2]})
-    >>> ggplot(df, aes(x="cat", y="val")) + geom_bar(stat="identity") + coord_polar()
+    >>> ggplot(df, aes(x="cat", y="val")) + geom_bar() + coord_polar()
     """
-    return CoordPolar(theta=theta, start=start, direction=direction)
+    return CoordPolar(theta=theta, start=start, clockwise=clockwise)

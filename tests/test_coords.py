@@ -224,7 +224,7 @@ class TestCoordPolar:
         assert c.start == pytest.approx(np.pi / 2)
 
     def test_counterclockwise(self):
-        c = coord_polar(direction=-1)
+        c = coord_polar(clockwise=False)
         assert c.direction == -1
 
     def test_polar_axes_created(self):
@@ -252,7 +252,7 @@ class TestCoordPolar:
 
     def test_polar_direction(self):
         df = pd.DataFrame({"x": range(4), "y": [1, 2, 3, 4]})
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + coord_polar(direction=-1)
+        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + coord_polar(clockwise=False)
         fig = render(p)
         ax = fig.axes[0]
         assert ax.get_theta_direction() == -1  # type: ignore[attr-defined]

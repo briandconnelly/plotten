@@ -2,19 +2,24 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomHistogram:
+class GeomHistogram(GeomRepr):
     """Draw histogram bars."""
 
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = False
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "width", "hatch"})
+
+    def __init__(self, orientation: str = "x") -> None:
+        self._orientation = orientation
 
     def default_stat(self) -> Any:
         from plotten.stats._bin import StatBin
@@ -45,4 +50,7 @@ class GeomHistogram:
             if hatch is not None:
                 kwargs["hatch"] = hatch
 
-        ax.bar(x_vals, y_vals, width=width, **kwargs)
+        if self._orientation == "y":
+            ax.barh(x_vals, y_vals, height=width, **kwargs)
+        else:
+            ax.bar(x_vals, y_vals, width=width, **kwargs)

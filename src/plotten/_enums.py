@@ -53,3 +53,35 @@ class StripPosition(StrEnum):
 class Direction(StrEnum):
     HORIZONTAL = "h"
     VERTICAL = "v"
+
+
+class TagLevel(StrEnum):
+    UPPERCASE = "A"
+    LOWERCASE = "a"
+    NUMERIC = "1"
+    ROMAN = "i"
+
+
+class ViridisOption(StrEnum):
+    VIRIDIS = "viridis"
+    MAGMA = "magma"
+    INFERNO = "inferno"
+    PLASMA = "plasma"
+    CIVIDIS = "cividis"
+
+
+class Transform(StrEnum):
+    LOG10 = "log10"
+    SQRT = "sqrt"
+    REVERSE = "reverse"
+
+
+class PolarAxis(StrEnum):
+    X = "x"
+    Y = "y"
+
+
+class GuideType(StrEnum):
+    NONE = "none"
+    LEGEND = "legend"
+    COLORBAR = "colorbar"

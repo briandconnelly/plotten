@@ -4,13 +4,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomBlank:
+class GeomBlank(GeomRepr):
     """A geom that draws nothing.
 
     Useful for expanding axis limits from data without rendering any marks.

@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from plotten._enums import Transform
     from plotten.scales._sec_axis import SecAxis
 
 import narwhals as nw
@@ -163,11 +164,43 @@ class ScaleDiscrete(ScaleBase):
         return result
 
 
-def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:
+_TRANSFORMS: dict[str, str] = {
+    "log10": "ScaleLog",
+    "sqrt": "ScaleSqrt",
+    "reverse": "ScaleReverse",
+}
+
+
+def _make_transformed(aesthetic: str, transform: str, kwargs: dict[str, Any]) -> ScaleContinuous:
+    """Create a transformed scale from a transform name string."""
+    if transform == "log10":
+        from plotten.scales._log import ScaleLog
+
+        return ScaleLog(aesthetic=aesthetic, **kwargs)
+    if transform == "sqrt":
+        from plotten.scales._sqrt import ScaleSqrt
+
+        return ScaleSqrt(aesthetic=aesthetic, **kwargs)
+    if transform == "reverse":
+        from plotten.scales._reverse import ScaleReverse
+
+        return ScaleReverse(aesthetic=aesthetic, **kwargs)
+    from plotten._validation import ScaleError
+
+    msg = f"Unknown transform: {transform!r}. Valid transforms: {sorted(_TRANSFORMS)}"
+    raise ScaleError(msg)
+
+
+def scale_x_continuous(
+    *, transform: str | Transform | None = None, **kwargs: Any
+) -> ScaleContinuous:
     """Set continuous x-axis scale with custom breaks, labels, or limits.
 
     Parameters
     ----------
+    transform : str, optional
+        Axis transformation: ``"log10"``, ``"sqrt"``, or ``"reverse"``.
+        Shortcut for ``scale_x_log10()``, ``scale_x_sqrt()``, etc.
     breaks : list of float or callable, optional
         Explicit tick positions or a function that receives limits.
     limits : tuple of float, optional
@@ -182,6 +215,7 @@ def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:
     ScaleError
         If both ``padding`` and ``expand`` are specified.
         If ``breaks`` and ``labels`` have different lengths.
+        If *transform* is not a recognized transform name.
 
     Examples
     --------
@@ -190,15 +224,28 @@ def scale_x_continuous(**kwargs: Any) -> ScaleContinuous:
     >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
     >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_continuous(limits=(0, 5))
     Plot(...)
+
+    With a transform:
+
+    >>> df = pd.DataFrame({"x": [1, 10, 100], "y": [1, 2, 3]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_x_continuous(transform="log10")
+    Plot(...)
     """
+    if transform is not None:
+        return _make_transformed("x", transform, kwargs)
     return ScaleContinuous(aesthetic="x", **kwargs)
 
 
-def scale_y_continuous(**kwargs: Any) -> ScaleContinuous:
+def scale_y_continuous(
+    *, transform: str | Transform | None = None, **kwargs: Any
+) -> ScaleContinuous:
     """Set continuous y-axis scale with custom breaks, labels, or limits.
 
     Parameters
     ----------
+    transform : str, optional
+        Axis transformation: ``"log10"``, ``"sqrt"``, or ``"reverse"``.
+        Shortcut for ``scale_y_log10()``, ``scale_y_sqrt()``, etc.
     breaks : list of float or callable, optional
         Explicit tick positions or a function that receives limits.
     limits : tuple of float, optional
@@ -213,6 +260,7 @@ def scale_y_continuous(**kwargs: Any) -> ScaleContinuous:
     ScaleError
         If both ``padding`` and ``expand`` are specified.
         If ``breaks`` and ``labels`` have different lengths.
+        If *transform* is not a recognized transform name.
 
     Examples
     --------
@@ -221,7 +269,15 @@ def scale_y_continuous(**kwargs: Any) -> ScaleContinuous:
     >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
     >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_continuous(limits=(0, 10))
     Plot(...)
+
+    With a transform:
+
+    >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 10, 100]})
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + scale_y_continuous(transform="log10")
+    Plot(...)
     """
+    if transform is not None:
+        return _make_transformed("y", transform, kwargs)
     return ScaleContinuous(aesthetic="y", **kwargs)
 
 

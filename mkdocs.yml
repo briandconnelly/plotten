@@ -52,6 +52,7 @@ plugins:
           - guides/bindable-aesthetics.md: How aes() mappings work, setting vs mapping, computed aesthetics
           - guides/theming.md: Built-in themes, element system, custom themes, Google Fonts
           - guides/ggplot2-migration.md: Side-by-side R and Python examples for ggplot2 users
+          - guides/differences-from-ggplot2.md: Deliberate API divergences from ggplot2 for Pythonic design
           - guides/dataframes.md: Using polars, pandas, and other DataFrame libraries with plotten
         API Reference:
           - reference/core.md: ggplot, aes, labs, ggsave, guides, annotations
@@ -107,6 +108,7 @@ nav:
       - Bindable Aesthetics: guides/bindable-aesthetics.md
       - Theming: guides/theming.md
       - ggplot2 Migration: guides/ggplot2-migration.md
+      - Differences from ggplot2: guides/differences-from-ggplot2.md
       - Working with DataFrames: guides/dataframes.md
   - Reference:
       - Core: reference/core.md

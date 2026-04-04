@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomRaster:
+class GeomRaster(GeomRepr):
     """Draw a raster (grid of colored cells) using pcolormesh."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "z"})

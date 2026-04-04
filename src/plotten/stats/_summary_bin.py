@@ -20,16 +20,26 @@ class StatSummaryBin:
     def __init__(
         self,
         bins: int = 30,
-        fun_y: str | Callable = "mean",
-        fun_ymin: str | Callable = "mean_se_lower",
-        fun_ymax: str | Callable = "mean_se_upper",
+        center: str | Callable = "mean",
+        lower: str | Callable = "mean_se_lower",
+        upper: str | Callable = "mean_se_upper",
+        # Deprecated aliases
+        fun_y: str | Callable | None = None,
+        fun_ymin: str | Callable | None = None,
+        fun_ymax: str | Callable | None = None,
     ) -> None:
         from plotten.stats._summary import _resolve_fun
 
+        if fun_y is not None:
+            center = fun_y
+        if fun_ymin is not None:
+            lower = fun_ymin
+        if fun_ymax is not None:
+            upper = fun_ymax
         self.bins = bins
-        self._fun_y = _resolve_fun(fun_y)
-        self._fun_ymin = _resolve_fun(fun_ymin)
-        self._fun_ymax = _resolve_fun(fun_ymax)
+        self._fun_y = _resolve_fun(center)
+        self._fun_ymin = _resolve_fun(lower)
+        self._fun_ymax = _resolve_fun(upper)
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))

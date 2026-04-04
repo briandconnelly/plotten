@@ -20,12 +20,12 @@ def label_comma() -> Callable[[float], str]:
     return lambda x: f"{x:,.0f}"
 
 
-def label_percent(accuracy: int = 1, scale: float = 100) -> Callable[[float], str]:
+def label_percent(precision: int = 1, scale: float = 100) -> Callable[[float], str]:
     """Format numbers as percentages.
 
     Parameters
     ----------
-    accuracy : int
+    precision : int
         Number of decimal places.
     scale : float
         Multiplier applied before formatting.  Use ``100`` (default) when
@@ -39,7 +39,7 @@ def label_percent(accuracy: int = 1, scale: float = 100) -> Callable[[float], st
     >>> label_percent(scale=1)(50)
     '50.0%'
     """
-    return lambda x: f"{x * scale:.{accuracy}f}%"
+    return lambda x: f"{x * scale:.{precision}f}%"
 
 
 def label_dollar(prefix: str = "$") -> Callable[[float], str]:
@@ -52,31 +52,34 @@ def label_scientific() -> Callable[[float], str]:
     return lambda x: f"{x:.2e}"
 
 
-def label_number(accuracy: int = 0, big_mark: str = ",") -> Callable[[float], str]:
+def label_number(
+    precision: int = 0,
+    thousands_separator: str = ",",
+) -> Callable[[float], str]:
     """Format numbers with configurable precision and thousands separator.
 
     Parameters
     ----------
-    accuracy : int
+    precision : int
         Number of decimal places.
-    big_mark : str
+    thousands_separator : str
         Thousands separator (default ``","``).  Use ``"."`` for European
         style or ``""`` for no separator.
 
     Examples
     --------
-    >>> label_number(accuracy=2)(1234.5)
+    >>> label_number(precision=2)(1234.5)
     '1,234.50'
-    >>> label_number(big_mark=".")(1234567)
+    >>> label_number(thousands_separator=".")(1234567)
     '1.234.567'
     """
 
     def _fmt(x: float) -> str:
-        if accuracy > 0:
-            formatted = f"{x:.{accuracy}f}"
+        if precision > 0:
+            formatted = f"{x:.{precision}f}"
         else:
             formatted = f"{x:.0f}"
-        if not big_mark:
+        if not thousands_separator:
             return formatted
         # Always apply thousands grouping, then substitute the separator
         parts = formatted.split(".")
@@ -89,7 +92,7 @@ def label_number(accuracy: int = 0, big_mark: str = ",") -> Callable[[float], st
             groups.append(int_part[-3:])
             int_part = int_part[:-3]
         groups.append(int_part)
-        int_part = big_mark.join(reversed(groups))
+        int_part = thousands_separator.join(reversed(groups))
         if negative:
             int_part = "-" + int_part
         if len(parts) > 1:
@@ -99,15 +102,15 @@ def label_number(accuracy: int = 0, big_mark: str = ",") -> Callable[[float], st
     return _fmt
 
 
-def label_bytes(units: str = "auto", accuracy: int = 1) -> Callable[[float], str]:
+def label_bytes(unit: str = "auto", precision: int = 1) -> Callable[[float], str]:
     """Format numbers as byte sizes (KB, MB, GB, etc.).
 
     Parameters
     ----------
-    units : str
+    unit : str
         Fixed unit (``"B"``, ``"KB"``, ``"MB"``, ``"GB"``, ``"TB"``) or
         ``"auto"`` to pick based on magnitude.
-    accuracy : int
+    precision : int
         Number of decimal places.
 
     Examples
@@ -121,8 +124,8 @@ def label_bytes(units: str = "auto", accuracy: int = 1) -> Callable[[float], str
     """
     _units = ["B", "KB", "MB", "GB", "TB", "PB", "EB"]
     _fixed_exp: int | None = None
-    if units != "auto":
-        units_upper = units.upper()
+    if unit != "auto":
+        units_upper = unit.upper()
         if units_upper in _units:
             _fixed_exp = _units.index(units_upper)
 
@@ -131,20 +134,20 @@ def label_bytes(units: str = "auto", accuracy: int = 1) -> Callable[[float], str
             return f"0 {_units[_fixed_exp if _fixed_exp is not None else 0]}"
         if _fixed_exp is not None:
             val = x / (1024**_fixed_exp)
-            return f"{val:.{accuracy}f} {_units[_fixed_exp]}"
+            return f"{val:.{precision}f} {_units[_fixed_exp]}"
         exp = min(int(math.log(abs(x), 1024)), len(_units) - 1)
         val = x / (1024**exp)
-        return f"{val:.{accuracy}f} {_units[exp]}"
+        return f"{val:.{precision}f} {_units[exp]}"
 
     return _fmt
 
 
-def label_ordinal(big_mark: str = "") -> Callable[[float], str]:
+def label_ordinal(thousands_separator: str = "") -> Callable[[float], str]:
     """Format numbers as ordinals (1st, 2nd, 3rd, ...).
 
     Parameters
     ----------
-    big_mark : str
+    thousands_separator : str
         Thousands separator (default: none).
 
     Examples
@@ -156,8 +159,8 @@ def label_ordinal(big_mark: str = "") -> Callable[[float], str]:
 
     def _fmt(x: float) -> str:
         n = int(x)
-        if big_mark:
-            n_str = f"{n:,}".replace(",", big_mark)
+        if thousands_separator:
+            n_str = f"{n:,}".replace(",", thousands_separator)
         else:
             n_str = str(n)
         if 11 <= abs(n) % 100 <= 13:
@@ -174,12 +177,12 @@ def label_ordinal(big_mark: str = "") -> Callable[[float], str]:
     return _fmt
 
 
-def label_date(fmt: str = "%Y-%m-%d") -> Callable[[float], str]:
+def label_date(format_string: str = "%Y-%m-%d") -> Callable[[float], str]:
     """Format matplotlib date numbers as date strings.
 
     Parameters
     ----------
-    fmt : str
+    format_string : str
         ``strftime`` format string.
 
     Examples
@@ -192,7 +195,7 @@ def label_date(fmt: str = "%Y-%m-%d") -> Callable[[float], str]:
     def _fmt(x: float) -> str:
         try:
             dt = mdates.num2date(x)
-            return dt.strftime(fmt)
+            return dt.strftime(format_string)
         except (ValueError, OverflowError):
             return str(x)
 
@@ -227,14 +230,14 @@ def label_log(base: int = 10) -> Callable[[float], str]:
     return _fmt
 
 
-def label_si(accuracy: int = 1) -> Callable[[float], str]:
+def label_si(precision: int = 1) -> Callable[[float], str]:
     """Format numbers with SI prefixes (k, M, G, T, ...).
 
     Uses base-1000 (not 1024).  For byte sizes use :func:`label_bytes`.
 
     Parameters
     ----------
-    accuracy : int
+    precision : int
         Number of decimal places.
 
     Examples
@@ -251,16 +254,16 @@ def label_si(accuracy: int = 1) -> Callable[[float], str]:
         ax = abs(x)
         for threshold, prefix in _SI_PREFIXES:
             if ax >= threshold:
-                return f"{sign}{ax / threshold:.{accuracy}f}{prefix}"
+                return f"{sign}{ax / threshold:.{precision}f}{prefix}"
         # Below 1k — format as plain number
         if ax == int(ax):
             return f"{sign}{int(ax)}"
-        return f"{sign}{ax:.{accuracy}f}"
+        return f"{sign}{ax:.{precision}f}"
 
     return _fmt
 
 
-def label_pvalue(accuracy: int = 3, threshold: float = 0.001) -> Callable[[float], str]:
+def label_pvalue(precision: int = 3, threshold: float = 0.001) -> Callable[[float], str]:
     """Format p-values with conventional scientific notation.
 
     Values below *threshold* are displayed as ``"< {threshold}"``.
@@ -268,7 +271,7 @@ def label_pvalue(accuracy: int = 3, threshold: float = 0.001) -> Callable[[float
 
     Parameters
     ----------
-    accuracy : int
+    precision : int
         Decimal places for values above the threshold.
     threshold : float
         Values below this are shown as ``"< {threshold}"``.
@@ -287,12 +290,12 @@ def label_pvalue(accuracy: int = 3, threshold: float = 0.001) -> Callable[[float
             return "1"
         if x < threshold:
             return f"< {threshold}"
-        return f"{x:.{accuracy}f}"
+        return f"{x:.{precision}f}"
 
     return _fmt
 
 
-def label_duration(accuracy: int = 0) -> Callable[[float], str]:
+def label_duration(precision: int = 0) -> Callable[[float], str]:
     """Format seconds as human-readable durations.
 
     Automatically picks the largest appropriate unit and includes
@@ -300,7 +303,7 @@ def label_duration(accuracy: int = 0) -> Callable[[float], str]:
 
     Parameters
     ----------
-    accuracy : int
+    precision : int
         Decimal places for the smallest displayed unit.
 
     Examples
@@ -332,8 +335,8 @@ def label_duration(accuracy: int = 0) -> Callable[[float], str]:
                     break
         if not parts:
             # Sub-second
-            if accuracy > 0:
-                return f"{x:.{accuracy}f}s"
+            if precision > 0:
+                return f"{x:.{precision}f}s"
             return f"{x:.1f}s"
         return " ".join(parts)
 
@@ -343,8 +346,8 @@ def label_duration(accuracy: int = 0) -> Callable[[float], str]:
 def label_currency(
     prefix: str = "$",
     suffix: str = "",
-    accuracy: int = 2,
-    big_mark: str = ",",
+    precision: int = 2,
+    thousands_separator: str = ",",
 ) -> Callable[[float], str]:
     """Format numbers as currency with configurable prefix, suffix, and precision.
 
@@ -357,18 +360,18 @@ def label_currency(
         Currency symbol placed before the number (default ``"$"``).
     suffix : str
         Currency symbol placed after the number (default ``""``).
-    accuracy : int
+    precision : int
         Number of decimal places (default 2).
-    big_mark : str
+    thousands_separator : str
         Thousands separator (default ``","``).
 
     Examples
     --------
     >>> label_currency()  # same as label_dollar
-    >>> fmt = label_currency(prefix="EUR ", accuracy=2)
+    >>> fmt = label_currency(prefix="EUR ", precision=2)
     >>> fmt(1234.5)
     'EUR 1,234.50'
-    >>> fmt2 = label_currency(prefix="", suffix=" kr", accuracy=0)
+    >>> fmt2 = label_currency(prefix="", suffix=" kr", precision=0)
     >>> fmt2(9500)
     '9,500 kr'
     """
@@ -376,9 +379,9 @@ def label_currency(
     def _fmt(x: float) -> str:
         negative = x < 0
         ax = abs(x)
-        formatted = f"{ax:,.{accuracy}f}"
-        if big_mark != ",":
-            formatted = formatted.replace(",", big_mark)
+        formatted = f"{ax:,.{precision}f}"
+        if thousands_separator != ",":
+            formatted = formatted.replace(",", thousands_separator)
         result = f"{prefix}{formatted}{suffix}"
         if negative:
             result = f"-{result}"

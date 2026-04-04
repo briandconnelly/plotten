@@ -120,12 +120,12 @@ class TestPlotAnnotation:
 
 
 class TestPlotGrid:
-    def test_plot_grid_ncol(self, p1, p2, p3):
-        grid = plot_grid(p1, p2, p3, ncol=2)
+    def test_plot_grid_n_cols(self, p1, p2, p3):
+        grid = plot_grid(p1, p2, p3, n_cols=2)
         assert isinstance(grid, PlotGrid)
 
-    def test_plot_grid_nrow(self, p1, p2, p3):
-        grid = plot_grid(p1, p2, p3, nrow=1)
+    def test_plot_grid_n_rows(self, p1, p2, p3):
+        grid = plot_grid(p1, p2, p3, n_rows=1)
         assert isinstance(grid, PlotGrid)
 
     def test_plot_grid_single(self, p1):
@@ -137,12 +137,12 @@ class TestPlotGrid:
         assert isinstance(grid, PlotGrid)
         assert len(grid.plots) == 0
 
-    def test_plot_grid_default_ncol(self, p1, p2):
+    def test_plot_grid_default_n_cols(self, p1, p2):
         grid = plot_grid(p1, p2)
         assert isinstance(grid, PlotGrid)
 
     def test_plot_grid_with_widths(self, p1, p2):
-        grid = plot_grid(p1, p2, ncol=2, widths=[2.0, 1.0])
+        grid = plot_grid(p1, p2, n_cols=2, widths=[2.0, 1.0])
         assert isinstance(grid, PlotGrid)
 
 
@@ -169,7 +169,7 @@ class TestGridRendering:
         plt.close(fig)
 
     def test_render_plot_grid(self, p1, p2, p3):
-        grid = plot_grid(p1, p2, p3, ncol=2)
+        grid = plot_grid(p1, p2, p3, n_cols=2)
         fig = render_grid(grid)
         assert fig is not None
         plt.close(fig)
@@ -318,7 +318,7 @@ class TestSharedLegends:
         )
         p1 = ggplot(df, Aes(x="x", y="y", color="g")) + geom_point()
         p2 = ggplot(df, Aes(x="x", y="y", color="g")) + geom_point()
-        grid = plot_grid(p1, p2, ncol=2, guides="collect")
+        grid = plot_grid(p1, p2, n_cols=2, guides="collect")
         fig = render_grid(grid)
         assert fig is not None
 
@@ -326,6 +326,6 @@ class TestSharedLegends:
         df = pd.DataFrame({"x": [1, 2], "y": [1, 2], "g": ["a", "b"]})
         p1 = ggplot(df, Aes(x="x", y="y", color="g")) + geom_point()
         p2 = ggplot(df, Aes(x="x", y="y", color="g")) + geom_point()
-        grid = plot_grid(p1, p2, ncol=2)
+        grid = plot_grid(p1, p2, n_cols=2)
         fig = render_grid(grid)
         assert fig is not None

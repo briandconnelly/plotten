@@ -9,8 +9,8 @@ class GuideLegend:
     """Customization for discrete legends."""
 
     title: str | None = None
-    nrow: int | None = None
-    ncol: int | None = None
+    n_rows: int | None = None
+    n_cols: int | None = None
     reverse: bool = False
     override_aes: dict[str, Any] | None = None
 
@@ -33,9 +33,9 @@ def guide_legend(**kwargs: Any) -> GuideLegend:
     ----------
     title : str or None
         Override the legend title.
-    nrow : int or None
+    n_rows : int or None
         Number of rows in the legend layout.
-    ncol : int or None
+    n_cols : int or None
         Number of columns in the legend layout.
     reverse : bool
         Whether to reverse the order of legend keys.
@@ -50,6 +50,17 @@ def guide_legend(**kwargs: Any) -> GuideLegend:
     >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
     >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + guides(color=guide_legend(title="Group"))
     """
+    # Handle deprecated aliases
+    if "nrow" in kwargs:
+        import warnings
+
+        warnings.warn("nrow is deprecated. Use n_rows instead.", DeprecationWarning, stacklevel=2)
+        kwargs["n_rows"] = kwargs.pop("nrow")
+    if "ncol" in kwargs:
+        import warnings
+
+        warnings.warn("ncol is deprecated. Use n_cols instead.", DeprecationWarning, stacklevel=2)
+        kwargs["n_cols"] = kwargs.pop("ncol")
     return GuideLegend(**kwargs)
 
 
@@ -80,7 +91,19 @@ def guide_colorbar(**kwargs: Any) -> GuideColorbar:
     return GuideColorbar(**kwargs)
 
 
-def guides(**kwargs: Any) -> dict[str, GuideLegend | GuideColorbar]:
+class Guides(dict):
+    """Guide specifications for aesthetics.
+
+    A dict subclass mapping aesthetic names (``"color"``, ``"fill"``, etc.)
+    to :class:`GuideLegend` or :class:`GuideColorbar` objects.
+    """
+
+    def __repr__(self) -> str:
+        items = ", ".join(f"{k}={v!r}" for k, v in self.items())
+        return f"Guides({items})"
+
+
+def guides(**kwargs: Any) -> Guides:
     """Set guide specifications for one or more aesthetics.
 
     Parameters
@@ -95,6 +118,6 @@ def guides(**kwargs: Any) -> dict[str, GuideLegend | GuideColorbar]:
     >>> from plotten import ggplot, aes, geom_point
     >>> from plotten._guides import guide_legend, guides
     >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
-    >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + guides(color=guide_legend(nrow=1))
+    >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + guides(color=guide_legend(n_rows=1))
     """
-    return dict(kwargs)
+    return Guides(kwargs)

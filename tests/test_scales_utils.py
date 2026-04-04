@@ -196,7 +196,7 @@ class TestExistingLabels:
         assert fmt(50) == "50.0%"
 
     def test_label_percent_scale_1_decimal(self):
-        fmt = label_percent(accuracy=0, scale=1)
+        fmt = label_percent(precision=0, scale=1)
         assert fmt(75) == "75%"
 
     def test_label_scientific(self):
@@ -204,15 +204,15 @@ class TestExistingLabels:
         assert "e" in fmt(12345)
 
     def test_label_number(self):
-        fmt = label_number(accuracy=2)
+        fmt = label_number(precision=2)
         assert fmt(1234.5) == "1,234.50"
 
     def test_label_number_dot_separator(self):
-        fmt = label_number(big_mark=".")
+        fmt = label_number(thousands_separator=".")
         assert fmt(1234567) == "1.234.567"
 
     def test_label_number_no_separator(self):
-        fmt = label_number(big_mark="")
+        fmt = label_number(thousands_separator="")
         assert fmt(1234567) == "1234567"
 
 
@@ -237,7 +237,7 @@ class TestLabelBytes:
         assert "MB" in result
 
     def test_fixed_unit(self):
-        fmt = label_bytes(units="MB")
+        fmt = label_bytes(unit="MB")
         result = fmt(1_048_576)
         assert "MB" in result
         assert result.startswith("1.0")
@@ -353,8 +353,8 @@ class TestLabelSi:
         fmt = label_si()
         assert fmt(-2500) == "-2.5k"
 
-    def test_accuracy(self):
-        fmt = label_si(accuracy=2)
+    def test_precision(self):
+        fmt = label_si(precision=2)
         assert fmt(1234) == "1.23k"
 
     def test_small_decimal(self):
@@ -384,8 +384,8 @@ class TestLabelPvalue:
         assert fmt(0.005) == "< 0.01"
         assert fmt(0.05) == "0.050"
 
-    def test_custom_accuracy(self):
-        fmt = label_pvalue(accuracy=4)
+    def test_custom_precision(self):
+        fmt = label_pvalue(precision=4)
         assert fmt(0.0456) == "0.0456"
 
 
@@ -429,19 +429,19 @@ class TestLabelCurrency:
         assert fmt(1234.5) == "EUR 1,234.50"
 
     def test_suffix(self):
-        fmt = label_currency(prefix="", suffix=" kr", accuracy=0)
+        fmt = label_currency(prefix="", suffix=" kr", precision=0)
         assert fmt(9500) == "9,500 kr"
 
     def test_negative(self):
         fmt = label_currency()
         assert fmt(-42.5) == "-$42.50"
 
-    def test_zero_accuracy(self):
-        fmt = label_currency(accuracy=0)
+    def test_zero_precision(self):
+        fmt = label_currency(precision=0)
         assert fmt(1234) == "$1,234"
 
-    def test_custom_big_mark(self):
-        fmt = label_currency(prefix="", suffix=" EUR", big_mark=".")
+    def test_custom_thousands_separator(self):
+        fmt = label_currency(prefix="", suffix=" EUR", thousands_separator=".")
         assert fmt(1234.56) == "1.234.56 EUR"
 
 

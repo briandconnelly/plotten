@@ -62,10 +62,10 @@ def test_facet_wrap_layout():
     assert fw.layout(4) == (2, 2)
     assert fw.layout(1) == (1, 1)
 
-    fw2 = FacetWrap(facets="g", ncol=3)
+    fw2 = FacetWrap(facets="g", n_cols=3)
     assert fw2.layout(6) == (2, 3)
 
-    fw3 = FacetWrap(facets="g", nrow=2, ncol=3)
+    fw3 = FacetWrap(facets="g", n_rows=2, n_cols=3)
     assert fw3.layout(6) == (2, 3)
 
 
@@ -150,8 +150,8 @@ def test_facet_wrap_free():
     _save_and_check(p)
 
 
-def test_facet_wrap_nrow_layout():
-    fw = FacetWrap(facets="g", nrow=1)
+def test_facet_wrap_n_rows_layout():
+    fw = FacetWrap(facets="g", n_rows=1)
     assert fw.layout(3) == (1, 3)
 
 
@@ -172,7 +172,7 @@ def test_facet_shared_edge_labels():
     plot = (
         ggplot(df, aes(x="x", y="y"))
         + geom_point()
-        + facet_wrap("g", ncol=2)
+        + facet_wrap("g", n_cols=2)
         + labs(x="X Axis", y="Y Axis")
     )
     fig = render(plot)
@@ -192,7 +192,10 @@ def test_facet_single_row():
         }
     )
     plot = (
-        ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", ncol=3) + labs(x="X", y="Y")
+        ggplot(df, aes(x="x", y="y"))
+        + geom_point()
+        + facet_wrap("g", n_cols=3)
+        + labs(x="X", y="Y")
     )
     fig = render(plot)
     assert len(fig.get_axes()) >= 3

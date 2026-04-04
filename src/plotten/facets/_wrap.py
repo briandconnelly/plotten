@@ -17,13 +17,13 @@ class FacetWrap:
     """Wrap panels by a single faceting variable."""
 
     facets: str
-    nrow: int | None = None
-    ncol: int | None = None
+    n_rows: int | None = None
+    n_cols: int | None = None
     scales: str | FacetScales = FacetScales.FIXED
     labeller: Callable[[str], str] | None = None
     drop: bool = True
     strip_position: str | StripPosition = StripPosition.TOP
-    dir: str | Direction = Direction.HORIZONTAL
+    direction: str | Direction = Direction.HORIZONTAL
 
     def facet_data(self, data: Any) -> list[tuple[str, Any]]:
         """Split data by faceting column. Returns (label, native_df) pairs."""
@@ -37,39 +37,42 @@ class FacetWrap:
         return result
 
     def layout(self, n_panels: int) -> tuple[int, int]:
-        """Compute (nrow, ncol) for the grid."""
-        if self.ncol is not None and self.nrow is not None:
-            return (self.nrow, self.ncol)
-        if self.ncol is not None:
-            nrow = math.ceil(n_panels / self.ncol)
-            return (nrow, self.ncol)
-        if self.nrow is not None:
-            ncol = math.ceil(n_panels / self.nrow)
-            return (self.nrow, ncol)
-        ncol = math.ceil(math.sqrt(n_panels))
-        nrow = math.ceil(n_panels / ncol)
-        return (nrow, ncol)
+        """Compute (n_rows, n_cols) for the grid."""
+        if self.n_cols is not None and self.n_rows is not None:
+            return (self.n_rows, self.n_cols)
+        if self.n_cols is not None:
+            nr = math.ceil(n_panels / self.n_cols)
+            return (nr, self.n_cols)
+        if self.n_rows is not None:
+            nc = math.ceil(n_panels / self.n_rows)
+            return (self.n_rows, nc)
+        nc = math.ceil(math.sqrt(n_panels))
+        nr = math.ceil(n_panels / nc)
+        return (nr, nc)
 
     def panel_position(self, idx: int, nrow: int, ncol: int) -> tuple[int, int]:
         """Map panel index to (row, col) grid position.
 
-        When ``dir="h"`` (default), panels fill left-to-right (row-major).
-        When ``dir="v"``, panels fill top-to-bottom (column-major).
+        When ``direction="h"`` (default), panels fill left-to-right (row-major).
+        When ``direction="v"``, panels fill top-to-bottom (column-major).
         """
-        if self.dir == "v":
+        if self.direction == "v":
             return (idx % nrow, idx // nrow)
         return divmod(idx, ncol)
 
 
 def facet_wrap(
     facets: str,
-    nrow: int | None = None,
-    ncol: int | None = None,
+    n_rows: int | None = None,
+    n_cols: int | None = None,
     scales: str | FacetScales = FacetScales.FIXED,
     labeller: Callable[[str], str] | None = None,
     drop: bool = True,
     strip_position: str | StripPosition = StripPosition.TOP,
-    dir: str | Direction = Direction.HORIZONTAL,
+    direction: str | Direction = Direction.HORIZONTAL,
+    # Deprecated aliases
+    nrow: int | None = None,
+    ncol: int | None = None,
 ) -> FacetWrap:
     """Wrap a one-dimensional sequence of panels into a two-dimensional grid.
 
@@ -77,9 +80,9 @@ def facet_wrap(
     ----------
     facets : str
         Column name whose unique values define the panels.
-    nrow : int or None
+    n_rows : int or None
         Number of rows in the panel grid.
-    ncol : int or None
+    n_cols : int or None
         Number of columns in the panel grid.
     scales : str or FacetScales
         Whether axis scales are shared: ``FacetScales.FIXED`` (default),
@@ -92,7 +95,7 @@ def facet_wrap(
     strip_position : str or StripPosition
         Position of strip labels: ``StripPosition.TOP`` (default) or
         ``StripPosition.BOTTOM``. Plain strings are also accepted.
-    dir : str or Direction
+    direction : str or Direction
         Panel fill direction: ``Direction.HORIZONTAL`` (default) for row-major,
         ``Direction.VERTICAL`` for column-major. Plain strings ``"h"``/``"v"``
         are also accepted.
@@ -103,15 +106,33 @@ def facet_wrap(
     >>> from plotten import ggplot, aes, geom_point
     >>> from plotten.facets import facet_wrap
     >>> df = pd.DataFrame({"x": [1, 2, 3, 4], "y": [2, 4, 1, 3], "g": ["a", "a", "b", "b"]})
-    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", ncol=2)
+    >>> ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", n_cols=2)
     """
+    if nrow is not None:
+        import warnings
+
+        warnings.warn(
+            "nrow is deprecated. Use n_rows instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        n_rows = nrow
+    if ncol is not None:
+        import warnings
+
+        warnings.warn(
+            "ncol is deprecated. Use n_cols instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        n_cols = ncol
     return FacetWrap(
         facets=facets,
-        nrow=nrow,
-        ncol=ncol,
+        n_rows=n_rows,
+        n_cols=n_cols,
         scales=scales,
         labeller=labeller,
         drop=drop,
         strip_position=strip_position,
-        dir=dir,
+        direction=direction,
     )

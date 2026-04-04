@@ -8,6 +8,9 @@ class PositionDodge2:
         self.width = width
         self.padding = padding
 
+    def __repr__(self) -> str:
+        return f"PositionDodge2(width={self.width!r}, padding={self.padding!r})"
+
     def adjust(self, data: dict, params: dict) -> dict:
         if "x" not in data:
             return data

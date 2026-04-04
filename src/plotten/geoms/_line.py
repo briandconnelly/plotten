@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -10,7 +12,7 @@ if TYPE_CHECKING:
 from plotten.geoms._draw_helpers import build_line_kwargs
 
 
-class GeomLine:
+class GeomLine(GeomRepr):
     """Draw lines using ax.plot."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

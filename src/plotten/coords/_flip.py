@@ -70,6 +70,11 @@ def coord_flip(
 ) -> CoordFlip:
     """Flip the x and y axes of a plot.
 
+    .. deprecated::
+        Use the ``orientation="y"`` parameter on individual geoms instead.
+        For example, ``geom_bar(orientation="y")`` produces horizontal bars
+        without needing ``coord_flip()``.
+
     Parameters
     ----------
     xlim : tuple of float or None
@@ -83,6 +88,14 @@ def coord_flip(
     >>> from plotten import ggplot, aes, geom_bar
     >>> from plotten.coords import coord_flip
     >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [3, 1, 2]})
-    >>> ggplot(df, aes(x="x", y="y")) + geom_bar(stat="identity") + coord_flip()
+    >>> ggplot(df, aes(x="x", y="y")) + geom_bar() + coord_flip()
     """
+    import warnings
+
+    warnings.warn(
+        "coord_flip() is deprecated. Use orientation='y' on individual geoms instead "
+        "(e.g. geom_bar(orientation='y')).",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     return CoordFlip(xlim=xlim, ylim=ylim)

@@ -251,7 +251,7 @@ class _GeomAnnotBracket:
 
 
 def annotate(
-    geom_type: str,
+    geom_type: str | AnnotationType,
     x: float | None = None,
     y: float | None = None,
     xmin: float | None = None,
@@ -266,9 +266,10 @@ def annotate(
 
     Parameters
     ----------
-    geom_type : str
-        One of ``"text"``, ``"rect"``, ``"segment"``, ``"curve"``, or
-        ``"bracket"``.
+    geom_type : str or AnnotationType
+        Annotation type: ``AnnotationType.TEXT``, ``AnnotationType.RECT``,
+        ``AnnotationType.SEGMENT``, ``AnnotationType.CURVE``, or
+        ``AnnotationType.BRACKET``. Plain strings are also accepted.
     x, y : float, optional
         Position coordinates.
     xmin, xmax, ymin, ymax : float, optional

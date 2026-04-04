@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, cast
 
 from plotten._defaults import DEFAULT_GEOM_FILL
+from plotten.geoms._base import GeomRepr
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -10,13 +11,16 @@ if TYPE_CHECKING:
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomViolin:
+class GeomViolin(GeomRepr):
     """Draw violin plots (mirrored KDE per group)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "width", "hatch"})
+
+    def __init__(self, orientation: str = "x") -> None:
+        self._orientation = orientation
 
     def default_stat(self) -> Any:
         from plotten.stats._violin import StatViolin
@@ -52,9 +56,18 @@ class GeomViolin:
             hatch = params.get("hatch")
             if hatch is not None:
                 fill_kw["hatch"] = hatch
-            ax.fill_betweenx(
-                y_grid,
-                [pos - d for d in density],
-                [pos + d for d in density],
-                **fill_kw,
-            )
+
+            if self._orientation == "y":
+                ax.fill_between(
+                    y_grid,
+                    [pos - d for d in density],
+                    [pos + d for d in density],
+                    **fill_kw,
+                )
+            else:
+                ax.fill_betweenx(
+                    y_grid,
+                    [pos - d for d in density],
+                    [pos + d for d in density],
+                    **fill_kw,
+                )

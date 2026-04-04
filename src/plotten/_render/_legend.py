@@ -89,7 +89,7 @@ def draw_legend(
         else:
             ncol = 1
             if guide_spec is not None:
-                ncol = getattr(guide_spec, "ncol", None) or 1
+                ncol = getattr(guide_spec, "n_cols", None) or 1
             n_entries = len(entries)
             nrow_legend = -(-n_entries // ncol)
             entry_height = _ENTRY_HEIGHT_BASE * (theme.legend_spacing / 4.0)
@@ -134,9 +134,9 @@ def draw_legend(
         if guide_spec is not None:
             entries = _apply_guide_overrides(entries, guide_spec)
 
-        # legend_byrow: row-first entry ordering
-        if theme.legend_byrow and guide_spec is not None:
-            byrow_ncol = getattr(guide_spec, "ncol", None) or 1
+        # legend_row_major: row-first entry ordering
+        if theme.legend_row_major and guide_spec is not None:
+            byrow_ncol = getattr(guide_spec, "n_cols", None) or 1
             if byrow_ncol > 1:
                 entries = _reorder_byrow(entries, byrow_ncol)
 
@@ -488,7 +488,7 @@ def _draw_discrete_legend(
     # Determine number of columns from guide spec
     ncol = 1
     if guide_spec is not None:
-        ncol = getattr(guide_spec, "ncol", None) or 1
+        ncol = getattr(guide_spec, "n_cols", None) or 1
 
     n_entries = len(entries)
     nrow_legend = -(-n_entries // ncol)  # ceiling division

@@ -126,11 +126,16 @@ def draw_bars(
     data: GeomDrawData,
     ax: Any,
     params: GeomParams,
+    *,
+    orientation: str = "x",
 ) -> None:
     """Shared bar-drawing logic for GeomBar and GeomCol."""
     kwargs = build_fill_kwargs(data, params)
     width = params.get("width", 0.8)
-    ax.bar(data["x"], data["y"], width=width, **kwargs)
+    if orientation == "y":
+        ax.barh(data["x"], data["y"], height=width, **kwargs)
+    else:
+        ax.bar(data["x"], data["y"], width=width, **kwargs)
 
 
 def _add_scalar(

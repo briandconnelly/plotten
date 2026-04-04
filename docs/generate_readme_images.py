@@ -98,7 +98,7 @@ faceted = (
     ggplot(mpg, aes(x="displ", y="hwy"))
     + geom_point(mapping=aes(color="drv"), alpha=0.6)
     + geom_smooth(method="loess")
-    + facet_wrap("class", ncol=3)
+    + facet_wrap("class", n_cols=3)
 )
 faceted.save(f"{OUT}/faceted_scatter.png", width=9, height=7, dpi=150)
 print(f"Saved {OUT}/faceted_scatter.png")

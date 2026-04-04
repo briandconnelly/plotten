@@ -468,8 +468,8 @@ class TestGuides:
     def test_guide_legend_defaults(self):
         g = GuideLegend()
         assert g.title is None
-        assert g.nrow is None
-        assert g.ncol is None
+        assert g.n_rows is None
+        assert g.n_cols is None
         assert g.reverse is False
         assert g.override_aes is None
 

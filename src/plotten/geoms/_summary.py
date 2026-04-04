@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomSummary:
+class GeomSummary(GeomRepr):
     """Draw summary points with error bars (y with ymin/ymax whiskers)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

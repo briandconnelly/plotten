@@ -125,7 +125,7 @@ class TestFromSpec:
         spec = {
             "mapping": {"x": "x", "y": "y"},
             "layers": [{"geom": "point"}],
-            "facet": {"fn": "facet_wrap", "facets": "group", "ncol": 2},
+            "facet": {"fn": "facet_wrap", "facets": "group", "n_cols": 2},
         }
         plot = from_spec(spec, data=sample_df)
         from plotten.facets._wrap import FacetWrap
@@ -156,7 +156,7 @@ class TestFromSpec:
             "mapping": {"x": "x", "y": "y", "color": "group"},
             "layers": [{"geom": "point"}],
             "guides": {
-                "color": {"type": "legend", "ncol": 2},
+                "color": {"type": "legend", "n_cols": 2},
             },
         }
         plot = from_spec(spec, data=sample_df)

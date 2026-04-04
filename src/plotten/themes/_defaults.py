@@ -98,8 +98,8 @@ def theme_void(base_size: float | None = None) -> Theme:
     return _make_theme(base_size, **kw)
 
 
-def theme_grey(base_size: float | None = None) -> Theme:
-    """Classic ggplot2 default: grey background with white gridlines."""
+def theme_gray(base_size: float | None = None) -> Theme:
+    """Classic ggplot2 default: gray background with white gridlines."""
     return _make_theme(
         base_size,
         background="#e5e5e5",
@@ -236,5 +236,5 @@ def theme_test(base_size: float | None = None) -> Theme:
     )
 
 
-# American spelling alias
-theme_gray = theme_grey
+# British spelling alias
+theme_grey = theme_gray

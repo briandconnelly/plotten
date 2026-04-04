@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -10,7 +12,7 @@ if TYPE_CHECKING:
 from plotten.geoms._text_helpers import extract_text_params
 
 
-class GeomText:
+class GeomText(GeomRepr):
     """Draw text at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
@@ -39,7 +41,7 @@ class GeomText:
             ax.text(x, y, str(label), **kwargs)
 
 
-class GeomLabel:
+class GeomLabel(GeomRepr):
     """Draw text with a background box at each point."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})

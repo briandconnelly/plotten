@@ -1568,7 +1568,7 @@ class TestCompleteThemeFields:
 
     def test_non_none_defaults(self):
         t = Theme()
-        assert t.legend_byrow is False
+        assert t.legend_row_major is False
         assert t.plot_title_position == "plot"
         assert t.plot_caption_position == "plot"
         assert t.panel_ontop is False
@@ -2260,7 +2260,7 @@ class TestLegendSpacingX:
             ggplot(df, aes(x="x", y="y", color="g"))
             + geom_point()
             + theme(legend_spacing_x=8.0)
-            + guides(color=guide_legend(ncol=2))
+            + guides(color=guide_legend(n_cols=2))
         )
         fig = render(p)
         assert fig is not None
@@ -2546,7 +2546,7 @@ class TestPanelWidthsHeights:
         p = (
             ggplot(df, aes(x="x", y="y"))
             + geom_point()
-            + facet_wrap("g", ncol=3)
+            + facet_wrap("g", n_cols=3)
             + theme(panel_widths=(2.0, 1.0, 1.0))
         )
         fig = render(p)
@@ -2761,7 +2761,7 @@ class TestPolarThemeFields:
 
 
 class TestLegendBoxLayout:
-    """legend_box, legend_box_spacing, legend_box_background, legend_byrow, legend_position_inside."""
+    """legend_box, legend_box_spacing, legend_box_background, legend_row_major, legend_position_inside."""
 
     @staticmethod
     def _make_multi_legend_plot():
@@ -2818,8 +2818,8 @@ class TestLegendBoxLayout:
         fig = render(p)
         assert fig is not None
 
-    def test_legend_byrow(self):
-        """legend_byrow should reorder entries in row-first order."""
+    def test_legend_row_major(self):
+        """legend_row_major should reorder entries in row-first order."""
         from plotten import guide_legend, guides, scale_color_discrete
 
         df = pl.DataFrame(
@@ -2833,8 +2833,8 @@ class TestLegendBoxLayout:
             ggplot(df, aes(x="x", y="y", color="g"))
             + geom_point()
             + scale_color_discrete()
-            + guides(color=guide_legend(ncol=2))
-            + theme(legend_byrow=True)
+            + guides(color=guide_legend(n_cols=2))
+            + theme(legend_row_major=True)
         )
         fig = render(p)
         assert fig is not None

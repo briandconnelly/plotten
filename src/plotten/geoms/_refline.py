@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomHLine:
+class GeomHLine(GeomRepr):
     """Draw a horizontal reference line."""
 
     required_aes: frozenset[str] = frozenset()
@@ -35,7 +37,7 @@ class GeomHLine:
         ax.axhline(self._yintercept, **kwargs)
 
 
-class GeomVLine:
+class GeomVLine(GeomRepr):
     """Draw a vertical reference line."""
 
     required_aes: frozenset[str] = frozenset()
@@ -62,7 +64,7 @@ class GeomVLine:
         ax.axvline(self._xintercept, **kwargs)
 
 
-class GeomAbLine:
+class GeomAbLine(GeomRepr):
     """Draw a line with given slope and intercept."""
 
     required_aes: frozenset[str] = frozenset()

@@ -16,17 +16,30 @@ from plotten._composition import (
     plot_annotation,
     plot_grid,
 )
-from plotten._computed import AfterScale, AfterStat, after_scale, after_stat, stage
+from plotten._computed import (
+    AfterScale,
+    AfterStat,
+    after_scale,
+    after_stat,
+    computed,
+    scaled,
+    stage,
+)
 from plotten._cut import cut_interval, cut_number, cut_width
 from plotten._enums import (
     AnnotationCoord,
     AnnotationType,
     Direction,
     FacetScales,
+    GuideType,
     LegendPosition,
+    PolarAxis,
     SizeUnit,
     SmoothMethod,
     StripPosition,
+    TagLevel,
+    Transform,
+    ViridisOption,
 )
 from plotten._expand_limits import ExpandLimits, expand_limits
 from plotten._ggsave import ggsave
@@ -372,6 +385,7 @@ __all__ = [
     "FontError",
     "GuideColorbar",
     "GuideLegend",
+    "GuideType",
     "InsetElement",
     "Interaction",
     "Labs",
@@ -383,6 +397,7 @@ __all__ = [
     "PlotGrid",
     "PlottenError",
     "PlottenWarning",
+    "PolarAxis",
     "PositionBeeswarm",
     "PositionDodge",
     "PositionDodge2",
@@ -431,8 +446,11 @@ __all__ = [
     "SpecError",
     "StatError",
     "StripPosition",
+    "TagLevel",
     "Theme",
+    "Transform",
     "ValidationError",
+    "ViridisOption",
     "Watermark",
     "__version__",
     "accessibility_report",
@@ -448,6 +466,7 @@ __all__ = [
     "breaks_quantile",
     "breaks_width",
     "censor",
+    "computed",
     "coord_cartesian",
     "coord_equal",
     "coord_fixed",
@@ -639,6 +658,7 @@ __all__ = [
     "scale_y_log10",
     "scale_y_reverse",
     "scale_y_sqrt",
+    "scaled",
     "sec_axis",
     "set_strict",
     "spec_schema",

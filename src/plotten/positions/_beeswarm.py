@@ -16,6 +16,9 @@ class PositionBeeswarm:
         self.side = side
         self.seed = seed
 
+    def __repr__(self) -> str:
+        return f"PositionBeeswarm(spacing={self.spacing!r}, side={self.side!r})"
+
     def adjust(self, data: dict, params: dict) -> dict:
         if "x" not in data or "y" not in data:
             return data

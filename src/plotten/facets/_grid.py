@@ -34,7 +34,7 @@ class FacetGrid:
                     subset = frame.filter((nw.col(self.rows) == rl) & (nw.col(self.cols) == cl))
                     rl_label = self.labeller(str(rl)) if self.labeller else str(rl)
                     cl_label = self.labeller(str(cl)) if self.labeller else str(cl)
-                    label = f"{rl_label} ~ {cl_label}"
+                    label = f"{rl_label} | {cl_label}"
                     result.append((label, nw.to_native(subset)))
         elif self.rows is not None:
             levels = sorted(frame.get_column(self.rows).unique().to_list(), key=str)

@@ -159,7 +159,7 @@ Use Python tuples instead of R's `c()` for limits and ranges.
     (
         ggplot(mpg, aes(x="displ", y="hwy"))
         + geom_point()
-        + facet_wrap("class", ncol=3)
+        + facet_wrap("class", n_cols=3)
     )
     ```
 

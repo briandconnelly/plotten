@@ -108,13 +108,17 @@ class ScaleColorDiscrete(MappedDiscreteScale):
         return entries
 
 
-def scale_color_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
+def scale_color_continuous(
+    cmap: str = "viridis", *, aesthetic: str = "color"
+) -> ScaleColorContinuous:
     """Map continuous values to a sequential color palette.
 
     Parameters
     ----------
     cmap : str, optional
         Matplotlib colormap name (default ``"viridis"``).
+    aesthetic : str, optional
+        Which aesthetic to map: ``"color"`` (default) or ``"fill"``.
 
     Examples
     --------
@@ -124,10 +128,12 @@ def scale_color_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_continuous("plasma")
     Plot(...)
     """
-    return ScaleColorContinuous(cmap_name=cmap)
+    return ScaleColorContinuous(aesthetic=aesthetic, cmap_name=cmap)
 
 
-def scale_color_discrete(palette: str = DEFAULT_DISCRETE_PALETTE) -> ScaleColorDiscrete:
+def scale_color_discrete(
+    palette: str = DEFAULT_DISCRETE_PALETTE, *, aesthetic: str = "color"
+) -> ScaleColorDiscrete:
     """Map discrete values to distinct colors from a qualitative palette.
 
     Parameters
@@ -136,6 +142,8 @@ def scale_color_discrete(palette: str = DEFAULT_DISCRETE_PALETTE) -> ScaleColorD
         Colormap name (default ``"okabe_ito"``).  Also accepts any
         matplotlib qualitative colormap such as ``"tab10"`` or
         ``"tol_bright"``.
+    aesthetic : str, optional
+        Which aesthetic to map: ``"color"`` (default) or ``"fill"``.
 
     Examples
     --------
@@ -145,12 +153,20 @@ def scale_color_discrete(palette: str = DEFAULT_DISCRETE_PALETTE) -> ScaleColorD
     >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_discrete("Set2")
     Plot(...)
     """
-    return ScaleColorDiscrete(palette=palette)
+    return ScaleColorDiscrete(aesthetic=aesthetic, palette=palette)
 
 
-def scale_color_manual(values: dict[str, str]) -> ScaleColorDiscrete:
-    """Create a discrete color scale with manually specified colors."""
-    return ScaleColorDiscrete(values=values)
+def scale_color_manual(values: dict[str, str], *, aesthetic: str = "color") -> ScaleColorDiscrete:
+    """Create a discrete color scale with manually specified colors.
+
+    Parameters
+    ----------
+    values : dict
+        Mapping from level names to color strings.
+    aesthetic : str, optional
+        Which aesthetic to map: ``"color"`` (default) or ``"fill"``.
+    """
+    return ScaleColorDiscrete(aesthetic=aesthetic, values=values)
 
 
 def scale_fill_manual(values: dict[str, str]) -> ScaleColorDiscrete:
@@ -160,6 +176,8 @@ def scale_fill_manual(values: dict[str, str]) -> ScaleColorDiscrete:
 
 def scale_fill_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
     """Map continuous values to a sequential fill palette.
+
+    Convenience alias for ``scale_color_continuous(cmap, aesthetic="fill")``.
 
     Parameters
     ----------
@@ -179,6 +197,8 @@ def scale_fill_continuous(cmap: str = "viridis") -> ScaleColorContinuous:
 
 def scale_fill_discrete(palette: str = DEFAULT_DISCRETE_PALETTE) -> ScaleColorDiscrete:
     """Map discrete values to distinct fill colors from a qualitative palette.
+
+    Convenience alias for ``scale_color_discrete(palette, aesthetic="fill")``.
 
     Parameters
     ----------

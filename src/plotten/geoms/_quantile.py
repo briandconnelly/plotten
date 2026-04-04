@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from plotten.geoms._base import GeomRepr
 from plotten.stats._quantile import StatQuantile
 
 if TYPE_CHECKING:
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
 from plotten.geoms._draw_helpers import build_line_kwargs
 
 
-class GeomQuantile:
+class GeomQuantile(GeomRepr):
     """Draw quantile regression lines."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

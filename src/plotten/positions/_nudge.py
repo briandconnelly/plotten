@@ -8,6 +8,9 @@ class PositionNudge:
         self.x = x
         self.y = y
 
+    def __repr__(self) -> str:
+        return f"PositionNudge(x={self.x!r}, y={self.y!r})"
+
     def adjust(self, data: dict, params: dict) -> dict:
         result = dict(data)
         if "x" in data and self.x != 0:

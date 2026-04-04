@@ -33,6 +33,9 @@ class ScaleBase:
         self._domain_max: float | None = None
         self._cache: dict[str, Any] = {}
 
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(aesthetic={self.aesthetic!r})"
+
     def _invalidate_cache(self) -> None:
         """Clear cached computation results (called after training)."""
         self._cache.clear()

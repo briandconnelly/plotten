@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from plotten._defaults import DEFAULT_GEOM_FILL
+from plotten.geoms._base import GeomRepr
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomCrossbar:
+class GeomCrossbar(GeomRepr):
     """Draw crossbars (box from ymin to ymax with line at y)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "ymin", "ymax"})

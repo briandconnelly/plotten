@@ -148,7 +148,9 @@ class ScaleFillBinned(ScaleColorBinned):
 # ------------------------------------------------------------------
 
 
-def scale_color_steps(n: int = 5, cmap: str = "viridis") -> ScaleColorBinned:
+def scale_color_steps(
+    n: int = 5, cmap: str = "viridis", *, aesthetic: str = "color"
+) -> ScaleColorBinned:
     """Create a binned color scale with evenly spaced bins.
 
     Parameters
@@ -166,7 +168,7 @@ def scale_color_steps(n: int = 5, cmap: str = "viridis") -> ScaleColorBinned:
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_steps(n=3)
     Plot(...)
     """
-    return ScaleColorBinned(aesthetic="color", breaks=n, cmap=cmap)
+    return ScaleColorBinned(aesthetic=aesthetic, breaks=n, cmap=cmap)
 
 
 def scale_fill_steps(n: int = 5, cmap: str = "viridis") -> ScaleFillBinned:
@@ -190,7 +192,9 @@ def scale_fill_steps(n: int = 5, cmap: str = "viridis") -> ScaleFillBinned:
     return ScaleFillBinned(breaks=n, cmap=cmap)
 
 
-def scale_color_fermenter(n: int = 5, palette: str = "Blues") -> ScaleColorBinned:
+def scale_color_fermenter(
+    n: int = 5, palette: str = "Blues", *, aesthetic: str = "color"
+) -> ScaleColorBinned:
     """Create a binned color scale using a Brewer palette.
 
     Parameters
@@ -208,7 +212,7 @@ def scale_color_fermenter(n: int = 5, palette: str = "Blues") -> ScaleColorBinne
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_fermenter(palette="Reds")
     Plot(...)
     """
-    return ScaleColorBinned(aesthetic="color", breaks=n, cmap=palette)
+    return ScaleColorBinned(aesthetic=aesthetic, breaks=n, cmap=palette)
 
 
 def scale_fill_fermenter(n: int = 5, palette: str = "Blues") -> ScaleFillBinned:

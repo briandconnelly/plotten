@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomPointrange:
+class GeomPointrange(GeomRepr):
     """Draw point with vertical line from ymin to ymax."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "ymin", "ymax"})

@@ -736,7 +736,7 @@ class TestFacets:
             data=_sample_df(),
             mapping=aes(x="x", y="y"),
             layers=(Layer(geom=GeomPoint()),),
-            facet=FacetWrap(facets="g", ncol=2),
+            facet=FacetWrap(facets="g", n_cols=2),
         )
         spec = to_vegalite(p)
         assert spec["facet"]["field"] == "g"

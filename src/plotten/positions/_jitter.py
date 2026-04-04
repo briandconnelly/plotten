@@ -11,6 +11,9 @@ class PositionJitter:
         self.height = height
         self.seed = seed
 
+    def __repr__(self) -> str:
+        return f"PositionJitter(width={self.width!r}, height={self.height!r})"
+
     def adjust(self, data: dict, params: dict) -> dict:
         rng = random.Random(self.seed)
 

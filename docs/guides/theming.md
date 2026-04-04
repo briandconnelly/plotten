@@ -611,7 +611,7 @@ theme(
 Fine-tune legend layout with dedicated fields:
 
 - `legend_direction` — `"vertical"` (default) or `"horizontal"`
-- `legend_byrow` — arrange entries by row when using multiple columns
+- `legend_row_major` — arrange entries by row when using multiple columns
 - `legend_box` — `"vertical"` or `"horizontal"` stacking of multiple legends
 - `legend_box_spacing` — spacing between multiple legend groups
 - `legend_text_position` / `legend_title_position` — position of text/title relative to keys

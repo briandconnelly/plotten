@@ -4,6 +4,9 @@ from __future__ import annotations
 class PositionIdentity:
     """No position adjustment — returns data unchanged."""
 
+    def __repr__(self) -> str:
+        return "PositionIdentity()"
+
     def adjust(self, data: dict, params: dict) -> dict:
         return data
 

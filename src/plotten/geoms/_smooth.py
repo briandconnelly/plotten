@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
 from plotten.stats._smooth import StatSmooth
 
 if TYPE_CHECKING:
@@ -10,7 +11,7 @@ if TYPE_CHECKING:
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomSmooth:
+class GeomSmooth(GeomRepr):
     """Draw a smooth fit line with optional CI ribbon."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

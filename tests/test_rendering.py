@@ -33,15 +33,15 @@ def test_legend_ncol_renders():
     plot = (
         ggplot(df, aes(x="x", y="y", color="color"))
         + geom_point()
-        + guides(color=guide_legend(ncol=2))
+        + guides(color=guide_legend(n_cols=2))
     )
     fig = render(plot)
     assert fig is not None
     plt.close(fig)
 
 
-def test_legend_ncol_default():
-    """Default ncol=None should behave as single column."""
+def test_legend_n_cols_default():
+    """Default n_cols=None should behave as single column."""
     df = pl.DataFrame(
         {
             "x": [1, 2, 3],
@@ -338,39 +338,39 @@ class TestWatermark:
         assert p._watermark is None
 
 
-# --- FacetWrap dir ---
+# --- FacetWrap direction ---
 
 
 class TestFacetWrapDir:
-    def test_default_dir_is_h(self):
+    def test_default_direction_is_h(self):
         fw = facet_wrap("group")
-        assert fw.dir == "h"
+        assert fw.direction == "h"
 
-    def test_dir_v(self):
-        fw = facet_wrap("group", dir="v")
-        assert fw.dir == "v"
+    def test_direction_v(self):
+        fw = facet_wrap("group", direction="v")
+        assert fw.direction == "v"
 
     def test_panel_position_h(self):
-        fw = FacetWrap(facets="g", ncol=3, dir="h")
-        nrow, ncol = fw.layout(5)
+        fw = FacetWrap(facets="g", n_cols=3, direction="h")
+        nr, nc = fw.layout(5)
         # h: row-major => idx 0->(0,0), 1->(0,1), 2->(0,2), 3->(1,0), 4->(1,1)
-        assert fw.panel_position(0, nrow, ncol) == (0, 0)
-        assert fw.panel_position(1, nrow, ncol) == (0, 1)
-        assert fw.panel_position(2, nrow, ncol) == (0, 2)
-        assert fw.panel_position(3, nrow, ncol) == (1, 0)
-        assert fw.panel_position(4, nrow, ncol) == (1, 1)
+        assert fw.panel_position(0, nr, nc) == (0, 0)
+        assert fw.panel_position(1, nr, nc) == (0, 1)
+        assert fw.panel_position(2, nr, nc) == (0, 2)
+        assert fw.panel_position(3, nr, nc) == (1, 0)
+        assert fw.panel_position(4, nr, nc) == (1, 1)
 
     def test_panel_position_v(self):
-        fw = FacetWrap(facets="g", ncol=3, nrow=2, dir="v")
-        nrow, ncol = fw.layout(5)
+        fw = FacetWrap(facets="g", n_cols=3, n_rows=2, direction="v")
+        nr, nc = fw.layout(5)
         # v: column-major => idx 0->(0,0), 1->(1,0), 2->(0,1), 3->(1,1), 4->(0,2)
-        assert fw.panel_position(0, nrow, ncol) == (0, 0)
-        assert fw.panel_position(1, nrow, ncol) == (1, 0)
-        assert fw.panel_position(2, nrow, ncol) == (0, 1)
-        assert fw.panel_position(3, nrow, ncol) == (1, 1)
-        assert fw.panel_position(4, nrow, ncol) == (0, 2)
+        assert fw.panel_position(0, nr, nc) == (0, 0)
+        assert fw.panel_position(1, nr, nc) == (1, 0)
+        assert fw.panel_position(2, nr, nc) == (0, 1)
+        assert fw.panel_position(3, nr, nc) == (1, 1)
+        assert fw.panel_position(4, nr, nc) == (0, 2)
 
-    def test_facet_wrap_dir_v_renders(self, tmp_path: Path):
+    def test_facet_wrap_direction_v_renders(self, tmp_path: Path):
         df = pd.DataFrame(
             {
                 "x": [1, 2, 3, 4, 5, 6],
@@ -378,13 +378,13 @@ class TestFacetWrapDir:
                 "g": ["A", "A", "B", "B", "C", "C"],
             }
         )
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + facet_wrap("g", ncol=2, dir="v")
+        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + facet_wrap("g", n_cols=2, direction="v")
         out = tmp_path / "facet_dir_v.png"
         p.save(str(out))
         assert out.exists()
         assert out.stat().st_size > 0
 
-    def test_facet_wrap_dir_h_renders(self, tmp_path: Path):
+    def test_facet_wrap_direction_h_renders(self, tmp_path: Path):
         df = pd.DataFrame(
             {
                 "x": [1, 2, 3, 4, 5, 6],
@@ -392,7 +392,7 @@ class TestFacetWrapDir:
                 "g": ["A", "A", "B", "B", "C", "C"],
             }
         )
-        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + facet_wrap("g", ncol=2, dir="h")
+        p = ggplot(df, Aes(x="x", y="y")) + geom_point() + facet_wrap("g", n_cols=2, direction="h")
         out = tmp_path / "facet_dir_h.png"
         p.save(str(out))
         assert out.exists()

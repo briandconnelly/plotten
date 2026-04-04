@@ -9,16 +9,16 @@ from plotten.scales._color import ScaleColorContinuous, ScaleColorDiscrete
 class ScaleBrewerDiscrete(ScaleColorDiscrete):
     """Discrete ColorBrewer palette scale."""
 
-    __slots__ = ("_direction",)
+    __slots__ = ("_reverse",)
 
     def __init__(
         self,
         aesthetic: str = "color",
         palette: str = "Set1",
-        direction: int = 1,
+        reverse: bool = False,
     ) -> None:
         super().__init__(aesthetic=aesthetic, palette=palette)
-        self._direction = direction
+        self._reverse = reverse
 
     def map_data(self, values: Any) -> Any:
         import matplotlib.colors as mcolors
@@ -27,7 +27,7 @@ class ScaleBrewerDiscrete(ScaleColorDiscrete):
         s = nw.from_native(values, series_only=True)
         n = max(len(self._levels), 1)
         indices = list(range(n))
-        if self._direction == -1:
+        if self._reverse:
             indices = indices[::-1]
         color_map = {
             lev: mcolors.to_hex(self._cmap(indices[i] / max(n - 1, 1)))
@@ -40,7 +40,7 @@ class ScaleBrewerDiscrete(ScaleColorDiscrete):
 
         n = max(len(self._levels), 1)
         indices = list(range(n))
-        if self._direction == -1:
+        if self._reverse:
             indices = indices[::-1]
         entries = []
         for i, lev in enumerate(self._levels):
@@ -55,19 +55,19 @@ class ScaleBrewerDiscrete(ScaleColorDiscrete):
 class ScaleBrewerContinuous(ScaleColorContinuous):
     """Continuous ColorBrewer palette scale (distiller)."""
 
-    __slots__ = ("_direction",)
+    __slots__ = ("_reverse",)
 
     def __init__(
         self,
         aesthetic: str = "color",
         palette: str = "RdYlBu",
-        direction: int = 1,
+        reverse: bool = False,
     ) -> None:
         import matplotlib
 
         super().__init__(aesthetic=aesthetic, cmap_name=palette)
-        self._direction = direction
-        if direction == -1:
+        self._reverse = reverse
+        if reverse:
             self._cmap = matplotlib.colormaps[palette].reversed()
 
     def legend_entries(self) -> list[LegendEntry]:
@@ -87,7 +87,9 @@ class ScaleBrewerContinuous(ScaleColorContinuous):
         return entries
 
 
-def scale_color_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewerDiscrete:
+def scale_color_brewer(
+    palette: str = "Set1", *, reverse: bool = False, aesthetic: str = "color"
+) -> ScaleBrewerDiscrete:
     """Map discrete color aesthetic using ColorBrewer palettes.
 
     Parameters
@@ -104,9 +106,8 @@ def scale_color_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewer
 
         **Qualitative:** ``Accent``, ``Dark2``, ``Paired``, ``Pastel1``, ``Pastel2``,
         ``Set1``, ``Set2``, ``Set3``.
-    direction : int, optional
-        Direction of the palette. Use ``1`` for normal order and ``-1``
-        for reversed (default ``1``).
+    reverse : bool, optional
+        Whether to reverse the palette order (default ``False``).
 
     Examples
     --------
@@ -116,29 +117,19 @@ def scale_color_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewer
     >>> ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + scale_color_brewer("Set2")
     Plot(...)
     """
-    return ScaleBrewerDiscrete(aesthetic="color", palette=palette, direction=direction)
+    return ScaleBrewerDiscrete(aesthetic=aesthetic, palette=palette, reverse=reverse)
 
 
-def scale_fill_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewerDiscrete:
+def scale_fill_brewer(palette: str = "Set1", *, reverse: bool = False) -> ScaleBrewerDiscrete:
     """Map discrete fill aesthetic using ColorBrewer palettes.
 
     Parameters
     ----------
     palette : str, optional
         ColorBrewer palette name (default ``"Set1"``).
-
-        **Sequential:** ``Blues``, ``Greens``, ``Greys``, ``Oranges``, ``Purples``,
-        ``Reds``, ``BuGn``, ``BuPu``, ``GnBu``, ``OrRd``, ``PuBu``, ``PuBuGn``,
-        ``PuRd``, ``RdPu``, ``YlGn``, ``YlGnBu``, ``YlOrBr``, ``YlOrRd``.
-
-        **Diverging:** ``BrBG``, ``PiYG``, ``PRGn``, ``PuOr``, ``RdBu``, ``RdGy``,
-        ``RdYlBu``, ``RdYlGn``, ``Spectral``.
-
-        **Qualitative:** ``Accent``, ``Dark2``, ``Paired``, ``Pastel1``, ``Pastel2``,
-        ``Set1``, ``Set2``, ``Set3``.
-    direction : int, optional
-        Direction of the palette. Use ``1`` for normal order and ``-1``
-        for reversed (default ``1``).
+        See :func:`scale_color_brewer` for the full list of palette names.
+    reverse : bool, optional
+        Whether to reverse the palette order (default ``False``).
 
     Examples
     --------
@@ -148,10 +139,12 @@ def scale_fill_brewer(palette: str = "Set1", direction: int = 1) -> ScaleBrewerD
     >>> ggplot(df, aes(x="x", y="y", fill="x")) + geom_bar() + scale_fill_brewer("Pastel1")
     Plot(...)
     """
-    return ScaleBrewerDiscrete(aesthetic="fill", palette=palette, direction=direction)
+    return ScaleBrewerDiscrete(aesthetic="fill", palette=palette, reverse=reverse)
 
 
-def scale_color_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleBrewerContinuous:
+def scale_color_distiller(
+    palette: str = "RdYlBu", *, reverse: bool = False, aesthetic: str = "color"
+) -> ScaleBrewerContinuous:
     """Map continuous color aesthetic using a ColorBrewer sequential palette.
 
     Parameters
@@ -159,9 +152,8 @@ def scale_color_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleB
     palette : str, optional
         ColorBrewer palette name (default ``"RdYlBu"``).
         See :func:`scale_color_brewer` for the full list of palette names.
-    direction : int, optional
-        Direction of the palette. Use ``1`` for normal order and ``-1``
-        for reversed (default ``1``).
+    reverse : bool, optional
+        Whether to reverse the palette order (default ``False``).
 
     Examples
     --------
@@ -171,10 +163,12 @@ def scale_color_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleB
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_distiller("Blues")
     Plot(...)
     """
-    return ScaleBrewerContinuous(aesthetic="color", palette=palette, direction=direction)
+    return ScaleBrewerContinuous(aesthetic=aesthetic, palette=palette, reverse=reverse)
 
 
-def scale_fill_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleBrewerContinuous:
+def scale_fill_distiller(
+    palette: str = "RdYlBu", *, reverse: bool = False
+) -> ScaleBrewerContinuous:
     """Map continuous fill aesthetic using a ColorBrewer sequential palette.
 
     Parameters
@@ -182,9 +176,8 @@ def scale_fill_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleBr
     palette : str, optional
         ColorBrewer palette name (default ``"RdYlBu"``).
         See :func:`scale_fill_brewer` for the full list of palette names.
-    direction : int, optional
-        Direction of the palette. Use ``1`` for normal order and ``-1``
-        for reversed (default ``1``).
+    reverse : bool, optional
+        Whether to reverse the palette order (default ``False``).
 
     Examples
     --------
@@ -194,4 +187,4 @@ def scale_fill_distiller(palette: str = "RdYlBu", direction: int = 1) -> ScaleBr
     >>> ggplot(df, aes(x="x", y="y", fill="v")) + geom_bar() + scale_fill_distiller("Blues")
     Plot(...)
     """
-    return ScaleBrewerContinuous(aesthetic="fill", palette=palette, direction=direction)
+    return ScaleBrewerContinuous(aesthetic="fill", palette=palette, reverse=reverse)

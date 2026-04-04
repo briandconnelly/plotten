@@ -11,6 +11,18 @@ Bare strings continue to work — this is a type-annotation-only change for bett
 - **`Plot.save()` enhanced**: Added `transparent` parameter, changed default `dpi` from 150 to 300 (matching the old `ggsave` default), and improved single-dimension sizing to preserve aspect ratio.
 - **`PlotGrid.save()` enhanced**: Same improvements as `Plot.save()` — `transparent`, `dpi=300`, aspect-ratio-preserving sizing.
 
+### ggplot2 historical artifact fixes
+
+- **`geom_bar()` auto-detects y**: When both `x` and `y` are mapped, `geom_bar()` automatically uses identity stat (like `geom_col()`), so `geom_bar(aes(x="cat", y="val"))` just works.
+- **Unified `aesthetic` parameter on color scales**: All `scale_color_*` factories now accept `aesthetic="fill"` as a keyword-only argument, eliminating the need for separate `scale_fill_*` wrappers.
+The `scale_fill_*` functions remain as convenience aliases.
+- **`orientation` parameter**: `geom_bar()`, `geom_boxplot()`, `geom_violin()`, and `geom_histogram()` accept `orientation="y"` for horizontal output without `coord_flip()`.
+- **`coord_flip()` deprecated**: Use `orientation="y"` on individual geoms instead.
+- **Nested dict syntax for `theme()`**: `theme(axis={"title": {"x": element_text(size=14)}})` is equivalent to `theme(axis_title_x=element_text(size=14))`.
+Flat underscore-joined names still work.
+- **`transform` parameter on position scales**: `scale_x_continuous(transform="log10")` is a shortcut for `scale_x_log10()`.
+Supported transforms: `"log10"`, `"sqrt"`, `"reverse"`.
+
 ## 0.1.0 — Initial Public Release
 
 First public release of plotten, a grammar-of-graphics plotting library for Python.

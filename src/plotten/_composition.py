@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Any, Self
 
 from plotten._defaults import MAPPED_AESTHETICS
-from plotten._enums import SizeUnit
+from plotten._enums import Direction, SizeUnit, TagLevel
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -47,7 +47,7 @@ class PlotAnnotation:
     title: str | None = None
     subtitle: str | None = None
     caption: str | None = None
-    tag_levels: str | None = None  # "A", "a", "1", "i"
+    tag_levels: str | TagLevel | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -55,7 +55,7 @@ class PlotGrid:
     """A composition of plots arranged horizontally or vertically."""
 
     plots: tuple = ()
-    direction: str = "h"  # "h" or "v"
+    direction: str | Direction = Direction.HORIZONTAL
     widths: tuple[float, ...] | None = None
     annotation: PlotAnnotation | None = None
     collect_legends: bool = False
@@ -193,43 +193,61 @@ def plot_annotation(**kwargs: Any) -> PlotAnnotation:
 
 def plot_grid(
     *plots: Any,
-    ncol: int | None = None,
-    nrow: int | None = None,
+    n_cols: int | None = None,
+    n_rows: int | None = None,
     widths: list[float] | None = None,
     heights: list[float] | None = None,
     guides: str | None = None,
+    # Deprecated aliases
+    ncol: int | None = None,
+    nrow: int | None = None,
 ) -> PlotGrid:
     """Arrange plots into a grid.
 
     Parameters
     ----------
+    n_cols : int or None
+        Number of columns in the grid.
+    n_rows : int or None
+        Number of rows in the grid.
     guides : str | None
         If ``"collect"``, per-plot legends are suppressed and a single shared
         legend is drawn on the right side of the figure.
     """
     import math
 
+    if nrow is not None:
+        import warnings
+
+        warnings.warn("nrow is deprecated. Use n_rows instead.", DeprecationWarning, stacklevel=2)
+        n_rows = nrow
+    if ncol is not None:
+        import warnings
+
+        warnings.warn("ncol is deprecated. Use n_cols instead.", DeprecationWarning, stacklevel=2)
+        n_cols = ncol
+
     n = len(plots)
     if n == 0:
         return PlotGrid()
 
-    if ncol is not None and nrow is not None:
+    if n_cols is not None and n_rows is not None:
         pass
-    elif ncol is not None:
-        nrow = math.ceil(n / ncol)
-    elif nrow is not None:
-        ncol = math.ceil(n / nrow)
+    elif n_cols is not None:
+        n_rows = math.ceil(n / n_cols)
+    elif n_rows is not None:
+        n_cols = math.ceil(n / n_rows)
     else:
-        ncol = min(n, 3)
-        nrow = math.ceil(n / ncol)
+        n_cols = min(n, 3)
+        n_rows = math.ceil(n / n_cols)
 
     do_collect = guides == "collect"
 
     # Build rows of HStacks, then VStack them
     rows: list[PlotGrid] = []
-    for r in range(nrow):
-        start = r * ncol
-        row_plots = plots[start : start + ncol]
+    for r in range(n_rows):
+        start = r * n_cols
+        row_plots = plots[start : start + n_cols]
         if not row_plots:
             continue
         if len(row_plots) == 1:

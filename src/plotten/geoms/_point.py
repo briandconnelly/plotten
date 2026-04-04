@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from plotten._defaults import DEFAULT_POINT_SIZE
 from plotten._shapes import resolve_shape
+from plotten.geoms._base import GeomRepr
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
 from plotten.geoms._draw_helpers import extract_per_index
 
 
-class GeomPoint:
+class GeomPoint(GeomRepr):
     """Draw points using ax.scatter."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

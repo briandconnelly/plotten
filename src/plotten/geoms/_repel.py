@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any
 import numpy as np
 from matplotlib.artist import Artist
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -278,7 +280,7 @@ class _RepelArtist(Artist):
             t.draw(renderer)
 
 
-class GeomTextRepel:
+class GeomTextRepel(GeomRepr):
     """Draw text labels with automatic collision avoidance."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})
@@ -351,7 +353,7 @@ class GeomTextRepel:
         ax.add_artist(artist)
 
 
-class GeomLabelRepel:
+class GeomLabelRepel(GeomRepr):
     """Draw labels with background boxes and automatic collision avoidance."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "label"})

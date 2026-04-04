@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from plotten._defaults import DEFAULT_GEOM_FILL
+from plotten.geoms._base import GeomRepr
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -10,13 +11,16 @@ if TYPE_CHECKING:
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomBoxplot:
+class GeomBoxplot(GeomRepr):
     """Draw boxplots."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "width", "hatch"})
+
+    def __init__(self, orientation: str = "x") -> None:
+        self._orientation = orientation
 
     def default_stat(self) -> Any:
         from plotten.stats._boxplot import StatBoxplot
@@ -31,6 +35,7 @@ class GeomBoxplot:
 
         x_vals = data["x"]
         n = len(x_vals)
+        horizontal = self._orientation == "y"
 
         for i in range(n):
             lower = data["lower"][i]
@@ -51,32 +56,24 @@ class GeomBoxplot:
             hatch = params.get("hatch")
             if hatch is not None:
                 bar_kw["hatch"] = hatch
-            ax.bar(
-                i,
-                upper - lower,
-                bottom=lower,
-                width=width,
-                **bar_kw,
-            )
 
-            # Median line
-            ax.hlines(median, i - hw, i + hw, colors=line_color, linewidth=2)
-
-            # Whiskers
-            ax.vlines(i, ymin, lower, colors=line_color, linewidth=1)
-            ax.vlines(i, upper, ymax, colors=line_color, linewidth=1)
-
-            # Whisker caps
-            cap_hw = hw * 0.5
-            ax.hlines(ymin, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
-            ax.hlines(ymax, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
-
-            # Outliers
-            if outliers:
-                ax.scatter(
-                    [i] * len(outliers),
-                    outliers,
-                    color=line_color,
-                    s=20,
-                    zorder=5,
-                )
+            if horizontal:
+                ax.barh(i, upper - lower, left=lower, height=width, **bar_kw)
+                ax.vlines(median, i - hw, i + hw, colors=line_color, linewidth=2)
+                ax.hlines(i, ymin, lower, colors=line_color, linewidth=1)
+                ax.hlines(i, upper, ymax, colors=line_color, linewidth=1)
+                cap_hw = hw * 0.5
+                ax.vlines(ymin, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
+                ax.vlines(ymax, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
+                if outliers:
+                    ax.scatter(outliers, [i] * len(outliers), color=line_color, s=20, zorder=5)
+            else:
+                ax.bar(i, upper - lower, bottom=lower, width=width, **bar_kw)
+                ax.hlines(median, i - hw, i + hw, colors=line_color, linewidth=2)
+                ax.vlines(i, ymin, lower, colors=line_color, linewidth=1)
+                ax.vlines(i, upper, ymax, colors=line_color, linewidth=1)
+                cap_hw = hw * 0.5
+                ax.hlines(ymin, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
+                ax.hlines(ymax, i - cap_hw, i + cap_hw, colors=line_color, linewidth=1)
+                if outliers:
+                    ax.scatter([i] * len(outliers), outliers, color=line_color, s=20, zorder=5)

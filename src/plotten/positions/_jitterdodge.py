@@ -18,6 +18,9 @@ class PositionJitterDodge:
         self.jitter_height = jitter_height
         self.seed = seed
 
+    def __repr__(self) -> str:
+        return f"PositionJitterDodge(dodge_width={self.dodge_width!r}, jitter_width={self.jitter_width!r})"
+
     def adjust(self, data: dict, params: dict) -> dict:
         if "x" not in data:
             return data

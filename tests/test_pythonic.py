@@ -59,12 +59,12 @@ class TestEnumParameters:
         assert f.strip_position == "bottom"
 
     def test_facet_wrap_direction_enum(self):
-        f = facet_wrap("g", dir=Direction.VERTICAL)
-        assert f.dir == "v"
+        f = facet_wrap("g", direction=Direction.VERTICAL)
+        assert f.direction == "v"
 
     def test_facet_wrap_direction_string(self):
-        f = facet_wrap("g", dir="v")
-        assert f.dir == "v"
+        f = facet_wrap("g", direction="v")
+        assert f.direction == "v"
 
     def test_facet_grid_scales_enum(self):
         f = facet_grid(rows="r", scales=FacetScales.FREE_Y)
@@ -101,7 +101,7 @@ class TestEnumParameters:
         """Default enum values produce the same strings as the old defaults."""
         assert FacetScales.FIXED == "fixed"
         assert StripPosition.TOP == "top"
-        assert Direction.HORIZONTAL == "h"
+        assert str(Direction.HORIZONTAL) == "h"
         assert SmoothMethod.LOESS == "loess"
         assert SizeUnit.INCHES == "in"
 

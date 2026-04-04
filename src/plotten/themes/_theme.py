@@ -211,7 +211,7 @@ class Theme:
 
     # --- Legend layout (ggplot2: legend.direction, etc.) ---
     legend_direction: str | None = None
-    legend_byrow: bool = False
+    legend_row_major: bool = False
     legend_justification: str | tuple[float, float] | None = None
     legend_justification_top: str | tuple[float, float] | None = None
     legend_justification_bottom: str | tuple[float, float] | None = None
@@ -326,6 +326,22 @@ class Theme:
 _FIELD_DEFAULTS = {f.name: f.default for f in fields(Theme) if f.default is not MISSING}
 
 
+def _flatten_nested(prefix: str, value: dict[str, Any]) -> dict[str, Any]:
+    """Recursively flatten nested dicts into underscore-joined flat keys.
+
+    ``_flatten_nested("axis", {"title": {"x": val}})`` yields
+    ``{"axis_title_x": val}``.
+    """
+    result: dict[str, Any] = {}
+    for k, v in value.items():
+        key = f"{prefix}_{k}"
+        if isinstance(v, dict):
+            result.update(_flatten_nested(key, v))
+        else:
+            result[key] = v
+    return result
+
+
 def theme(**kwargs: Any) -> Theme:
     """Create a partial theme for incremental overrides.
 
@@ -340,6 +356,13 @@ def theme(**kwargs: Any) -> Theme:
         ``background``, ``panel_background``, ``legend_position``,
         ``axis_text_x_rotation``, and ``panel_spacing``.
 
+        Nested dicts are also accepted as an alternative to the flat
+        underscore-joined names::
+
+            # These are equivalent:
+            theme(axis_title_x=element_text(size=14))
+            theme(axis={"title": {"x": element_text(size=14)}})
+
     Raises
     ------
     ConfigError
@@ -353,9 +376,23 @@ def theme(**kwargs: Any) -> Theme:
     >>> df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 4, 9]})
     >>> ggplot(df, aes(x="x", y="y")) + geom_point() + theme(title_size=20)
     Plot(...)
+
+    Nested dict syntax:
+
+    >>> theme(panel={"grid": {"major_x": element_line(color="grey")}})
+    Theme(...)
     """
     valid_fields = {f.name for f in fields(Theme)}
-    invalid = set(kwargs) - valid_fields
+
+    # Flatten nested dicts into underscore-joined keys
+    flat_kwargs: dict[str, Any] = {}
+    for k, v in kwargs.items():
+        if isinstance(v, dict) and k not in valid_fields:
+            flat_kwargs.update(_flatten_nested(k, v))
+        else:
+            flat_kwargs[k] = v
+
+    invalid = set(flat_kwargs) - valid_fields
     if invalid:
         suggestions: list[str] = []
         valid_list = sorted(valid_fields)
@@ -370,7 +407,7 @@ def theme(**kwargs: Any) -> Theme:
 
         msg = f"Unknown theme properties:\n{hint}\nValid properties: {valid_list}"
         raise ConfigError(msg)
-    return Theme(**kwargs)
+    return Theme(**flat_kwargs)
 
 
 # Module-level global theme

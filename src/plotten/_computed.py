@@ -18,13 +18,29 @@ class AfterScale:
 
 
 def after_stat(var: str) -> AfterStat:
-    """Create an AfterStat mapping."""
+    """Reference a variable computed by the stat layer.
+
+    ``computed()`` is a Pythonic alias for this function.
+    """
     return AfterStat(var=var)
 
 
+# Pythonic alias
+computed = after_stat
+"""Alias for :func:`after_stat` — reference a stat-computed variable."""
+
+
 def after_scale(var: str) -> AfterScale:
-    """Create an AfterScale mapping."""
+    """Reference a variable after scale mapping.
+
+    ``scaled()`` is a Pythonic alias for this function.
+    """
     return AfterScale(var=var)
+
+
+# Pythonic alias
+scaled = after_scale
+"""Alias for :func:`after_scale` — reference a scale-mapped variable."""
 
 
 def stage(

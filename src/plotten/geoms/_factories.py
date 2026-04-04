@@ -178,70 +178,117 @@ Examples
 """,
 )
 
-geom_bar = _make_geom_factory(
-    GeomBar,
-    """Create a bar layer using stat=count.
 
-Counts rows per unique x value to produce bar heights.
-For pre-computed bar heights, use :func:`geom_col` instead.
+def geom_bar(**params: Any) -> Layer:
+    """Create a bar layer.
 
-Parameters
-----------
-x : str
-    Column name mapped to the x-axis (categories to count).
-fill : str, optional
-    Bar fill color as a column name or fixed value.
-color : str, optional
-    Bar outline (edge) color.
-alpha : float, optional
-    Opacity from 0 (transparent) to 1 (opaque).
-hatch : str, optional
-    Fill pattern such as ``"/"``, ``"\\\\"``, ``"x"``, or ``"+"``.
-position : Position, optional
-    Position adjustment (default ``position_stack()``). Use ``position_dodge()``
-    for grouped bars or ``position_fill()`` for proportional stacking.
+    When only ``x`` is mapped, counts rows per unique value (stat=count).
+    When both ``x`` and ``y`` are mapped, uses the y values directly
+    (stat=identity), so ``geom_bar(aes(x="cat", y="val"))`` just works.
 
-Examples
---------
->>> import pandas as pd
->>> from plotten import ggplot, aes
->>> from plotten.geoms import geom_bar
->>> df = pd.DataFrame({"fruit": ["apple", "banana", "apple", "cherry"]})
->>> p = ggplot(df, aes(x="fruit")) + geom_bar(fill="coral")
-""",
-)
+    Parameters
+    ----------
+    x : str
+        Column name mapped to the x-axis (categories).
+    y : str, optional
+        Column name mapped to the y-axis (bar heights). If provided,
+        bars use pre-computed heights instead of counting rows.
+    fill : str, optional
+        Bar fill color as a column name or fixed value.
+    color : str, optional
+        Bar outline (edge) color.
+    alpha : float, optional
+        Opacity from 0 (transparent) to 1 (opaque).
+    hatch : str, optional
+        Fill pattern such as ``"/"``, ``"\\\\"``, ``"x"``, or ``"+"``.
+    orientation : str, optional
+        ``"x"`` (default) for vertical bars, ``"y"`` for horizontal bars.
+        Horizontal bars are an alternative to ``coord_flip()``.
+    position : Position, optional
+        Position adjustment (default ``position_stack()``). Use ``position_dodge()``
+        for grouped bars or ``position_fill()`` for proportional stacking.
 
-geom_boxplot = _make_geom_factory(
-    GeomBoxplot,
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes
+    >>> from plotten.geoms import geom_bar
+    >>> df = pd.DataFrame({"fruit": ["apple", "banana", "apple", "cherry"]})
+    >>> p = ggplot(df, aes(x="fruit")) + geom_bar(fill="coral")
+
+    Pre-computed heights:
+
+    >>> df = pd.DataFrame({"item": ["A", "B", "C"], "count": [10, 20, 15]})
+    >>> p = ggplot(df, aes(x="item", y="count")) + geom_bar()
+    """
+    orientation = params.pop("orientation", "x")
+    position = params.pop("position", None)
+    data = params.pop("data", None)
+    explicit_mapping = params.pop("mapping", None)
+    mapping, params = _extract_aes(params)
+    if explicit_mapping is not None:
+        mapping = mapping | explicit_mapping
+
+    # Auto-detect: if y is mapped, use identity stat (like geom_col)
+    has_y = mapping.y is not None or (
+        explicit_mapping is not None and explicit_mapping.y is not None
+    )
+    if has_y:
+        geom: GeomBar | GeomCol = GeomCol(orientation=orientation)
+    else:
+        geom = GeomBar(orientation=orientation)
+
+    _validate_layer_params("geom_bar", type(geom), params)
+    return Layer(geom=geom, mapping=mapping, params=params, position=position, data=data)
+
+
+def geom_boxplot(**params: Any) -> Layer:
     """Create a box-and-whisker plot layer.
 
-Computes five-number summaries (median, quartiles, whiskers) and plots outliers
-as individual points.
+    Computes five-number summaries (median, quartiles, whiskers) and plots outliers
+    as individual points.
 
-Parameters
-----------
-x : str
-    Column name for the grouping variable (categorical).
-y : str
-    Column name for the continuous variable.
-fill : str, optional
-    Box fill color as a column name or fixed value.
-color : str, optional
-    Box outline and whisker color.
-alpha : float, optional
-    Opacity from 0 (transparent) to 1 (opaque).
-width : float, optional
-    Width of the boxes (default 0.75).
+    Parameters
+    ----------
+    x : str
+        Column name for the grouping variable (categorical).
+    y : str
+        Column name for the continuous variable.
+    fill : str, optional
+        Box fill color as a column name or fixed value.
+    color : str, optional
+        Box outline and whisker color.
+    alpha : float, optional
+        Opacity from 0 (transparent) to 1 (opaque).
+    width : float, optional
+        Width of the boxes (default 0.75).
+    orientation : str, optional
+        ``"x"`` (default) for vertical boxes, ``"y"`` for horizontal boxes.
 
-Examples
---------
->>> import pandas as pd
->>> from plotten import ggplot, aes
->>> from plotten.geoms import geom_boxplot
->>> df = pd.DataFrame({"g": ["a", "a", "b", "b"], "v": [1, 3, 2, 5]})
->>> p = ggplot(df, aes(x="g", y="v")) + geom_boxplot(fill="lightblue")
-""",
-)
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes
+    >>> from plotten.geoms import geom_boxplot
+    >>> df = pd.DataFrame({"g": ["a", "a", "b", "b"], "v": [1, 3, 2, 5]})
+    >>> p = ggplot(df, aes(x="g", y="v")) + geom_boxplot(fill="lightblue")
+    """
+    orientation = params.pop("orientation", "x")
+    position = params.pop("position", None)
+    data = params.pop("data", None)
+    explicit_mapping = params.pop("mapping", None)
+    mapping, params = _extract_aes(params)
+    if explicit_mapping is not None:
+        mapping = mapping | explicit_mapping
+    _validate_layer_params("geom_boxplot", GeomBoxplot, params)
+    return Layer(
+        geom=GeomBoxplot(orientation=orientation),
+        mapping=mapping,
+        params=params,
+        position=position,
+        data=data,
+    )
+
 
 geom_text = _make_geom_factory(
     GeomText,
@@ -438,61 +485,104 @@ Examples
 """,
 )
 
-geom_col = _make_geom_factory(
-    GeomCol,
+
+def geom_col(**params: Any) -> Layer:
     """Create a bar layer with pre-computed heights.
 
-Parameters
-----------
-x : str
-    Column name mapped to the x-axis (categories).
-y : str
-    Column name mapped to the y-axis (bar heights).
-fill : str, optional
-    Bar fill color as a column name or fixed value.
-color : str, optional
-    Bar outline color.
-alpha : float, optional
-    Opacity from 0 (transparent) to 1 (opaque).
-position : str, optional
-    Position adjustment: ``"stack"``, ``"dodge"``, or ``"fill"``.
+    .. deprecated::
+        Use ``geom_bar()`` instead — it auto-detects when ``y`` is mapped
+        and uses identity stat automatically.
 
-Examples
---------
->>> import pandas as pd
->>> from plotten import ggplot, aes
->>> from plotten.geoms import geom_col
->>> df = pd.DataFrame({"item": ["A", "B", "C"], "count": [10, 20, 15]})
->>> p = ggplot(df, aes(x="item", y="count")) + geom_col(fill="teal")
-""",
-)
+    Parameters
+    ----------
+    x : str
+        Column name mapped to the x-axis (categories).
+    y : str
+        Column name mapped to the y-axis (bar heights).
+    fill : str, optional
+        Bar fill color as a column name or fixed value.
+    color : str, optional
+        Bar outline color.
+    alpha : float, optional
+        Opacity from 0 (transparent) to 1 (opaque).
+    position : str, optional
+        Position adjustment: ``"stack"``, ``"dodge"``, or ``"fill"``.
 
-geom_violin = _make_geom_factory(
-    GeomViolin,
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes
+    >>> from plotten.geoms import geom_col
+    >>> df = pd.DataFrame({"item": ["A", "B", "C"], "count": [10, 20, 15]})
+    >>> p = ggplot(df, aes(x="item", y="count")) + geom_col(fill="teal")
+    """
+    import warnings
+
+    warnings.warn(
+        "geom_col() is deprecated. Use geom_bar() instead — it auto-detects "
+        "when y is mapped and uses identity stat automatically.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    orientation = params.pop("orientation", "x")
+    position = params.pop("position", None)
+    data = params.pop("data", None)
+    explicit_mapping = params.pop("mapping", None)
+    mapping, params = _extract_aes(params)
+    if explicit_mapping is not None:
+        mapping = mapping | explicit_mapping
+    _validate_layer_params("geom_col", GeomCol, params)
+    return Layer(
+        geom=GeomCol(orientation=orientation),
+        mapping=mapping,
+        params=params,
+        position=position,
+        data=data,
+    )
+
+
+def geom_violin(**params: Any) -> Layer:
     """Create a violin plot layer.
 
-Parameters
-----------
-x : str
-    Column name for the grouping variable.
-y : str
-    Column name for the continuous variable.
-fill : str, optional
-    Violin fill color as a column name or fixed value.
-color : str, optional
-    Violin outline color.
-alpha : float, optional
-    Opacity from 0 (transparent) to 1 (opaque).
+    Parameters
+    ----------
+    x : str
+        Column name for the grouping variable.
+    y : str
+        Column name for the continuous variable.
+    fill : str, optional
+        Violin fill color as a column name or fixed value.
+    color : str, optional
+        Violin outline color.
+    alpha : float, optional
+        Opacity from 0 (transparent) to 1 (opaque).
+    orientation : str, optional
+        ``"x"`` (default) for vertical violins, ``"y"`` for horizontal violins.
 
-Examples
---------
->>> import pandas as pd
->>> from plotten import ggplot, aes
->>> from plotten.geoms import geom_violin
->>> df = pd.DataFrame({"g": ["a"]*4 + ["b"]*4, "v": [1, 2, 3, 4, 2, 3, 4, 5]})
->>> p = ggplot(df, aes(x="g", y="v")) + geom_violin(fill="plum")
-""",
-)
+    Examples
+    --------
+    >>> import pandas as pd
+    >>> from plotten import ggplot, aes
+    >>> from plotten.geoms import geom_violin
+    >>> df = pd.DataFrame({"g": ["a"]*4 + ["b"]*4, "v": [1, 2, 3, 4, 2, 3, 4, 5]})
+    >>> p = ggplot(df, aes(x="g", y="v")) + geom_violin(fill="plum")
+    """
+    orientation = params.pop("orientation", "x")
+    position = params.pop("position", None)
+    data = params.pop("data", None)
+    explicit_mapping = params.pop("mapping", None)
+    mapping, params = _extract_aes(params)
+    if explicit_mapping is not None:
+        mapping = mapping | explicit_mapping
+    _validate_layer_params("geom_violin", GeomViolin, params)
+    return Layer(
+        geom=GeomViolin(orientation=orientation),
+        mapping=mapping,
+        params=params,
+        position=position,
+        data=data,
+    )
+
 
 geom_segment = _make_geom_factory(
     GeomSegment,

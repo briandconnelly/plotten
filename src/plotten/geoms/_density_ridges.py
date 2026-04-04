@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
@@ -13,7 +15,7 @@ if TYPE_CHECKING:
 from plotten.scales._palettes import OKABE_ITO as _RIDGE_PALETTE
 
 
-class GeomDensityRidges:
+class GeomDensityRidges(GeomRepr):
     """Draw filled density curves stacked vertically by group."""
 
     required_aes: frozenset[str] = frozenset({"x", "ymin", "ymax"})

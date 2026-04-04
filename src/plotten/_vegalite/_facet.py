@@ -29,8 +29,8 @@ def _facet_wrap(facet: Any) -> tuple[dict[str, Any], dict[str, Any]]:
         "type": "nominal",
     }
     top: dict[str, Any] = {"facet": facet_spec}
-    if facet.ncol is not None:
-        top["columns"] = facet.ncol
+    if facet.n_cols is not None:
+        top["columns"] = facet.n_cols
     resolve = _resolve_for_scales(facet.scales)
     return top, resolve
 

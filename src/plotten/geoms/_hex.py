@@ -2,13 +2,15 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
+from plotten.geoms._base import GeomRepr
+
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
 
     from plotten._types import GeomDrawData, GeomParams
 
 
-class GeomHex:
+class GeomHex(GeomRepr):
     """Draw hexagonal bin plots using matplotlib's hexbin."""
 
     required_aes: frozenset[str] = frozenset({"x", "y"})

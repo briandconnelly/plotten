@@ -114,6 +114,8 @@ def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     ----------
     bins : int, optional
         Number of bins (default 30).
+    orientation : str, optional
+        ``"x"`` (default) for vertical bars, ``"y"`` for horizontal bars.
     **params
         Aesthetic mappings and fixed visual properties such as ``fill``
         and ``alpha``.
@@ -128,10 +130,11 @@ def geom_histogram(bins: int = 30, **params: Any) -> Layer:
     """
     from plotten.stats._bin import StatBin
 
+    orientation = params.pop("orientation", "x")
     position = params.pop("position", None)
     mapping, params = _extract_aes(params)
     return Layer(
-        geom=GeomHistogram(),
+        geom=GeomHistogram(orientation=orientation),
         stat=StatBin(bins=bins),
         mapping=mapping,
         params=params,
@@ -471,9 +474,9 @@ def geom_qq_line(**params: Any) -> Layer:
 
 
 def stat_summary(
-    fun_y: str = "mean",
-    fun_ymin: str = "mean_se_lower",
-    fun_ymax: str = "mean_se_upper",
+    center: str = "mean",
+    lower: str = "mean_se_lower",
+    upper: str = "mean_se_upper",
     fun_data: str | Any = None,
     **params: Any,
 ) -> Layer:
@@ -481,11 +484,11 @@ def stat_summary(
 
     Parameters
     ----------
-    fun_y : str, optional
+    center : str, optional
         Summary function for the center point (default ``"mean"``).
-    fun_ymin : str, optional
+    lower : str, optional
         Summary function for the lower bar (default ``"mean_se_lower"``).
-    fun_ymax : str, optional
+    upper : str, optional
         Summary function for the upper bar (default ``"mean_se_upper"``).
     fun_data : str or callable or None, optional
         A single function returning y, ymin, ymax together.
@@ -498,7 +501,7 @@ def stat_summary(
     >>> from plotten import ggplot, aes
     >>> from plotten.geoms import stat_summary
     >>> df = pd.DataFrame({"g": ["a"]*4 + ["b"]*4, "v": [1, 2, 3, 4, 3, 4, 5, 6]})
-    >>> p = ggplot(df, aes(x="g", y="v")) + stat_summary(fun_y="mean")
+    >>> p = ggplot(df, aes(x="g", y="v")) + stat_summary(center="mean")
     """
     from plotten.stats._summary import StatSummary
 
@@ -506,7 +509,7 @@ def stat_summary(
     mapping, params = _extract_aes(params)
     return Layer(
         geom=GeomSummary(),
-        stat=StatSummary(fun_y=fun_y, fun_ymin=fun_ymin, fun_ymax=fun_ymax, fun_data=fun_data),
+        stat=StatSummary(center=center, lower=lower, upper=upper, fun_data=fun_data),
         mapping=mapping,
         params=params,
         position=position,
@@ -719,9 +722,9 @@ def geom_dotplot(bins: int = 30, **params: Any) -> Layer:
 
 def stat_summary_bin(
     bins: int = 30,
-    fun_y: str = "mean",
-    fun_ymin: str = "mean_se_lower",
-    fun_ymax: str = "mean_se_upper",
+    center: str = "mean",
+    lower: str = "mean_se_lower",
+    upper: str = "mean_se_upper",
     **params: Any,
 ) -> Layer:
     """Create a binned summary layer (point with error bars per bin).
@@ -730,11 +733,11 @@ def stat_summary_bin(
     ----------
     bins : int, optional
         Number of bins (default 30).
-    fun_y : str, optional
+    center : str, optional
         Summary function for the center point (default ``"mean"``).
-    fun_ymin : str, optional
+    lower : str, optional
         Summary function for the lower bar (default ``"mean_se_lower"``).
-    fun_ymax : str, optional
+    upper : str, optional
         Summary function for the upper bar (default ``"mean_se_upper"``).
     **params
         Aesthetic mappings and fixed visual properties.
@@ -753,7 +756,7 @@ def stat_summary_bin(
     mapping, params = _extract_aes(params)
     return Layer(
         geom=GeomSummary(),
-        stat=StatSummaryBin(bins=bins, fun_y=fun_y, fun_ymin=fun_ymin, fun_ymax=fun_ymax),
+        stat=StatSummaryBin(bins=bins, center=center, lower=lower, upper=upper),
         mapping=mapping,
         params=params,
         position=position,

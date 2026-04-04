@@ -6,6 +6,7 @@ from typing import Any
 
 import narwhals as nw
 
+from plotten._enums import GuideType
 from plotten.scales._base import ScaleBase
 
 
@@ -14,7 +15,7 @@ class ScaleIdentity(ScaleBase):
 
     __slots__ = ("_guide", "_levels")
 
-    def __init__(self, aesthetic: str, guide: str = "none") -> None:
+    def __init__(self, aesthetic: str, guide: str | GuideType = GuideType.NONE) -> None:
         super().__init__(aesthetic)
         self._guide = guide
 
@@ -46,7 +47,9 @@ class ScaleIdentity(ScaleBase):
         return None
 
 
-def scale_color_identity(guide: str = "none") -> ScaleIdentity:
+def scale_color_identity(
+    guide: str | GuideType = GuideType.NONE, *, aesthetic: str = "color"
+) -> ScaleIdentity:
     """Map color aesthetic using data values directly as color specifications.
 
     Parameters
@@ -62,10 +65,10 @@ def scale_color_identity(guide: str = "none") -> ScaleIdentity:
     >>> ggplot(df, aes(x="x", y="y", color="c")) + geom_point() + scale_color_identity()
     Plot(...)
     """
-    return ScaleIdentity("color", guide=guide)
+    return ScaleIdentity(aesthetic, guide=guide)
 
 
-def scale_fill_identity(guide: str = "none") -> ScaleIdentity:
+def scale_fill_identity(guide: str | GuideType = GuideType.NONE) -> ScaleIdentity:
     """Map fill aesthetic using data values directly as color specifications.
 
     Parameters
@@ -84,7 +87,7 @@ def scale_fill_identity(guide: str = "none") -> ScaleIdentity:
     return ScaleIdentity("fill", guide=guide)
 
 
-def scale_alpha_identity(guide: str = "none") -> ScaleIdentity:
+def scale_alpha_identity(guide: str | GuideType = GuideType.NONE) -> ScaleIdentity:
     """Map alpha aesthetic using data values directly as opacity levels.
 
     Parameters
@@ -103,7 +106,7 @@ def scale_alpha_identity(guide: str = "none") -> ScaleIdentity:
     return ScaleIdentity("alpha", guide=guide)
 
 
-def scale_size_identity(guide: str = "none") -> ScaleIdentity:
+def scale_size_identity(guide: str | GuideType = GuideType.NONE) -> ScaleIdentity:
     """Map size aesthetic using data values directly as point sizes.
 
     Parameters
@@ -122,7 +125,7 @@ def scale_size_identity(guide: str = "none") -> ScaleIdentity:
     return ScaleIdentity("size", guide=guide)
 
 
-def scale_shape_identity(guide: str = "none") -> ScaleIdentity:
+def scale_shape_identity(guide: str | GuideType = GuideType.NONE) -> ScaleIdentity:
     """Map shape aesthetic using data values directly as marker strings.
 
     Parameters
@@ -141,7 +144,7 @@ def scale_shape_identity(guide: str = "none") -> ScaleIdentity:
     return ScaleIdentity("shape", guide=guide)
 
 
-def scale_linetype_identity(guide: str = "none") -> ScaleIdentity:
+def scale_linetype_identity(guide: str | GuideType = GuideType.NONE) -> ScaleIdentity:
     """Map linetype aesthetic using data values directly as linestyle strings.
 
     Parameters

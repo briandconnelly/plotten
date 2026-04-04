@@ -44,7 +44,7 @@ from plotten import facet_wrap
     ggplot(mpg, aes(x="displ", y="hwy"))
     + geom_point(mapping=aes(color="drv"), alpha=0.6)
     + geom_smooth(method="loess")
-    + facet_wrap("class", ncol=3)
+    + facet_wrap("class", n_cols=3)
 )
 ```
 

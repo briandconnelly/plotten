@@ -606,11 +606,11 @@ class TestStatQQCoveragePandas:
         assert len(result2) == 2
 
 
-class TestLabelNumberBigMark:
-    def test_label_number_default_big_mark(self):
+class TestLabelNumberThousandsSeparator:
+    def test_label_number_default_thousands_separator(self):
         from plotten.scales._labels import label_number
 
-        fmt = label_number(accuracy=1)
+        fmt = label_number(precision=1)
         assert fmt(12345.6) == "12,345.6"
 
 

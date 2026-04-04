@@ -44,7 +44,7 @@ Pass `guides="collect"` to suppress per-plot legends and draw a single shared le
 ```python
 from plotten import plot_grid
 
-plot_grid(p1, p2, p3, ncol=2, guides="collect")
+plot_grid(p1, p2, p3, n_cols=2, guides="collect")
 ```
 
 ::: plotten.plot_grid

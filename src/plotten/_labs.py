@@ -50,6 +50,7 @@ def labs(**kwargs: str) -> Labs:
         Axis labels.
     color, fill, size, alpha, shape, linetype, linewidth, hatch : str, optional
         Legend titles for the corresponding aesthetic.
+        ``colour`` is accepted as an alias for ``color``.
     caption : str, optional
         Caption text below the plot.
     tag : str, optional
@@ -61,4 +62,6 @@ def labs(**kwargs: str) -> Labs:
     >>> labs(title="My Plot", x="Speed (mph)", y="Distance (ft)")
     Labs(title='My Plot', ...)
     """
+    if "colour" in kwargs:
+        kwargs["color"] = kwargs.pop("colour")
     return Labs(**kwargs)

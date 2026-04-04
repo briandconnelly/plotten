@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from plotten._defaults import DEFAULT_GEOM_COLOR
 from plotten._linetypes import resolve_linetype
+from plotten.geoms._base import GeomRepr
 
 if TYPE_CHECKING:
     from matplotlib.axes import Axes
@@ -18,7 +19,7 @@ def _per_value[T](values: list[T] | T | None, index: int, default: T) -> T:
     return values if values is not None else default
 
 
-class GeomSegment:
+class GeomSegment(GeomRepr):
     """Draw line segments from (x, y) to (xend, yend)."""
 
     required_aes: frozenset[str] = frozenset({"x", "y", "xend", "yend"})

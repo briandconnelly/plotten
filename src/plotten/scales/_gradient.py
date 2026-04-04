@@ -110,7 +110,7 @@ class ScaleGradient2(ScaleColorContinuous):
 
 
 def scale_color_gradient(
-    low: str = "#132B43", high: str = "#56B1F7", **kwargs: Any
+    low: str = "#132B43", high: str = "#56B1F7", *, aesthetic: str = "color", **kwargs: Any
 ) -> ScaleGradient:
     """Create a two-color sequential gradient for the color aesthetic.
 
@@ -131,7 +131,7 @@ def scale_color_gradient(
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_gradient("white", "red")
     Plot(...)
     """
-    return ScaleGradient(aesthetic="color", low=low, high=high, **kwargs)
+    return ScaleGradient(aesthetic=aesthetic, low=low, high=high, **kwargs)
 
 
 def scale_fill_gradient(
@@ -164,6 +164,8 @@ def scale_color_gradient2(
     mid: str = "#FFFFFF",
     high: str = "#053061",
     midpoint: float = 0,
+    *,
+    aesthetic: str = "color",
     **kwargs: Any,
 ) -> ScaleGradient2:
     """Create a diverging three-color gradient for the color aesthetic.
@@ -190,7 +192,7 @@ def scale_color_gradient2(
     Plot(...)
     """
     return ScaleGradient2(
-        aesthetic="color", low=low, mid=mid, high=high, midpoint=midpoint, **kwargs
+        aesthetic=aesthetic, low=low, mid=mid, high=high, midpoint=midpoint, **kwargs
     )
 
 
@@ -291,6 +293,8 @@ class ScaleGradientN(ScaleColorContinuous):
 def scale_color_gradientn(
     colors: list[str] | None = None,
     values: list[float] | None = None,
+    *,
+    aesthetic: str = "color",
     **kwargs: Any,
 ) -> ScaleGradientN:
     """Create a multi-stop color gradient scale.
@@ -318,7 +322,7 @@ def scale_color_gradientn(
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_gradientn(["red", "white", "blue"])
     Plot(...)
     """
-    return ScaleGradientN(aesthetic="color", colors=colors, values=values, **kwargs)
+    return ScaleGradientN(aesthetic=aesthetic, colors=colors, values=values, **kwargs)
 
 
 def scale_fill_gradientn(

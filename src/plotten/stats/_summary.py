@@ -85,18 +85,29 @@ class StatSummary:
 
     def __init__(
         self,
-        fun_y: str | Callable = "mean",
-        fun_ymin: str | Callable = "mean_se_lower",
-        fun_ymax: str | Callable = "mean_se_upper",
+        center: str | Callable = "mean",
+        lower: str | Callable = "mean_se_lower",
+        upper: str | Callable = "mean_se_upper",
         fun_data: str | Callable | None = None,
+        # Deprecated aliases
+        fun_y: str | Callable | None = None,
+        fun_ymin: str | Callable | None = None,
+        fun_ymax: str | Callable | None = None,
     ) -> None:
+        # Handle deprecated aliases
+        if fun_y is not None:
+            center = fun_y
+        if fun_ymin is not None:
+            lower = fun_ymin
+        if fun_ymax is not None:
+            upper = fun_ymax
         self._fun_data: Callable[[np.ndarray], FunDataResult] | None = None
         if fun_data is not None:
             self._fun_data = _resolve_fun_data(fun_data)
         else:
-            self._fun_y = _resolve_fun(fun_y)
-            self._fun_ymin = _resolve_fun(fun_ymin)
-            self._fun_ymax = _resolve_fun(fun_ymax)
+            self._fun_y = _resolve_fun(center)
+            self._fun_ymin = _resolve_fun(lower)
+            self._fun_ymax = _resolve_fun(upper)
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))

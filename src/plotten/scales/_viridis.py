@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from plotten._enums import ViridisOption
 from plotten.scales._color import ScaleColorContinuous
 
 # Map ggplot2-style letter codes and names to matplotlib cmap names
@@ -19,7 +20,19 @@ _VIRIDIS_OPTIONS: dict[str, str] = {
 }
 
 
+_LETTER_CODES = {"A", "B", "C", "D", "E"}
+
+
 def _resolve_option(option: str) -> str:
+    if option in _LETTER_CODES:
+        import warnings
+
+        warnings.warn(
+            f"Single-letter viridis option code {option!r} is deprecated. "
+            f"Use the full name {_VIRIDIS_OPTIONS[option]!r} instead.",
+            DeprecationWarning,
+            stacklevel=3,
+        )
     if option in _VIRIDIS_OPTIONS:
         return _VIRIDIS_OPTIONS[option]
     from plotten._validation import ScaleError
@@ -31,7 +44,9 @@ def _resolve_option(option: str) -> str:
     raise ScaleError(msg)
 
 
-def scale_color_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuous:
+def scale_color_viridis(
+    option: str | ViridisOption = ViridisOption.VIRIDIS, *, aesthetic: str = "color", **kwargs
+) -> ScaleColorContinuous:
     """Map continuous color aesthetic using a viridis-family palette.
 
     Parameters
@@ -55,10 +70,12 @@ def scale_color_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuo
     >>> ggplot(df, aes(x="x", y="y", color="v")) + geom_point() + scale_color_viridis("magma")
     Plot(...)
     """
-    return ScaleColorContinuous(aesthetic="color", cmap_name=_resolve_option(option), **kwargs)
+    return ScaleColorContinuous(aesthetic=aesthetic, cmap_name=_resolve_option(option), **kwargs)
 
 
-def scale_fill_viridis(option: str = "viridis", **kwargs) -> ScaleColorContinuous:
+def scale_fill_viridis(
+    option: str | ViridisOption = ViridisOption.VIRIDIS, **kwargs
+) -> ScaleColorContinuous:
     """Map continuous fill aesthetic using a viridis-family palette.
 
     Parameters

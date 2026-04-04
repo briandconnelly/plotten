@@ -4,6 +4,9 @@ from __future__ import annotations
 class PositionFill:
     """Stack and normalize to [0, 1]."""
 
+    def __repr__(self) -> str:
+        return "PositionFill()"
+
     def adjust(self, data: dict, params: dict) -> dict:
         if "x" not in data or "y" not in data:
             return data
@@ -54,6 +57,6 @@ def position_fill() -> PositionFill:
     >>> from plotten import ggplot, aes, geom_bar
     >>> from plotten.positions import position_fill
     >>> df = pd.DataFrame({"x": ["a", "a", "b", "b"], "y": [1, 3, 2, 4], "g": ["m", "n", "m", "n"]})
-    >>> ggplot(df, aes(x="x", y="y", fill="g")) + geom_bar(stat="identity", position=position_fill())
+    >>> ggplot(df, aes(x="x", y="y", fill="g")) + geom_bar(position=position_fill())
     """
     return PositionFill()

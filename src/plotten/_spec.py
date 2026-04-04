@@ -146,8 +146,8 @@ def spec_schema() -> dict[str, Any]:
                 "type": "string",
                 "description": "Column name to facet by (for facet_wrap).",
             },
-            "ncol": {"type": "integer", "description": "Number of columns."},
-            "nrow": {"type": "integer", "description": "Number of rows."},
+            "n_cols": {"type": "integer", "description": "Number of columns."},
+            "n_rows": {"type": "integer", "description": "Number of rows."},
             "rows": {
                 "type": "string",
                 "description": "Row variable (for facet_grid).",
@@ -190,8 +190,8 @@ def spec_schema() -> dict[str, Any]:
                 "enum": ["legend", "colorbar"],
                 "description": "Guide type.",
             },
-            "ncol": {"type": "integer"},
-            "nrow": {"type": "integer"},
+            "n_cols": {"type": "integer"},
+            "n_rows": {"type": "integer"},
             "reverse": {"type": "boolean"},
             "title": {"type": "string"},
             "barwidth": {"type": "number"},
@@ -647,7 +647,7 @@ def from_spec(spec: dict[str, Any], data: Any = None) -> Any:
         from_spec({
             "mapping": {"x": "category", "fill": "group"},
             "layers": [{"geom": "bar", "position": "dodge"}],
-            "facet": {"fn": "facet_wrap", "facets": "region", "ncol": 2},
+            "facet": {"fn": "facet_wrap", "facets": "region", "n_cols": 2},
             "scales": [
                 {"fn": "scale_fill_manual", "values": {"a": "red", "b": "blue"}}
             ],

@@ -676,7 +676,7 @@ class TestScaleBrewerDiscrete:
 
     def test_direction_reverse(self):
         s1 = scale_color_brewer(palette="Set1")
-        s2 = scale_color_brewer(palette="Set1", direction=-1)
+        s2 = scale_color_brewer(palette="Set1", reverse=True)
         for sc in (s1, s2):
             sc.train(pl.Series(["a", "b", "c"]))
         m1 = s1.map_data(pl.Series(["a", "b", "c"]))
@@ -702,7 +702,7 @@ class TestScaleBrewerContinuous:
 
     def test_direction_reverse(self):
         s1 = scale_color_distiller(palette="RdYlBu")
-        s2 = scale_color_distiller(palette="RdYlBu", direction=-1)
+        s2 = scale_color_distiller(palette="RdYlBu", reverse=True)
         for sc in (s1, s2):
             sc.train(pl.Series([0.0, 10.0]))
         m1 = s1.map_data(pl.Series([0.0]))
@@ -825,8 +825,8 @@ class TestLabelFormatters:
         assert fmt(1.0) == "100.0%"
         assert fmt(0.0) == "0.0%"
 
-    def test_label_percent_accuracy(self):
-        fmt = label_percent(accuracy=2)
+    def test_label_percent_precision(self):
+        fmt = label_percent(precision=2)
         assert fmt(0.1234) == "12.34%"
 
     def test_label_dollar(self):
@@ -844,7 +844,7 @@ class TestLabelFormatters:
         assert fmt(0.001) == "1.00e-03"
 
     def test_label_number(self):
-        fmt = label_number(accuracy=2)
+        fmt = label_number(precision=2)
         assert fmt(1234.5678) == "1,234.57"
 
     def test_label_number_no_decimals(self):
