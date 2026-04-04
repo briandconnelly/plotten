@@ -30,24 +30,20 @@ class StatSignif:
 
     def compute(self, df: Any) -> Any:
         frame = nw.from_native(df)
-        x_col = frame.get_column("x")
-        y_col = frame.get_column("y")
 
-        # Build group -> y-values mapping
+        # Build group -> y-values mapping via group_by
         groups: dict[str, list[float]] = {}
-        x_list = x_col.to_list()
-        y_list = y_col.to_list()
-        for xv, yv in zip(x_list, y_list, strict=True):
-            key = str(xv)
-            groups.setdefault(key, []).append(yv)
+        for (xv,), group in frame.group_by("x"):
+            groups[str(xv)] = group.get_column("y").cast(nw.Float64).to_list()
 
         # Get unique x positions sorted alphabetically (matching ScaleDiscrete)
-        sorted_groups = sorted({str(xv) for xv in x_list})
+        sorted_groups = sorted(groups)
         group_positions = {g: i for i, g in enumerate(sorted_groups)}
 
         # Overall y-max for stacking brackets
-        y_max = max(y_list)
-        y_range = y_max - min(y_list) if len(y_list) > 1 else 1.0
+        y_col = frame.get_column("y").cast(nw.Float64)
+        y_max = float(y_col.max())
+        y_range = float(y_max - y_col.min()) if len(y_col) > 1 else 1.0
 
         results: dict[str, list[Any]] = {
             # Use _signif_ prefix to avoid scale training via _AUX_TO_POSITION

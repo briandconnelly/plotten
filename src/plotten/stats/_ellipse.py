@@ -31,8 +31,8 @@ class StatEllipse:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x = np.array(frame.get_column("x").to_list(), dtype=float)
-        y = np.array(frame.get_column("y").to_list(), dtype=float)
+        x = frame.get_column("x").cast(nw.Float64).to_numpy()
+        y = frame.get_column("y").cast(nw.Float64).to_numpy()
 
         if len(x) < 3:
             # Not enough data for an ellipse

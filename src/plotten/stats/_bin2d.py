@@ -17,8 +17,8 @@ class StatBin2d:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = np.array(frame.get_column("x").to_list(), dtype=float)
-        y_vals = np.array(frame.get_column("y").to_list(), dtype=float)
+        x_vals = frame.get_column("x").cast(nw.Float64).to_numpy()
+        y_vals = frame.get_column("y").cast(nw.Float64).to_numpy()
 
         counts, x_edges, y_edges = np.histogram2d(x_vals, y_vals, bins=self._bins)
 

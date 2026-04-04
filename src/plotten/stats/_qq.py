@@ -16,8 +16,7 @@ class StatQQ:
         from scipy.stats import norm
 
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        sample = np.sort(np.array(x_vals, dtype=float))
+        sample = np.sort(frame.get_column("x").cast(nw.Float64).to_numpy())
         n = len(sample)
 
         # Theoretical quantiles using plotting positions
@@ -41,8 +40,7 @@ class StatQQLine:
         from scipy.stats import norm
 
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        sample = np.array(x_vals, dtype=float)
+        sample = frame.get_column("x").cast(nw.Float64).to_numpy()
 
         q25, q75 = np.percentile(sample, [25, 75])
         theoretical_q25 = norm.ppf(0.25)

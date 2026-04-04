@@ -19,18 +19,19 @@ class StatDotplot:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_values = frame.get_column("x").to_list()
-        xmin, xmax = min(x_values), max(x_values)
+        x_col = frame.get_column("x")
+        xmin, xmax = x_col.min(), x_col.max()
 
         edges = np.linspace(xmin, xmax, self.bins + 1)
         centers = ((edges[:-1] + edges[1:]) / 2).tolist()
 
         # Assign each point to a bin and stack
+        x_arr = x_col.cast(nw.Float64).to_numpy()
         result_x: list[float] = []
         result_y: list[int] = []
         bin_counts: dict[int, int] = {}
 
-        for xv in x_values:
+        for xv in x_arr:
             bin_idx = int(np.searchsorted(edges[1:], xv, side="right"))
             bin_idx = min(bin_idx, len(centers) - 1)
             stack_pos = bin_counts.get(bin_idx, 0)

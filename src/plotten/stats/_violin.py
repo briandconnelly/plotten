@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import cast
 
 import narwhals as nw
 import narwhals.typing
@@ -19,13 +19,6 @@ class StatViolin:
         from scipy.stats import gaussian_kde
 
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        y_vals = frame.get_column("y").to_list()
-
-        # Group by x (categorical)
-        groups: dict[Any, list[float]] = {}
-        for xv, yv in zip(x_vals, y_vals, strict=True):
-            groups.setdefault(xv, []).append(float(yv))
 
         result: dict[str, list] = {
             "x": [],
@@ -35,8 +28,8 @@ class StatViolin:
             "y_max": [],
         }
 
-        for x_key in sorted(groups):
-            vals = np.array(groups[x_key])
+        for (x_key,), group in sorted(frame.group_by("x"), key=lambda t: str(t[0])):
+            vals = group.get_column("y").cast(nw.Float64).to_numpy()
             if len(vals) < 2:
                 # Need at least 2 points for KDE
                 result["x"].append(x_key)

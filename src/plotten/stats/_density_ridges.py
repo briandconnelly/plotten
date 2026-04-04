@@ -26,10 +26,8 @@ class StatDensityRidges:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        y_groups = frame.get_column("y").to_list()
 
-        unique_groups = sorted(set(y_groups), key=lambda g: str(g))
+        unique_groups = sorted(frame.get_column("y").unique().to_list(), key=lambda g: str(g))
         group_map = {g: i for i, g in enumerate(unique_groups)}
 
         result_x: list[float] = []
@@ -37,11 +35,8 @@ class StatDensityRidges:
         result_ymax: list[float] = []
         result_group: list = []
 
-        for group in unique_groups:
-            group_x = np.array(
-                [x for x, g in zip(x_vals, y_groups, strict=True) if g == group],
-                dtype=float,
-            )
+        for (group,), group_frame in sorted(frame.group_by("y"), key=lambda t: str(t[0])):
+            group_x = group_frame.get_column("x").cast(nw.Float64).to_numpy()
             if len(group_x) < 2:
                 continue
 

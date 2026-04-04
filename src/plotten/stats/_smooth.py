@@ -40,8 +40,8 @@ class StatSmooth:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_raw = np.array(frame.get_column("x").to_list(), dtype=float)
-        y_raw = np.array(frame.get_column("y").to_list(), dtype=float)
+        x_raw = frame.get_column("x").cast(nw.Float64).to_numpy()
+        y_raw = frame.get_column("y").cast(nw.Float64).to_numpy()
 
         # Sort by x
         order = np.argsort(x_raw)
