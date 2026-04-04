@@ -1,6 +1,8 @@
 """Accessibility audit for plotten plots.
 
-Checks colorblind safety, contrast ratios, and font sizes.
+Checks data-visualization-specific accessibility concerns: colorblind safety,
+redundant encoding, palette size, text contrast, font sizes, legend presence,
+and descriptive text.
 """
 
 from __future__ import annotations
@@ -243,18 +245,26 @@ def _extract_theme_colors(plot: Any) -> dict[str, str]:
 
 
 def accessibility_report(plot: Any) -> AccessibilityReport:
-    """Audit a plot for accessibility issues.
+    """Audit a plot for data-visualization accessibility issues.
 
     Checks:
     - Colorblind safety of the palette (deuteranopia, protanopia, tritanopia)
-    - Text contrast ratios against backgrounds (WCAG 2.1)
+    - Redundant encoding (whether color is the only channel distinguishing groups)
+    - Palette size (whether too many discrete colors are used)
+    - Text contrast ratios against backgrounds
     - Minimum font sizes
+    - Legend presence (whether a suppressed legend hides mapped aesthetics)
+    - Descriptive text (whether the plot has a title for alt-text)
     """
     report = AccessibilityReport()
 
     _check_colorblind_safety(plot, report)
+    _check_redundant_encoding(plot, report)
+    _check_palette_size(plot, report)
     _check_contrast(plot, report)
     _check_font_sizes(plot, report)
+    _check_legend_present(plot, report)
+    _check_descriptive_text(plot, report)
 
     return report
 
@@ -388,3 +398,153 @@ def _check_font_sizes(plot: Any, report: AccessibilityReport) -> None:
                     suggestion="Use at least 8pt for readability.",
                 )
             )
+
+
+def _check_redundant_encoding(plot: Any, report: AccessibilityReport) -> None:
+    """Check if color/fill is the only channel distinguishing groups."""
+    from plotten.scales._base import MappedDiscreteScale
+
+    # Collect all mappings (global + per-layer)
+    all_mappings = [plot.mapping]
+    for layer in plot.layers:
+        if layer.mapping is not None:
+            all_mappings.append(layer.mapping)
+
+    # Find columns mapped to color/fill
+    color_columns: set[str] = set()
+    for m in all_mappings:
+        for aes_name in ("color", "fill"):
+            col = getattr(m, aes_name, None)
+            if isinstance(col, str):
+                color_columns.add(col)
+
+    if not color_columns:
+        return
+
+    # Skip if the color/fill scale is continuous (shape can't encode continuous)
+    try:
+        from plotten._render._resolve import resolve
+
+        resolved = resolve(plot)
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return
+
+    for aes_name in ("color", "fill"):
+        scale = resolved.scales.get(aes_name)
+        if scale is not None and not isinstance(scale, MappedDiscreteScale):
+            return
+
+    # Check if any redundant channel maps the same column
+    redundant_channels = ("shape", "linetype", "hatch")
+    redundant_columns: set[str] = set()
+    for m in all_mappings:
+        for ch in redundant_channels:
+            col = getattr(m, ch, None)
+            if isinstance(col, str):
+                redundant_columns.add(col)
+
+    unreinforced = color_columns - redundant_columns
+    if unreinforced:
+        cols = ", ".join(sorted(unreinforced))
+        report.warnings.append(
+            AccessibilityWarning(
+                category="encoding",
+                severity="warning",
+                message=(
+                    f"Color is the only channel encoding {cols}. "
+                    f"Groups will be indistinguishable without color perception."
+                ),
+                suggestion=(
+                    "Map shape or linetype to the same variable so groups "
+                    "remain distinguishable without color."
+                ),
+            )
+        )
+
+
+def _check_palette_size(plot: Any, report: AccessibilityReport) -> None:
+    """Check if a discrete palette has too many levels to distinguish."""
+    from plotten.scales._base import MappedDiscreteScale
+
+    try:
+        from plotten._render._resolve import resolve
+
+        resolved = resolve(plot)
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return
+
+    max_levels = 8
+    for aes_name in ("color", "fill"):
+        scale = resolved.scales.get(aes_name)
+        if isinstance(scale, MappedDiscreteScale) and len(scale._levels) > max_levels:
+            report.warnings.append(
+                AccessibilityWarning(
+                    category="palette",
+                    severity="warning",
+                    message=(
+                        f"Discrete {aes_name} scale has {len(scale._levels)} levels. "
+                        f"More than {max_levels} colors are difficult to distinguish."
+                    ),
+                    suggestion=(
+                        "Consider grouping categories or using facets "
+                        "to reduce the number of colors."
+                    ),
+                )
+            )
+
+
+def _check_legend_present(plot: Any, report: AccessibilityReport) -> None:
+    """Check if a suppressed legend hides mapped aesthetics."""
+    from plotten._enums import LegendPosition
+    from plotten.themes._theme import Theme
+
+    theme: Theme = plot.theme if plot.theme is not None else Theme()
+    pos = theme.legend_position
+    if not (isinstance(pos, str) and pos == LegendPosition.NONE):
+        return
+
+    try:
+        from plotten._render._resolve import resolve
+
+        resolved = resolve(plot)
+    except (ValueError, TypeError, KeyError, AttributeError):
+        return
+
+    has_entries = any(
+        scale.legend_entries()
+        for scale in resolved.scales.values()
+        if scale.legend_entries() is not None
+    )
+    if has_entries:
+        report.warnings.append(
+            AccessibilityWarning(
+                category="legend",
+                severity="warning",
+                message=(
+                    "Legend is hidden but mapped aesthetics are present. "
+                    "Readers cannot decode the visual encoding without a legend."
+                ),
+                suggestion=(
+                    "Remove legend_position='none' or add direct labels "
+                    "to the plot (e.g. via annotate or geom_text)."
+                ),
+            )
+        )
+
+
+def _check_descriptive_text(plot: Any, report: AccessibilityReport) -> None:
+    """Check if the plot has a title for use as alt-text."""
+    title = getattr(plot.labs, "title", None) if plot.labs is not None else None
+    if title is None:
+        report.warnings.append(
+            AccessibilityWarning(
+                category="description",
+                severity="info",
+                message="Plot has no title.",
+                suggestion=(
+                    "Add a title with labs(title=...) to describe the plot's "
+                    "main finding. Titles serve as alt-text when images are "
+                    "embedded in documents or web pages."
+                ),
+            )
+        )

@@ -10,6 +10,7 @@ from plotten import (
     AccessibilityWarning,
     accessibility_report,
     aes,
+    geom_line,
     geom_point,
     ggplot,
     labs,
@@ -228,3 +229,121 @@ class TestFullAudit:
         p = ggplot(df, aes(x="x", y="y"))
         report = accessibility_report(p)
         assert isinstance(report, AccessibilityReport)
+
+
+class TestRedundantEncoding:
+    def test_color_only_flagged(self):
+        """Color as sole encoding channel should warn."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point()
+        report = accessibility_report(p)
+        encoding_warnings = [w for w in report.warnings if w.category == "encoding"]
+        assert len(encoding_warnings) == 1
+        assert "g" in encoding_warnings[0].message
+
+    def test_color_with_shape_passes(self):
+        """Color + shape mapping to the same variable should not warn."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g", shape="g")) + geom_point()
+        report = accessibility_report(p)
+        encoding_warnings = [w for w in report.warnings if w.category == "encoding"]
+        assert len(encoding_warnings) == 0
+
+    def test_color_with_linetype_passes(self):
+        """Color + linetype mapping should not warn."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g", linetype="g")) + geom_line()
+        report = accessibility_report(p)
+        encoding_warnings = [w for w in report.warnings if w.category == "encoding"]
+        assert len(encoding_warnings) == 0
+
+    def test_no_color_mapping_skipped(self):
+        """No color mapping should produce no encoding warnings."""
+        df = pd.DataFrame({"x": [1, 2], "y": [1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        report = accessibility_report(p)
+        encoding_warnings = [w for w in report.warnings if w.category == "encoding"]
+        assert len(encoding_warnings) == 0
+
+    def test_continuous_color_skipped(self):
+        """Continuous color scales should not trigger redundant encoding warnings."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "v": [0.1, 0.5, 0.9]})
+        p = ggplot(df, aes(x="x", y="y", color="v")) + geom_point()
+        report = accessibility_report(p)
+        encoding_warnings = [w for w in report.warnings if w.category == "encoding"]
+        assert len(encoding_warnings) == 0
+
+    def test_layer_level_shape_passes(self):
+        """Shape mapped in a layer (not global) should still count as redundant."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point(mapping=aes(shape="g"))
+        report = accessibility_report(p)
+        encoding_warnings = [w for w in report.warnings if w.category == "encoding"]
+        assert len(encoding_warnings) == 0
+
+
+class TestPaletteSize:
+    def test_many_levels_flagged(self):
+        """More than 8 discrete color levels should warn."""
+        n = 10
+        df = pd.DataFrame(
+            {"x": list(range(n)), "y": list(range(n)), "g": [f"cat{i}" for i in range(n)]}
+        )
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point()
+        report = accessibility_report(p)
+        palette_warnings = [w for w in report.warnings if w.category == "palette"]
+        assert len(palette_warnings) == 1
+        assert "10" in palette_warnings[0].message
+
+    def test_few_levels_passes(self):
+        """8 or fewer levels should not warn."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point()
+        report = accessibility_report(p)
+        palette_warnings = [w for w in report.warnings if w.category == "palette"]
+        assert len(palette_warnings) == 0
+
+
+class TestLegendPresent:
+    def test_hidden_legend_flagged(self):
+        """Suppressed legend with mapped aesthetics should warn."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point() + theme(legend_position="none")
+        report = accessibility_report(p)
+        legend_warnings = [w for w in report.warnings if w.category == "legend"]
+        assert len(legend_warnings) == 1
+
+    def test_visible_legend_passes(self):
+        """Default legend position should not warn."""
+        df = pd.DataFrame({"x": [1, 2, 3], "y": [1, 2, 3], "g": ["a", "b", "c"]})
+        p = ggplot(df, aes(x="x", y="y", color="g")) + geom_point()
+        report = accessibility_report(p)
+        legend_warnings = [w for w in report.warnings if w.category == "legend"]
+        assert len(legend_warnings) == 0
+
+    def test_hidden_legend_no_mapping_passes(self):
+        """Suppressed legend with no mapped aesthetics should not warn."""
+        df = pd.DataFrame({"x": [1, 2], "y": [1, 2]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + theme(legend_position="none")
+        report = accessibility_report(p)
+        legend_warnings = [w for w in report.warnings if w.category == "legend"]
+        assert len(legend_warnings) == 0
+
+
+class TestDescriptiveText:
+    def test_no_title_flagged(self):
+        """Plot without a title should produce info-level suggestion."""
+        df = pd.DataFrame({"x": [1], "y": [1]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        report = accessibility_report(p)
+        desc_warnings = [w for w in report.warnings if w.category == "description"]
+        assert len(desc_warnings) == 1
+        assert desc_warnings[0].severity == "info"
+
+    def test_with_title_passes(self):
+        """Plot with a title should not produce description warnings."""
+        df = pd.DataFrame({"x": [1], "y": [1]})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point() + labs(title="My Plot")
+        report = accessibility_report(p)
+        desc_warnings = [w for w in report.warnings if w.category == "description"]
+        assert len(desc_warnings) == 0
