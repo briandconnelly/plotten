@@ -90,12 +90,10 @@ def coord_flip(
     >>> df = pd.DataFrame({"x": ["a", "b", "c"], "y": [3, 1, 2]})
     >>> ggplot(df, aes(x="x", y="y")) + geom_bar() + coord_flip()
     """
-    import warnings
+    from plotten._validation import plotten_deprecation_warn
 
-    warnings.warn(
+    plotten_deprecation_warn(
         "coord_flip() is deprecated. Use orientation='y' on individual geoms instead "
-        "(e.g. geom_bar(orientation='y')).",
-        DeprecationWarning,
-        stacklevel=2,
+        "(e.g. geom_bar(orientation='y'))."
     )
     return CoordFlip(xlim=xlim, ylim=ylim)

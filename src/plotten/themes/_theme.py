@@ -4,6 +4,8 @@ import difflib
 from dataclasses import MISSING, dataclass, field, fields
 from typing import TYPE_CHECKING, Any, Self
 
+from plotten._enums import LegendPosition
+
 if TYPE_CHECKING:
     from plotten.themes._elements import (
         ElementBlank,
@@ -46,7 +48,7 @@ class Theme:
 
     # Spacing
     margin: float = 0.1
-    legend_position: str | tuple[float, float] = "right"
+    legend_position: str | LegendPosition | tuple[float, float] = LegendPosition.RIGHT
 
     # Per-axis text sizing (scalar shortcuts)
     axis_title_x_size: float | None = None

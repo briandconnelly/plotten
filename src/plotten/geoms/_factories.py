@@ -516,13 +516,11 @@ def geom_col(**params: Any) -> Layer:
     >>> df = pd.DataFrame({"item": ["A", "B", "C"], "count": [10, 20, 15]})
     >>> p = ggplot(df, aes(x="item", y="count")) + geom_col(fill="teal")
     """
-    import warnings
+    from plotten._validation import plotten_deprecation_warn
 
-    warnings.warn(
+    plotten_deprecation_warn(
         "geom_col() is deprecated. Use geom_bar() instead — it auto-detects "
-        "when y is mapped and uses identity stat automatically.",
-        DeprecationWarning,
-        stacklevel=2,
+        "when y is mapped and uses identity stat automatically."
     )
     orientation = params.pop("orientation", "x")
     position = params.pop("position", None)

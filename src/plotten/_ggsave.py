@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import warnings
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
@@ -45,10 +44,10 @@ def ggsave(
     transparent : bool
         If True, the figure and axes backgrounds are transparent.
     """
-    warnings.warn(
-        "ggsave() is deprecated. Use plot.save() instead: plot.save('output.png', dpi=300)",
-        DeprecationWarning,
-        stacklevel=2,
+    from plotten._validation import plotten_deprecation_warn
+
+    plotten_deprecation_warn(
+        "ggsave() is deprecated. Use plot.save() instead: plot.save('output.png', dpi=300)"
     )
     plot.save(
         str(filename),

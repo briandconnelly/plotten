@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from plotten._aes import Aes
 from plotten._enums import AnnotationType
@@ -13,29 +14,21 @@ if TYPE_CHECKING:
     from plotten._types import GeomDrawData, GeomParams
 
 
+@dataclass(frozen=True, slots=True)
 class _GeomAnnotRect:
     """Internal geom for annotate("rect")."""
 
-    required_aes: frozenset[str] = frozenset()
-    supports_group_splitting: bool = False
-    legend_key: str = "rect"
-    known_params: frozenset[str] = frozenset()
+    xmin: float
+    xmax: float
+    ymin: float
+    ymax: float
+    coord: str = "data"
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __init__(
-        self,
-        xmin: float,
-        xmax: float,
-        ymin: float,
-        ymax: float,
-        coord: str = "data",
-        **kwargs: Any,
-    ) -> None:
-        self.xmin = xmin
-        self.xmax = xmax
-        self.ymin = ymin
-        self.ymax = ymax
-        self._coord = coord
-        self.kwargs = kwargs
+    required_aes: ClassVar[frozenset[str]] = frozenset()
+    supports_group_splitting: ClassVar[bool] = False
+    legend_key: ClassVar[str] = "rect"
+    known_params: ClassVar[frozenset[str]] = frozenset()
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity
@@ -48,7 +41,7 @@ class _GeomAnnotRect:
         alpha = self.kwargs.get("alpha", params.get("alpha", 0.3))
         color = self.kwargs.get("color", params.get("color", "gray"))
         fill = self.kwargs.get("fill", params.get("fill", color))
-        transform = ax.transAxes if self._coord == "npc" else ax.transData
+        transform = ax.transAxes if self.coord == "npc" else ax.transData
         rect = Rectangle(
             (self.xmin, self.ymin),
             self.xmax - self.xmin,
@@ -61,23 +54,21 @@ class _GeomAnnotRect:
         ax.add_patch(rect)
 
 
+@dataclass(frozen=True, slots=True)
 class _GeomAnnotSegment:
     """Internal geom for annotate("segment")."""
 
-    required_aes: frozenset[str] = frozenset()
-    supports_group_splitting: bool = False
-    legend_key: str = "line"
-    known_params: frozenset[str] = frozenset()
+    x: float
+    y: float
+    xend: float
+    yend: float
+    coord: str = "data"
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __init__(
-        self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
-    ) -> None:
-        self._x = x
-        self._y = y
-        self._xend = xend
-        self._yend = yend
-        self._coord = coord
-        self.kwargs = kwargs
+    required_aes: ClassVar[frozenset[str]] = frozenset()
+    supports_group_splitting: ClassVar[bool] = False
+    legend_key: ClassVar[str] = "line"
+    known_params: ClassVar[frozenset[str]] = frozenset()
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity
@@ -97,11 +88,11 @@ class _GeomAnnotSegment:
                 arrowstyle = arrow_param.to_arrowstyle()
             else:
                 arrowstyle = "->"
-            xycoords = "axes fraction" if self._coord == "npc" else "data"
+            xycoords = "axes fraction" if self.coord == "npc" else "data"
             ax.annotate(
                 "",
-                xy=(self._xend, self._yend),
-                xytext=(self._x, self._y),
+                xy=(self.xend, self.yend),
+                xytext=(self.x, self.y),
                 xycoords=xycoords,
                 textcoords=xycoords,
                 arrowprops={
@@ -112,10 +103,10 @@ class _GeomAnnotSegment:
                 },
             )
         else:
-            transform = ax.transAxes if self._coord == "npc" else ax.transData
+            transform = ax.transAxes if self.coord == "npc" else ax.transData
             ax.plot(
-                [self._x, self._xend],
-                [self._y, self._yend],
+                [self.x, self.xend],
+                [self.y, self.yend],
                 color=color,
                 linestyle=linestyle,
                 linewidth=linewidth,
@@ -123,23 +114,21 @@ class _GeomAnnotSegment:
             )
 
 
+@dataclass(frozen=True, slots=True)
 class _GeomAnnotCurve:
     """Internal geom for annotate("curve")."""
 
-    required_aes: frozenset[str] = frozenset()
-    supports_group_splitting: bool = False
-    legend_key: str = "line"
-    known_params: frozenset[str] = frozenset()
+    x: float
+    y: float
+    xend: float
+    yend: float
+    coord: str = "data"
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __init__(
-        self, x: float, y: float, xend: float, yend: float, coord: str = "data", **kwargs: Any
-    ) -> None:
-        self._x = x
-        self._y = y
-        self._xend = xend
-        self._yend = yend
-        self._coord = coord
-        self.kwargs = kwargs
+    required_aes: ClassVar[frozenset[str]] = frozenset()
+    supports_group_splitting: ClassVar[bool] = False
+    legend_key: ClassVar[str] = "line"
+    known_params: ClassVar[frozenset[str]] = frozenset()
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity
@@ -169,39 +158,31 @@ class _GeomAnnotCurve:
             "color": color,
             "linewidth": linewidth,
         }
-        if self._coord == "npc":
+        if self.coord == "npc":
             patch_kwargs["transform"] = ax.transAxes
         patch = FancyArrowPatch(
-            posA=(self._x, self._y),
-            posB=(self._xend, self._yend),
+            posA=(self.x, self.y),
+            posB=(self.xend, self.yend),
             **patch_kwargs,
         )
         ax.add_patch(patch)
 
 
+@dataclass(frozen=True, slots=True)
 class _GeomAnnotBracket:
     """Internal geom for annotate("bracket")."""
 
-    required_aes: frozenset[str] = frozenset()
-    supports_group_splitting: bool = False
-    legend_key: str = "rect"
-    known_params: frozenset[str] = frozenset()
+    xmin: float
+    xmax: float
+    y: float
+    label: str | None = None
+    coord: str = "data"
+    kwargs: dict[str, Any] = field(default_factory=dict)
 
-    def __init__(
-        self,
-        xmin: float,
-        xmax: float,
-        y: float,
-        label: str | None = None,
-        coord: str = "data",
-        **kwargs: Any,
-    ) -> None:
-        self._xmin = xmin
-        self._xmax = xmax
-        self._y = y
-        self._label = label
-        self._coord = coord
-        self.kwargs = kwargs
+    required_aes: ClassVar[frozenset[str]] = frozenset()
+    supports_group_splitting: ClassVar[bool] = False
+    legend_key: ClassVar[str] = "rect"
+    known_params: ClassVar[frozenset[str]] = frozenset()
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity
@@ -214,9 +195,9 @@ class _GeomAnnotBracket:
         direction = self.kwargs.get("direction", "up")
         tip_length = self.kwargs.get("tip_length", 0.02)
 
-        transform = ax.transAxes if self._coord == "npc" else ax.transData
+        transform = ax.transAxes if self.coord == "npc" else ax.transData
 
-        if self._coord == "npc":
+        if self.coord == "npc":
             # In NPC mode, tip_length is already in axes fraction
             tip = tip_length * (1 if direction == "up" else -1)
         else:
@@ -226,8 +207,8 @@ class _GeomAnnotBracket:
 
         # Vertical ticks + horizontal bar
         ax.plot(
-            [self._xmin, self._xmin, self._xmax, self._xmax],
-            [self._y, self._y + tip, self._y + tip, self._y],
+            [self.xmin, self.xmin, self.xmax, self.xmax],
+            [self.y, self.y + tip, self.y + tip, self.y],
             color=color,
             linewidth=linewidth,
             clip_on=False,
@@ -235,13 +216,13 @@ class _GeomAnnotBracket:
         )
 
         # Optional label centered above/below
-        if self._label:
-            label_y = self._y + tip * 1.5
+        if self.label:
+            label_y = self.y + tip * 1.5
             va = "bottom" if direction == "up" else "top"
             ax.text(
-                (self._xmin + self._xmax) / 2,
+                (self.xmin + self.xmax) / 2,
                 label_y,
-                self._label,
+                self.label,
                 ha="center",
                 va=va,
                 color=color,
@@ -330,7 +311,7 @@ def annotate(
                 ymin=ymin if ymin is not None else 0,
                 ymax=ymax if ymax is not None else 0,
                 coord=coord,
-                **params,
+                kwargs=params,
             )
             return Layer(geom=geom, mapping=Aes(), params={})
 
@@ -343,7 +324,7 @@ def annotate(
                 xend=xend if xend is not None else 0,
                 yend=yend if yend is not None else 0,
                 coord=coord,
-                **params,
+                kwargs=params,
             )
             return Layer(geom=geom, mapping=Aes(), params={})
 
@@ -356,7 +337,7 @@ def annotate(
                 xend=xend if xend is not None else 0,
                 yend=yend if yend is not None else 0,
                 coord=coord,
-                **params,
+                kwargs=params,
             )
             return Layer(geom=geom, mapping=Aes(), params={})
 
@@ -367,7 +348,7 @@ def annotate(
                 y=y if y is not None else 0,
                 label=label,
                 coord=coord,
-                **params,
+                kwargs=params,
             )
             return Layer(geom=geom_b, mapping=Aes(), params={})
 

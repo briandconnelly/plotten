@@ -358,6 +358,7 @@ def _build_registries() -> None:
         stat_density_2d_filled,
         stat_ecdf,
         stat_ellipse,
+        stat_function,
         stat_poly_eq,
         stat_sum,
         stat_summary,
@@ -415,6 +416,7 @@ def _build_registries() -> None:
         # stat_* aliases
         "stat_ecdf": stat_ecdf,
         "stat_ellipse": stat_ellipse,
+        "stat_function": stat_function,
         "stat_summary": stat_summary,
         "stat_summary_bin": stat_summary_bin,
         "stat_cor": stat_cor,
@@ -589,7 +591,7 @@ def _resolve_position(pos_spec: str | dict[str, Any] | None) -> Any:
             )
         return factory()
     if isinstance(pos_spec, dict):
-        pos_type = pos_spec.pop("type", None)
+        pos_type = pos_spec.get("type")
         if pos_type is None:
             raise SpecError("Position dict must have a 'type' key.")
         factory = _POSITION_REGISTRY.get(pos_type)
@@ -598,7 +600,8 @@ def _resolve_position(pos_spec: str | dict[str, Any] | None) -> Any:
                 f"Unknown position type: {pos_type!r}. "
                 f"Valid positions: {sorted(_POSITION_REGISTRY)}"
             )
-        return factory(**pos_spec)
+        remaining = {k: v for k, v in pos_spec.items() if k != "type"}
+        return factory(**remaining)
     return pos_spec
 
 

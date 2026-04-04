@@ -25,12 +25,11 @@ _LETTER_CODES = {"A", "B", "C", "D", "E"}
 
 def _resolve_option(option: str) -> str:
     if option in _LETTER_CODES:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn(
+        plotten_deprecation_warn(
             f"Single-letter viridis option code {option!r} is deprecated. "
             f"Use the full name {_VIRIDIS_OPTIONS[option]!r} instead.",
-            DeprecationWarning,
             stacklevel=3,
         )
     if option in _VIRIDIS_OPTIONS:

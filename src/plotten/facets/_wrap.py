@@ -109,22 +109,14 @@ def facet_wrap(
     >>> ggplot(df, aes(x="x", y="y")) + geom_point() + facet_wrap("g", n_cols=2)
     """
     if nrow is not None:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn(
-            "nrow is deprecated. Use n_rows instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+        plotten_deprecation_warn("nrow is deprecated. Use n_rows instead.")
         n_rows = nrow
     if ncol is not None:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn(
-            "ncol is deprecated. Use n_cols instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+        plotten_deprecation_warn("ncol is deprecated. Use n_cols instead.")
         n_cols = ncol
     return FacetWrap(
         facets=facets,

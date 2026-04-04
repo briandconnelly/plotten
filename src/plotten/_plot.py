@@ -6,11 +6,15 @@ from typing import Any, Self
 
 from plotten._aes import Aes
 from plotten._enums import SizeUnit
+from plotten._guides import Guides
 from plotten._labs import Labs
 from plotten._layer import Layer
 from plotten._watermark import Watermark
 from plotten.coords._cartesian import CoordCartesian
+from plotten.coords._equal import CoordEqual, CoordFixed
 from plotten.coords._flip import CoordFlip
+from plotten.coords._polar import CoordPolar
+from plotten.coords._trans import CoordTrans
 from plotten.facets import FacetGrid, FacetWrap
 from plotten.scales._base import ScaleBase
 from plotten.themes._theme import Theme
@@ -28,7 +32,7 @@ class Plot:
     theme: Theme = field(default_factory=Theme)
     labs: Labs = field(default_factory=Labs)
     facet: Any = None
-    guides: dict | None = None
+    guides: Guides | None = None
     _expand_limits: tuple = ()
     _insets: tuple = ()
     _watermark: Watermark | None = None
@@ -53,7 +57,14 @@ class Plot:
                 return self._replace(theme=self.theme + other)
             case Labs():
                 return self._replace(labs=self.labs + other)
-            case CoordCartesian() | CoordFlip():
+            case (
+                CoordCartesian()
+                | CoordFlip()
+                | CoordEqual()
+                | CoordFixed()
+                | CoordPolar()
+                | CoordTrans()
+            ):
                 return self._replace(coord=other)
             case FacetWrap() | FacetGrid():
                 return self._replace(facet=other)
@@ -61,22 +72,14 @@ class Plot:
                 return self._replace(_expand_limits=(*self._expand_limits, other))
             case Watermark():
                 return self._replace(_watermark=other)
-            case dict():
-                # Guides dict
-                existing = self.guides or {}
-                return self._replace(guides={**existing, **other})
+            case Guides():
+                existing = self.guides or Guides()
+                return self._replace(guides=Guides({**existing, **other}))
             case _:
-                # Support new coord types
                 from plotten._composition import InsetElement
-                from plotten.coords._equal import CoordEqual, CoordFixed
-                from plotten.coords._polar import CoordPolar
 
                 if isinstance(other, InsetElement):
                     return self._replace(_insets=(*self._insets, other))
-                from plotten.coords._trans import CoordTrans
-
-                if isinstance(other, CoordEqual | CoordFixed | CoordPolar | CoordTrans):
-                    return self._replace(coord=other)
                 return NotImplemented
 
     def __or__(self, other: Any) -> Any:
@@ -161,8 +164,8 @@ class Plot:
                 new_w = width * factor
                 new_h = new_w / aspect
             else:
-                assert height is not None
-                new_h = height * factor
+                # width is None, height must be not None (guarded by outer if)
+                new_h = height * factor  # type: ignore[operator]
                 new_w = new_h * aspect
             fig.set_size_inches(new_w, new_h)
         if transparent:

@@ -102,6 +102,11 @@ class PlottenWarning(UserWarning):
     """Warning category for recoverable plotten issues."""
 
 
+def get_strict() -> bool:
+    """Return the current strict mode setting."""
+    return _strict_mode
+
+
 def set_strict(enabled: bool = True) -> None:
     """Enable or disable strict mode.
 
@@ -118,6 +123,13 @@ def plotten_warn(message: str, *, stacklevel: int = 2) -> None:
     if _strict_mode:
         raise ValidationError(message)
     warnings.warn(message, PlottenWarning, stacklevel=stacklevel + 1)
+
+
+def plotten_deprecation_warn(message: str, *, stacklevel: int = 2) -> None:
+    """Issue a :class:`DeprecationWarning`, or raise :class:`ValidationError` in strict mode."""
+    if _strict_mode:
+        raise ValidationError(message)
+    warnings.warn(message, DeprecationWarning, stacklevel=stacklevel + 1)
 
 
 # ---------------------------------------------------------------------------

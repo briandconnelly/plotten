@@ -39,7 +39,7 @@ def options(
     >>> with options(theme=theme_dark()):
     ...     p.show()  # doctest: +SKIP
     """
-    from plotten._validation import _strict_mode, set_strict
+    from plotten._validation import get_strict, set_strict
     from plotten.themes._theme import theme_set
 
     old_theme = None
@@ -48,7 +48,7 @@ def options(
         if theme is not None:
             old_theme = theme_set(theme)
         if strict is not None:
-            old_strict = _strict_mode
+            old_strict = get_strict()
             set_strict(strict)
         yield
     finally:

@@ -52,14 +52,14 @@ def guide_legend(**kwargs: Any) -> GuideLegend:
     """
     # Handle deprecated aliases
     if "nrow" in kwargs:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn("nrow is deprecated. Use n_rows instead.", DeprecationWarning, stacklevel=2)
+        plotten_deprecation_warn("nrow is deprecated. Use n_rows instead.")
         kwargs["n_rows"] = kwargs.pop("nrow")
     if "ncol" in kwargs:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn("ncol is deprecated. Use n_cols instead.", DeprecationWarning, stacklevel=2)
+        plotten_deprecation_warn("ncol is deprecated. Use n_cols instead.")
         kwargs["n_cols"] = kwargs.pop("ncol")
     return GuideLegend(**kwargs)
 

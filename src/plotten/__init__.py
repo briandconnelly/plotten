@@ -68,6 +68,7 @@ from plotten._validation import (
     SpecError,
     StatError,
     ValidationError,
+    get_strict,
     set_strict,
 )
 from plotten._vegalite import to_html, to_vegalite
@@ -534,6 +535,7 @@ __all__ = [
     "geom_tile",
     "geom_violin",
     "geom_vline",
+    "get_strict",
     "ggplot",
     "ggsave",
     "guide_colorbar",

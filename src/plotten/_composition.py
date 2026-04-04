@@ -141,8 +141,8 @@ class PlotGrid:
                 new_w = width * factor
                 new_h = new_w / aspect
             else:
-                assert height is not None
-                new_h = height * factor
+                # width is None, height must be not None (guarded by outer if)
+                new_h = height * factor  # type: ignore[operator]
                 new_w = new_h * aspect
             fig.set_size_inches(new_w, new_h)
         if transparent:
@@ -217,14 +217,14 @@ def plot_grid(
     import math
 
     if nrow is not None:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn("nrow is deprecated. Use n_rows instead.", DeprecationWarning, stacklevel=2)
+        plotten_deprecation_warn("nrow is deprecated. Use n_rows instead.")
         n_rows = nrow
     if ncol is not None:
-        import warnings
+        from plotten._validation import plotten_deprecation_warn
 
-        warnings.warn("ncol is deprecated. Use n_cols instead.", DeprecationWarning, stacklevel=2)
+        plotten_deprecation_warn("ncol is deprecated. Use n_cols instead.")
         n_cols = ncol
 
     n = len(plots)
