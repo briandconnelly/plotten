@@ -37,6 +37,17 @@ class Plot:
     _insets: tuple = ()
     _watermark: Watermark | None = None
 
+    def __repr__(self) -> str:
+        parts = [f"layers={len(self.layers)}"]
+        if self.facet is not None:
+            parts.append(f"facet={type(self.facet).__name__}")
+        if self.theme.complete:
+            parts.append("theme=<complete>")
+        coord_name = type(self.coord).__name__
+        if coord_name != "CoordCartesian":
+            parts.append(f"coord={coord_name}")
+        return f"Plot({', '.join(parts)})"
+
     def _replace(self, **kwargs: Any) -> Self:
         """Return a copy with given fields replaced."""
         from dataclasses import fields as dc_fields
@@ -80,7 +91,14 @@ class Plot:
 
                 if isinstance(other, InsetElement):
                     return self._replace(_insets=(*self._insets, other))
-                return NotImplemented
+
+                from plotten._validation import ConfigError
+
+                raise ConfigError(
+                    f"Cannot add {type(other).__name__!r} to a Plot. "
+                    f"Use layers (geom_*), scales (scale_*), themes (theme), "
+                    f"labels (labs), coords (coord_*), facets (facet_*), or guides."
+                )
 
     def __or__(self, other: Any) -> Any:
         from plotten._composition import PlotGrid
@@ -173,7 +191,7 @@ class Plot:
             for ax in fig.get_axes():
                 ax.patch.set_alpha(0.0)
 
-        fig.savefig(path, dpi=dpi, bbox_inches="tight", transparent=transparent)
+        fig.savefig(path, dpi=dpi, transparent=transparent)
         import matplotlib.pyplot as plt
 
         plt.close(fig)
@@ -184,7 +202,7 @@ class Plot:
 
         fig = render(self)
         buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+        fig.savefig(buf, format="png", dpi=150)
         import matplotlib.pyplot as plt
 
         plt.close(fig)

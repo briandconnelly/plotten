@@ -16,7 +16,7 @@ class GeomHex(GeomRepr):
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
     legend_key: str = "rect"
-    known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "bins"})
+    known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "bins", "cmap"})
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

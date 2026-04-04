@@ -243,11 +243,20 @@ class Margin:
     * ``"mm"`` — millimetres, converted via inches.
     """
 
+    _VALID_UNITS: frozenset[str] = frozenset({"npc", "in", "cm", "mm"})
+
     top: float = 0
     right: float = 0
     bottom: float = 0
     left: float = 0
     unit: str = "npc"
+
+    def __post_init__(self) -> None:
+        if self.unit not in self._VALID_UNITS:
+            from plotten._validation import ConfigError
+
+            msg = f"Unknown margin unit: {self.unit!r}. Use 'npc', 'in', 'cm', or 'mm'."
+            raise ConfigError(msg)
 
     def to_npc(self, fig_width: float, fig_height: float) -> tuple[float, float, float, float]:
         """Convert to normalised parent coordinates.
@@ -267,13 +276,8 @@ class Margin:
         if self.unit == "npc":
             return (self.top, self.right, self.bottom, self.left)
 
-        # Convert to inches first
-        scale = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4}.get(self.unit)
-        if scale is None:
-            from plotten._validation import ConfigError
-
-            msg = f"Unknown margin unit: {self.unit!r}. Use 'npc', 'in', 'cm', or 'mm'."
-            raise ConfigError(msg)
+        # Convert to inches first — unit is already validated in __post_init__
+        scale = {"in": 1.0, "cm": 1 / 2.54, "mm": 1 / 25.4}[self.unit]
 
         return (
             self.top * scale / fig_height,

@@ -1317,10 +1317,10 @@ def test_add_theme():
     assert p.theme.panel_background == "#ffffff"
 
 
-def test_add_unsupported_raises_type_error():
+def test_add_unsupported_raises_config_error():
 
     p = ggplot()
-    with pytest.raises(TypeError):
+    with pytest.raises(ConfigError, match="Cannot add 'int' to a Plot"):
         p + 42
 
 

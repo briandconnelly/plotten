@@ -149,7 +149,7 @@ class PlotGrid:
             fig.patch.set_alpha(0.0)
             for ax in fig.get_axes():
                 ax.patch.set_alpha(0.0)
-        fig.savefig(path, dpi=dpi, bbox_inches="tight", transparent=transparent)
+        fig.savefig(path, dpi=dpi, transparent=transparent)
         plt.close(fig)
 
     def _repr_png_(self) -> bytes:
@@ -158,7 +158,7 @@ class PlotGrid:
 
         fig = render_grid(self)
         buf = io.BytesIO()
-        fig.savefig(buf, format="png", dpi=150, bbox_inches="tight")
+        fig.savefig(buf, format="png", dpi=150)
         plt.close(fig)
         return buf.getvalue()
 

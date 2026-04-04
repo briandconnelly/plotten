@@ -19,7 +19,7 @@ class GeomDotplot(GeomRepr):
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
     legend_key: str = "point"
-    known_params: frozenset[str] = frozenset({"fill", "color", "alpha"})
+    known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "size"})
 
     def default_stat(self) -> Any:
         from plotten.stats._dotplot import StatDotplot

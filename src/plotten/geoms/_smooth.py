@@ -17,7 +17,7 @@ class GeomSmooth(GeomRepr):
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = True
     legend_key: str = "line"
-    known_params: frozenset[str] = frozenset({"color", "alpha", "linetype"})
+    known_params: frozenset[str] = frozenset({"color", "alpha", "linetype", "se"})
 
     def __init__(
         self, method: str = "loess", se: bool = True, degree: int = 2, **kwargs: Any

@@ -16,7 +16,9 @@ class GeomSummary(GeomRepr):
     required_aes: frozenset[str] = frozenset({"x", "y"})
     supports_group_splitting: bool = False
     legend_key: str = "rect"
-    known_params: frozenset[str] = frozenset({"color", "fill", "alpha", "size"})
+    known_params: frozenset[str] = frozenset(
+        {"color", "fill", "alpha", "size", "linewidth", "width"}
+    )
 
     def default_stat(self) -> Any:
         from plotten.stats._summary import StatSummary

@@ -18,7 +18,7 @@ class GeomFreqpoly(GeomRepr):
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = True
     legend_key: str = "line"
-    known_params: frozenset[str] = frozenset({"color", "alpha", "linetype", "linewidth"})
+    known_params: frozenset[str] = frozenset({"color", "alpha", "linetype", "linewidth", "size"})
 
     def default_stat(self) -> Any:
         from plotten.stats._bin import StatBin

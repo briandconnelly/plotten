@@ -2169,9 +2169,8 @@ class TestMargin:
     def test_margin_unknown_unit(self):
         from plotten import margin
 
-        m = margin(1, 1, 1, 1, unit="px")
         with pytest.raises(ConfigError, match="Unknown margin unit"):
-            m.to_npc(10, 8)
+            margin(1, 1, 1, 1, unit="px")
 
     def test_margin_in_theme(self):
         from plotten import margin

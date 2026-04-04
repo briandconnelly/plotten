@@ -18,7 +18,9 @@ class GeomBar(GeomRepr):
     required_aes: frozenset[str] = frozenset({"x"})
     supports_group_splitting: bool = False
     legend_key: str = "rect"
-    known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "width", "hatch"})
+    known_params: frozenset[str] = frozenset(
+        {"fill", "color", "alpha", "width", "hatch", "linewidth"}
+    )
 
     def __init__(self, orientation: str = "x") -> None:
         self._orientation = orientation
