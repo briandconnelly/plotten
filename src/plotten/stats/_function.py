@@ -60,5 +60,5 @@ class StatFunction:
 
         x = np.linspace(xmin, xmax, self._n)
         y = self._fun(x)
-        result = {"x": x.tolist(), "y": y.tolist() if hasattr(y, "tolist") else list(y)}
+        result = {"x": x, "y": np.asarray(y)}
         return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))

@@ -32,17 +32,10 @@ class StatDensity:
         from scipy.stats import gaussian_kde
 
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_vals = frame.get_column("x").to_list()
-        x_arr = np.array(x_vals, dtype=float)
+        x_arr = frame.get_column("x").cast(nw.Float64).to_numpy()
 
         has_color = "color" in frame.columns
         if has_color:
-            color_vals = frame.get_column("color").to_list()
-            # Group by color
-            groups: dict[Any, list[float]] = {}
-            for xv, cv in zip(x_arr, color_vals, strict=True):
-                groups.setdefault(cv, []).append(float(xv))
-
             # Shared x grid across all groups
             global_min = float(x_arr.min())
             global_max = float(x_arr.max())
@@ -53,8 +46,8 @@ class StatDensity:
             result_y: list[float] = []
             result_color: list[Any] = []
 
-            for group_label in sorted(groups):
-                vals = np.array(groups[group_label])
+            for (group_label,), group in sorted(frame.group_by("color"), key=lambda t: str(t[0])):
+                vals = group.get_column("x").cast(nw.Float64).to_numpy()
                 kde = gaussian_kde(vals, bw_method=self._bw_method)
                 if self._bw_adjust != 1.0:
                     kde.set_bandwidth(kde.factor * self._bw_adjust)
@@ -63,7 +56,7 @@ class StatDensity:
                 result_y.extend(density.tolist())
                 result_color.extend([group_label] * len(x_grid))
 
-            result: dict[str, list] = {
+            result_dict: dict[str, Any] = {
                 "x": result_x,
                 "y": result_y,
                 "color": result_color,
@@ -77,9 +70,9 @@ class StatDensity:
             if self._bw_adjust != 1.0:
                 kde.set_bandwidth(kde.factor * self._bw_adjust)
             density = kde(x_grid)
-            result = {
+            result_dict = {
                 "x": x_grid.tolist(),
                 "y": density.tolist(),
             }
 
-        return nw.to_native(nw.from_dict(result, backend=nw.get_native_namespace(frame)))
+        return nw.to_native(nw.from_dict(result_dict, backend=nw.get_native_namespace(frame)))

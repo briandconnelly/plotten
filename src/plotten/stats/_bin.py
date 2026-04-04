@@ -27,25 +27,20 @@ class StatBin:
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         frame = cast("nw.DataFrame", nw.from_native(df))
-        x_values = frame.get_column("x").to_list()
-        xmin, xmax = min(x_values), max(x_values)
+        x_col = frame.get_column("x")
+        xmin, xmax = x_col.min(), x_col.max()
 
         edges = np.linspace(xmin, xmax, self.bins + 1)
-        counts, _ = np.histogram(x_values, bins=edges)
-        centers = ((edges[:-1] + edges[1:]) / 2).tolist()
-
-        counts_list = counts.tolist()
-        total = sum(counts_list)
-        widths = (edges[1:] - edges[:-1]).tolist()
-        density = [
-            c / (total * w) if total > 0 and w > 0 else 0.0
-            for c, w in zip(counts_list, widths, strict=True)
-        ]
+        counts, _ = np.histogram(x_col.to_numpy(), bins=edges)
+        centers = (edges[:-1] + edges[1:]) / 2
+        widths = edges[1:] - edges[:-1]
+        total = int(counts.sum())
+        density = np.where((total > 0) & (widths > 0), counts / (total * widths), 0.0)
 
         result_dict = {
             "x": centers,
-            "y": counts_list,
-            "count": counts_list,
+            "y": counts,
+            "count": counts,
             "density": density,
             "width": widths,
         }
