@@ -19,6 +19,7 @@ class GeomDensity(GeomRepr):
     supports_group_splitting: bool = True
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"color", "fill", "alpha", "hatch"})
+    warn_row_threshold: int | None = None
 
     def __init__(self, fill: bool = True, alpha: float = 0.3) -> None:
         self._fill = fill

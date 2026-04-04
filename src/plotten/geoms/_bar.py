@@ -21,6 +21,7 @@ class GeomBar(GeomRepr):
     known_params: frozenset[str] = frozenset(
         {"fill", "color", "alpha", "width", "hatch", "linewidth"}
     )
+    warn_row_threshold: int | None = None
 
     def __init__(self, orientation: str = "x") -> None:
         self._orientation = orientation

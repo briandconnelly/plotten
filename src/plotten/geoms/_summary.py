@@ -19,6 +19,7 @@ class GeomSummary(GeomRepr):
     known_params: frozenset[str] = frozenset(
         {"color", "fill", "alpha", "size", "linewidth", "width"}
     )
+    warn_row_threshold: int | None = None
 
     def default_stat(self) -> Any:
         from plotten.stats._summary import StatSummary

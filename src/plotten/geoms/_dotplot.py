@@ -20,6 +20,7 @@ class GeomDotplot(GeomRepr):
     supports_group_splitting: bool = False
     legend_key: str = "point"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "size"})
+    warn_row_threshold: int | None = None
 
     def default_stat(self) -> Any:
         from plotten.stats._dotplot import StatDotplot

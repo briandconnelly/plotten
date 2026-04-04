@@ -22,6 +22,7 @@ class GeomDensityRidges(GeomRepr):
     supports_group_splitting: bool = False
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "linewidth"})
+    warn_row_threshold: int | None = None
 
     def default_stat(self) -> Any:
         from plotten.stats._identity import StatIdentity

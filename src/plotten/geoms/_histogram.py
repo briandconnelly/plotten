@@ -17,6 +17,7 @@ class GeomHistogram(GeomRepr):
     supports_group_splitting: bool = False
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "color", "alpha", "width", "hatch"})
+    warn_row_threshold: int | None = None
 
     def __init__(self, orientation: str = "x") -> None:
         self._orientation = orientation

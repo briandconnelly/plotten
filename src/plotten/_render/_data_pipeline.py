@@ -192,6 +192,21 @@ def _resolve_layers(
         if layer.position is not None:
             data_dict = layer.position.adjust(data_dict, layer.params)
 
+        # Warn if the number of rows reaching draw() is very large
+        threshold = getattr(layer.geom, "warn_row_threshold", None)
+        if threshold is not None:
+            n_rows = len(next(iter(data_dict.values()))) if data_dict else 0
+            if n_rows > threshold:
+                from plotten._validation import plotten_warn
+
+                geom_name = type(layer.geom).__name__
+                plotten_warn(
+                    f"{geom_name}: {n_rows:,} rows will be rendered. "
+                    f"Consider using a stat that aggregates (e.g. stat_bin2d), "
+                    f"reducing alpha, or sampling the data before plotting.",
+                    stacklevel=6,
+                )
+
         # Group splitting for line-like geoms
         if getattr(layer.geom, "supports_group_splitting", False):
             group_key = _detect_group_key(data_dict)

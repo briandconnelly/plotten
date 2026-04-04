@@ -140,6 +140,55 @@ def test_lazy_select_off_collects_all_columns():
         os.unlink(path)
 
 
+def test_large_data_warning_geom_point():
+    """geom_point warns when row count exceeds warn_row_threshold."""
+    import warnings
+
+    from plotten._validation import PlottenWarning
+
+    # Use a small threshold to avoid creating a huge dataframe in tests
+    from plotten.geoms._point import GeomPoint
+
+    original = GeomPoint.warn_row_threshold
+    try:
+        GeomPoint.warn_row_threshold = 5
+        df = pd.DataFrame({"x": range(10), "y": range(10)})
+        p = ggplot(df, aes(x="x", y="y")) + geom_point()
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter("always")
+            with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+                path = f.name
+            try:
+                p.save(path)
+            finally:
+                os.unlink(path)
+            matching = [x for x in w if issubclass(x.category, PlottenWarning)]
+            assert len(matching) == 1
+            assert "rows will be rendered" in str(matching[0].message)
+    finally:
+        GeomPoint.warn_row_threshold = original
+
+
+def test_large_data_no_warning_for_histogram():
+    """geom_histogram should not warn because its stat aggregates."""
+    import warnings
+
+    from plotten._validation import PlottenWarning
+
+    df = pd.DataFrame({"x": range(200_000)})
+    p = ggplot(df, aes(x="x")) + geom_histogram()
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            path = f.name
+        try:
+            p.save(path)
+        finally:
+            os.unlink(path)
+        matching = [x for x in w if issubclass(x.category, PlottenWarning)]
+        assert len(matching) == 0
+
+
 def test_scatter_pandas():
     df = pd.DataFrame(
         {

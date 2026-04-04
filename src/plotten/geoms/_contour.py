@@ -17,6 +17,7 @@ class GeomContour(GeomRepr):
     supports_group_splitting: bool = False
     legend_key: str = "line"
     known_params: frozenset[str] = frozenset({"color", "alpha", "bins", "linewidth"})
+    warn_row_threshold: int | None = None
 
     def default_stat(self) -> Any:
         from plotten.stats._contour import StatContour
@@ -47,6 +48,7 @@ class GeomContourFilled(GeomRepr):
     supports_group_splitting: bool = False
     legend_key: str = "rect"
     known_params: frozenset[str] = frozenset({"fill", "alpha", "bins", "cmap"})
+    warn_row_threshold: int | None = None
 
     def default_stat(self) -> Any:
         from plotten.stats._contour import StatContour

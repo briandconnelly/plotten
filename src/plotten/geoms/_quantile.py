@@ -20,6 +20,7 @@ class GeomQuantile(GeomRepr):
     supports_group_splitting: bool = True
     legend_key: str = "line"
     known_params: frozenset[str] = frozenset({"color", "alpha", "linetype", "linewidth", "size"})
+    warn_row_threshold: int | None = None
 
     def __init__(
         self,
