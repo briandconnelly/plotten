@@ -78,6 +78,8 @@ def _train_scales(
             scales[aes_name] = auto_scale(aes_name, native_series)
         try:
             col_name = column_origins.get(aes_name) if column_origins else None
+            if col_name is not None and scales[aes_name].name is None:
+                scales[aes_name].name = col_name
             validate_data_type(
                 aes_name, series.to_native(), scales[aes_name], column_name=col_name
             )

@@ -64,8 +64,10 @@ def draw_legend(
                     title = guide_spec.title
                 else:
                     title = (
-                        getattr(labs, aes_name, None) if labs is not None else None
-                    ) or aes_name
+                        (getattr(labs, aes_name, None) if labs is not None else None)
+                        or scale.name
+                        or aes_name
+                    )
                 legend_groups.append((aes_name, title, scale))
 
     if not legend_groups:

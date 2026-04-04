@@ -197,6 +197,23 @@ def test_legend_title_from_labs():
         os.unlink(path)
 
 
+def test_legend_title_defaults_to_column_name():
+    """Legend title should default to the mapped column name, not the aesthetic name."""
+    from plotten._render._resolve import resolve
+
+    df = pl.DataFrame(
+        {
+            "x": [1, 2, 3],
+            "y": [3, 1, 2],
+            "class": ["a", "b", "c"],
+        }
+    )
+    p = ggplot(df, aes(x="x", y="y", color="class")) + geom_point()
+    resolved = resolve(p)
+    scale = resolved.scales["color"]
+    assert scale.name == "class"
+
+
 def test_legend_position_left():
     df = pl.DataFrame(
         {

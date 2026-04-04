@@ -25,10 +25,11 @@ class LegendEntry:
 class ScaleBase:
     """Base class for all scales."""
 
-    __slots__ = ("_cache", "_domain_max", "_domain_min", "aesthetic")
+    __slots__ = ("_cache", "_domain_max", "_domain_min", "aesthetic", "name")
 
     def __init__(self, aesthetic: str) -> None:
         self.aesthetic = aesthetic
+        self.name: str | None = None
         self._domain_min: float | None = None
         self._domain_max: float | None = None
         self._cache: dict[str, Any] = {}
