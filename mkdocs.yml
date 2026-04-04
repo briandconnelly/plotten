@@ -57,7 +57,7 @@ plugins:
         API Reference:
           - reference/core.md: ggplot, aes, labs, ggsave, guides, annotations
           - reference/geoms.md: 45+ geometry layers
-          - reference/scales.md: 50+ scales for color, size, shape, position
+          - reference/scales.md: 65+ scales for color, size, shape, position
           - reference/stats.md: Statistical transformations
           - reference/positions.md: Position adjustments (dodge, jitter, stack)
           - reference/coords.md: Coordinate systems (cartesian, polar, flip)
@@ -66,7 +66,8 @@ plugins:
           - reference/datasets.md: 7 built-in datasets
           - reference/recipes.md: High-level plot constructors
           - reference/composition.md: Combining plots with plot_grid and operators
-          - reference/accessibility.md: Accessibility auditing and font registration
+          - reference/accessibility.md: Accessibility auditing for plots
+          - reference/fonts.md: Custom and Google Font registration
   - mkdocstrings:
       handlers:
         python:
@@ -123,4 +124,5 @@ nav:
       - Recipes: reference/recipes.md
       - Composition: reference/composition.md
       - Accessibility: reference/accessibility.md
+      - Fonts: reference/fonts.md
   - Changelog: changelog.md

@@ -27,8 +27,8 @@ class ScaleGreyDiscrete(MappedDiscreteScale):
 
     def map_data(self, values: Any) -> list[str]:
         s = nw.from_native(values, series_only=True)
-        n = len(self._levels) if self._levels else 1
-        if n == 1:
+        n = len(self._levels)
+        if n <= 1:
             greys = [self._start]
         else:
             greys = [self._start + i * (self._end - self._start) / (n - 1) for i in range(n)]
@@ -39,7 +39,9 @@ class ScaleGreyDiscrete(MappedDiscreteScale):
         return [level_map.get(v, "#888888") for v in s.to_list()]
 
     def legend_entries(self) -> list[LegendEntry]:
-        n = len(self._levels) if self._levels else 1
+        n = len(self._levels)
+        if n == 0:
+            return []
         if n == 1:
             greys = [self._start]
         else:

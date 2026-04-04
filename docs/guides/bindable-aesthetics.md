@@ -104,7 +104,8 @@ Additional positional aesthetics used by specific geoms:
 
 ## Aesthetics by geom
 
-The table below shows which aesthetics each common geom supports.
+The table below shows which aesthetics some common geoms support.
+For the full list, see the [Geoms reference](../reference/geoms.md).
 Required aesthetics are marked with **bold**.
 Optional aesthetics are marked with a dot.
 

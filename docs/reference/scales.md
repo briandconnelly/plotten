@@ -8,7 +8,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_x_continuous
 
-![scale_y_continuous](../images/generated/scales/x_continuous.png)
+![scale_y_continuous](../images/generated/scales/y_continuous.png)
 
 ::: plotten.scale_y_continuous
 
@@ -20,7 +20,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_x_log10
 
-![scale_y_log10](../images/generated/scales/x_log10.png)
+![scale_y_log10](../images/generated/scales/y_log10.png)
 
 ::: plotten.scale_y_log10
 
@@ -28,7 +28,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_x_sqrt
 
-![scale_y_sqrt](../images/generated/scales/x_sqrt.png)
+![scale_y_sqrt](../images/generated/scales/y_sqrt.png)
 
 ::: plotten.scale_y_sqrt
 
@@ -36,7 +36,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_x_reverse
 
-![scale_y_reverse](../images/generated/scales/x_reverse.png)
+![scale_y_reverse](../images/generated/scales/y_reverse.png)
 
 ::: plotten.scale_y_reverse
 
@@ -44,7 +44,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_x_date
 
-![scale_y_date](../images/generated/scales/x_date.png)
+![scale_y_date](../images/generated/scales/y_date.png)
 
 ::: plotten.scale_y_date
 
@@ -56,7 +56,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_x_binned
 
-![scale_y_binned](../images/generated/scales/x_binned.png)
+![scale_y_binned](../images/generated/scales/y_binned.png)
 
 ::: plotten.scale_y_binned
 
@@ -134,7 +134,7 @@ Scales control how data values are mapped to visual properties.
 
 ::: plotten.scale_fill_gradientn
 
-![scale_fill_grey](../images/generated/scales/color_grey.png)
+![scale_fill_grey](../images/generated/scales/fill_grey.png)
 
 ::: plotten.scale_fill_grey
 

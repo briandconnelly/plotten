@@ -50,7 +50,7 @@ pip install plotten
 - **Automatic label repelling** — `geom_text_repel()` and `geom_label_repel()` reposition overlapping labels automatically
 - **11 statistical layers** — `stat_ecdf`, `stat_summary`, `stat_ellipse`, `stat_cor`, and others computed on the fly
 - **Computed aesthetics** — `after_stat()` and `after_scale()` for derived mappings
-- **50+ scales** — color, fill, size, shape, alpha, linetype, Brewer, viridis, gradient, log, binned, and more
+- **65+ scales** — color, fill, size, shape, alpha, linetype, Brewer, viridis, gradient, log, binned, and more
 - **Full faceting** — `facet_wrap()` and `facet_grid()` with free/fixed scales, custom labellers, and configurable strips
 - **13 built-in themes** — `theme_minimal`, `theme_tufte`, `theme_economist`, `theme_538`, and others; fully customizable with `theme()`
 - **Plot composition** — combine plots with `|` and `/`, or use `plot_grid()` for arbitrary layouts with collected legends

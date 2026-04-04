@@ -94,6 +94,7 @@ from plotten import (
     scale_fill_brewer,
     scale_fill_gradient,
     scale_fill_gradient2,
+    scale_fill_grey,
     scale_fill_viridis,
     scale_hatch_discrete,
     scale_linetype_discrete,
@@ -106,7 +107,12 @@ from plotten import (
     scale_x_log10,
     scale_x_reverse,
     scale_x_sqrt,
+    scale_y_binned,
     scale_y_continuous,
+    scale_y_date,
+    scale_y_log10,
+    scale_y_reverse,
+    scale_y_sqrt,
     stat_cor,
     stat_density_2d,
     stat_ecdf,
@@ -939,6 +945,69 @@ save(
     "x_binned",
 )
 
+# ── Y-axis position scales ──────────────────────────────────────────────────
+
+save(
+    ggplot(mpg, aes(x="displ", y="hwy"))
+    + geom_point(alpha=0.5)
+    + scale_y_continuous(breaks=breaks_pretty(n=6))
+    + labs(title="scale_y_continuous", x="Displacement (L)", y="Highway MPG"),
+    "scales",
+    "y_continuous",
+)
+
+save(
+    ggplot(diamonds, aes(x="carat", y="price"))
+    + geom_point(alpha=0.1, size=5)
+    + scale_y_log10()
+    + labs(title="scale_y_log10", x="Carat", y="Price (log10)"),
+    "scales",
+    "y_log10",
+)
+
+save(
+    ggplot(diamonds, aes(x="carat", y="price"))
+    + geom_point(alpha=0.1, size=5)
+    + scale_y_sqrt()
+    + labs(title="scale_y_sqrt", x="Carat", y="Price (sqrt)"),
+    "scales",
+    "y_sqrt",
+)
+
+save(
+    ggplot(mpg, aes(x="displ", y="hwy"))
+    + geom_point(alpha=0.5)
+    + scale_y_reverse()
+    + labs(title="scale_y_reverse", x="Displacement (L)", y="Highway MPG (reversed)"),
+    "scales",
+    "y_reverse",
+)
+
+date_df_y = pl.DataFrame(
+    {
+        "category": [f"Cat {i}" for i in range(1, 13)],
+        "date": [f"2024-{m:02d}-01" for m in range(1, 13)],
+    }
+).with_columns(pl.col("date").str.to_date())
+
+save(
+    ggplot(date_df_y, aes(x="category", y="date"))
+    + geom_point(size=30)
+    + scale_y_date()
+    + labs(title="scale_y_date", x="Category", y="Date"),
+    "scales",
+    "y_date",
+)
+
+save(
+    ggplot(mpg, aes(x="displ", y="hwy"))
+    + geom_point(alpha=0.5)
+    + scale_y_binned()
+    + labs(title="scale_y_binned", x="Displacement (L)", y="Highway MPG (binned)"),
+    "scales",
+    "y_binned",
+)
+
 # ── Color scales ─────────────────────────────────────────────────────────────
 
 save(
@@ -1040,6 +1109,15 @@ save(
     + labs(title="scale_fill_gradient"),
     "scales",
     "fill_gradient",
+)
+
+save(
+    ggplot(mpg, aes(x="class", fill="drv"))
+    + geom_bar(alpha=0.8)
+    + scale_fill_grey()
+    + labs(title="scale_fill_grey", x="Vehicle class", y="Count"),
+    "scales",
+    "fill_grey",
 )
 
 # ── Size scales ──────────────────────────────────────────────────────────────
