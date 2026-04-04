@@ -94,15 +94,33 @@ def _resolve_layers(
             continue
 
         wrapped = nw.from_native(raw_data)
-        frame = cast("nw.DataFrame", wrapped.collect() if hasattr(wrapped, "collect") else wrapped)
+
+        normal_mappings, after_stat_mappings, after_scale_mappings, interaction_mappings = (
+            _separate_mappings(merged_aes)
+        )
+
+        # For lazy frames with lazy_select enabled, select only the columns
+        # referenced by aesthetic mappings before collecting. This enables
+        # projection pushdown (e.g. polars/duckdb skip reading unused columns).
+        if hasattr(wrapped, "collect"):
+            from plotten._validation import get_lazy_select
+
+            if get_lazy_select():
+                needed_cols: set[str] = set(normal_mappings.values())
+                for inter in interaction_mappings.values():
+                    needed_cols.update(inter.columns)
+                available = set(wrapped.collect_schema().names())
+                select_cols = sorted(needed_cols & available)
+                if select_cols and len(select_cols) < len(available):
+                    wrapped = wrapped.select(select_cols)
+            frame = cast("nw.DataFrame", wrapped.collect())
+        else:
+            frame = cast("nw.DataFrame", wrapped)
 
         # Cast Decimal columns to Float64 (e.g. DuckDB infers DECIMAL for literals)
         decimal_cols = [col for col, dtype in frame.schema.items() if "Decimal" in str(dtype)]
         if decimal_cols:
             frame = frame.with_columns(nw.col(c).cast(nw.Float64) for c in decimal_cols)
-        normal_mappings, after_stat_mappings, after_scale_mappings, interaction_mappings = (
-            _separate_mappings(merged_aes)
-        )
 
         # Resolve interaction mappings: create combined columns via narwhals expressions
         for aes_field, inter in interaction_mappings.items():

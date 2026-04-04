@@ -148,6 +148,31 @@ lf = pl.scan_csv("data.csv")
 ggplot(lf, aes(x="col_a", y="col_b")) + geom_point()
 ```
 
+#### Column projection for wide datasets
+
+By default, plotten collects all columns from a lazy frame.
+If your dataset has many columns but you only map a few to aesthetics, you can enable `lazy_select` to narrow the frame before collecting.
+This enables projection pushdown — the backend skips reading unused columns from disk:
+
+```python
+import polars as pl
+from plotten import ggplot, aes, geom_point, options
+
+# A wide dataset where we only need two columns
+lf = pl.scan_parquet("wide_table.parquet")
+
+with options(lazy_select=True):
+    ggplot(lf, aes(x="price", y="volume")) + geom_point()
+```
+
+This has no effect on eager frames (the data is already in memory).
+
+!!! note
+
+    `lazy_select` is opt-in because it changes which columns are available
+    to stats and other downstream processing.
+    Enable it when you know your plot only needs the mapped columns.
+
 ### Use column names, not expressions
 
 `aes()` takes string column names, not Polars expressions.
@@ -267,6 +292,9 @@ This means:
 
 For large datasets (100k+ rows), Polars typically offers better performance than pandas for the data processing steps.
 The actual rendering is done by matplotlib regardless of the DataFrame backend, so rendering time is the same.
+
+For wide lazy frames, enable `lazy_select` to skip collecting unused columns.
+See [Column projection for wide datasets](#column-projection-for-wide-datasets) above.
 
 !!! note
 

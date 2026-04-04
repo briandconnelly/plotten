@@ -16,6 +16,7 @@ def options(
     *,
     theme: Theme | None = None,
     strict: bool | None = None,
+    lazy_select: bool | None = None,
 ) -> Generator[None]:
     """Temporarily override global plotten options.
 
@@ -29,6 +30,12 @@ def options(
     strict : bool, optional
         Enable or disable strict mode (warnings become errors) for the
         duration of the block.
+    lazy_select : bool, optional
+        Enable column projection for lazy frames. When ``True``, lazy
+        frames are narrowed to only the columns referenced by aesthetic
+        mappings before ``.collect()`` is called. This enables projection
+        pushdown — the backend can skip reading unused columns from disk.
+        Has no effect on eager frames.
 
     Examples
     --------
@@ -39,20 +46,31 @@ def options(
     >>> with options(theme=theme_dark()):
     ...     p.show()  # doctest: +SKIP
     """
-    from plotten._validation import get_strict, set_strict
+    from plotten._validation import (
+        get_lazy_select,
+        get_strict,
+        set_lazy_select,
+        set_strict,
+    )
     from plotten.themes._theme import theme_set
 
     old_theme = None
     old_strict = None
+    old_lazy_select = None
     try:
         if theme is not None:
             old_theme = theme_set(theme)
         if strict is not None:
             old_strict = get_strict()
             set_strict(strict)
+        if lazy_select is not None:
+            old_lazy_select = get_lazy_select()
+            set_lazy_select(lazy_select)
         yield
     finally:
         if old_theme is not None:
             theme_set(old_theme)
         if old_strict is not None:
             set_strict(old_strict)
+        if old_lazy_select is not None:
+            set_lazy_select(old_lazy_select)

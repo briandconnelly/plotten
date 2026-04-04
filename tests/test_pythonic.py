@@ -203,3 +203,19 @@ class TestOptions:
                 assert theme_get() is minimal
             assert theme_get() is dark
         assert theme_get() is original
+
+    def test_lazy_select_override_and_restore(self):
+        from plotten._validation import get_lazy_select, set_lazy_select
+
+        set_lazy_select(False)
+        with options(lazy_select=True):
+            assert get_lazy_select() is True
+        assert get_lazy_select() is False
+
+    def test_lazy_select_restore_on_exception(self):
+        from plotten._validation import get_lazy_select, set_lazy_select
+
+        set_lazy_select(False)
+        with pytest.raises(RuntimeError), options(lazy_select=True):
+            raise RuntimeError("boom")
+        assert get_lazy_select() is False

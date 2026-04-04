@@ -104,6 +104,10 @@ The essential functions for creating and configuring plots.
 
 ::: plotten.set_strict
 
+## Lazy select
+
+::: plotten.set_lazy_select
+
 ## Errors
 
 ::: plotten.PlottenError

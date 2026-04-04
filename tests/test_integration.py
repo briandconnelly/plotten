@@ -98,6 +98,48 @@ def test_scatter_polars():
         os.unlink(path)
 
 
+def test_lazy_select_projects_columns():
+    """With lazy_select=True, only mapped columns are collected from a LazyFrame."""
+    from plotten import options
+
+    lf = pl.LazyFrame(
+        {
+            "x": [1, 2, 3],
+            "y": [4, 5, 6],
+            "unused_a": ["a", "b", "c"],
+            "unused_b": [10, 20, 30],
+        }
+    )
+    with options(lazy_select=True):
+        p = ggplot(lf, aes(x="x", y="y")) + geom_point()
+        with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+            path = f.name
+        try:
+            p.save(path)
+            assert os.path.getsize(path) > 0
+        finally:
+            os.unlink(path)
+
+
+def test_lazy_select_off_collects_all_columns():
+    """Without lazy_select, a LazyFrame collects all columns (default behavior)."""
+    lf = pl.LazyFrame(
+        {
+            "x": [1, 2, 3],
+            "y": [4, 5, 6],
+            "extra": ["a", "b", "c"],
+        }
+    )
+    p = ggplot(lf, aes(x="x", y="y")) + geom_point()
+    with tempfile.NamedTemporaryFile(suffix=".png", delete=False) as f:
+        path = f.name
+    try:
+        p.save(path)
+        assert os.path.getsize(path) > 0
+    finally:
+        os.unlink(path)
+
+
 def test_scatter_pandas():
     df = pd.DataFrame(
         {

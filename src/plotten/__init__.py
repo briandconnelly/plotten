@@ -68,7 +68,9 @@ from plotten._validation import (
     SpecError,
     StatError,
     ValidationError,
+    get_lazy_select,
     get_strict,
+    set_lazy_select,
     set_strict,
 )
 from plotten._vegalite import to_html, to_vegalite
@@ -535,6 +537,7 @@ __all__ = [
     "geom_tile",
     "geom_violin",
     "geom_vline",
+    "get_lazy_select",
     "get_strict",
     "ggplot",
     "ggsave",
@@ -662,6 +665,7 @@ __all__ = [
     "scale_y_sqrt",
     "scaled",
     "sec_axis",
+    "set_lazy_select",
     "set_strict",
     "spec_schema",
     "squish",

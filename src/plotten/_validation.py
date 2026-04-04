@@ -6,6 +6,7 @@ from dataclasses import fields
 from typing import Any
 
 _strict_mode: bool = False
+_lazy_select: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -116,6 +117,25 @@ def set_strict(enabled: bool = True) -> None:
     """
     global _strict_mode
     _strict_mode = enabled
+
+
+def get_lazy_select() -> bool:
+    """Return the current lazy_select setting."""
+    return _lazy_select
+
+
+def set_lazy_select(enabled: bool = True) -> None:
+    """Enable or disable column projection for lazy frames.
+
+    When enabled, lazy frames (e.g. Polars ``LazyFrame``) are narrowed to
+    only the columns referenced by aesthetic mappings before ``.collect()``
+    is called. This enables projection pushdown — the backend can skip
+    reading unused columns from disk, which is a large win for wide datasets.
+
+    This option has no effect on eager frames.
+    """
+    global _lazy_select
+    _lazy_select = enabled
 
 
 def plotten_warn(message: str, *, stacklevel: int = 2) -> None:
