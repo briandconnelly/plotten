@@ -42,7 +42,7 @@ def theme_preview(theme_obj: Theme) -> Plot:
     """
     import math
 
-    import pandas as pd
+    import narwhals as nw
 
     from plotten._aes import aes
     from plotten._labs import labs
@@ -53,42 +53,31 @@ def theme_preview(theme_obj: Theme) -> Plot:
     # Sample data: two series across two facets exercises points, lines,
     # color legend, gridlines, facet strips, and axis labels/ticks.
     n = 15
-    records = []
+    xs: list[int] = []
+    ys: list[float] = []
+    groups: list[str] = []
+    panels: list[str] = []
     for i in range(1, n + 1):
-        records.append(
-            {
-                "x": i,
-                "y": math.sin(i * 0.4) * 3 + 8,
-                "group": "Series A",
-                "panel": "Panel 1",
-            }
-        )
-        records.append(
-            {
-                "x": i,
-                "y": math.cos(i * 0.4) * 2 + 6,
-                "group": "Series B",
-                "panel": "Panel 1",
-            }
-        )
-        records.append(
-            {
-                "x": i,
-                "y": (i / n) * 5 + math.sin(i) * 1.5,
-                "group": "Series A",
-                "panel": "Panel 2",
-            }
-        )
-        records.append(
-            {
-                "x": i,
-                "y": 10 - (i / n) * 4 + math.cos(i) * 1.2,
-                "group": "Series B",
-                "panel": "Panel 2",
-            }
-        )
+        for group, panel, y_val in [
+            ("Series A", "Panel 1", math.sin(i * 0.4) * 3 + 8),
+            ("Series B", "Panel 1", math.cos(i * 0.4) * 2 + 6),
+            ("Series A", "Panel 2", (i / n) * 5 + math.sin(i) * 1.5),
+            ("Series B", "Panel 2", 10 - (i / n) * 4 + math.cos(i) * 1.2),
+        ]:
+            xs.append(i)
+            ys.append(y_val)
+            groups.append(group)
+            panels.append(panel)
 
-    df = pd.DataFrame(records)
+    try:
+        import polars as backend
+    except ImportError:
+        import pandas as backend  # type: ignore[no-redef]
+
+    df = nw.from_dict(
+        {"x": xs, "y": ys, "group": groups, "panel": panels},
+        backend=backend,
+    ).to_native()
 
     p = (
         ggplot(df, aes(x="x", y="y", color="group"))

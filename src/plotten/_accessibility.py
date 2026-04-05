@@ -8,6 +8,7 @@ and descriptive text.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from itertools import combinations
 from typing import Any
 
 import numpy as np
@@ -94,10 +95,6 @@ def _hex_to_linear_rgb(hex_color: str) -> np.ndarray:
 
 def _srgb_to_linear(c: float) -> float:
     return c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4
-
-
-def _linear_to_srgb(c: float) -> float:
-    return c * 12.92 if c <= 0.0031308 else 1.055 * (c ** (1.0 / 2.4)) - 0.055
 
 
 def _simulate_cvd(hex_color: str, matrix: np.ndarray) -> np.ndarray:
@@ -282,28 +279,26 @@ def _check_colorblind_safety(plot: Any, report: AccessibilityReport) -> None:
     threshold = 20.0  # deltaE below this = hard to distinguish
 
     for cvd_name, matrix in _CVD_SIMULATIONS.items():
-        simulated = [_simulate_cvd(c, matrix) for c in colors]
-        labs = [_linear_rgb_to_lab(s) for s in simulated]
+        simulated_labs = [(_linear_rgb_to_lab(_simulate_cvd(c, matrix)), c) for c in colors]
 
-        for i in range(len(labs)):
-            for j in range(i + 1, len(labs)):
-                de = _delta_e(labs[i], labs[j])
-                if de < threshold:
-                    report.warnings.append(
-                        AccessibilityWarning(
-                            category="colorblind",
-                            severity="warning",
-                            message=(
-                                f"Colors {colors[i]} and {colors[j]} may be "
-                                f"indistinguishable under {cvd_name} "
-                                f"(deltaE={de:.1f})"
-                            ),
-                            suggestion=(
-                                "Use a colorblind-safe palette like viridis, "
-                                "cividis, or ColorBrewer qualitative palettes."
-                            ),
-                        )
+        for (lab_a, col_a), (lab_b, col_b) in combinations(simulated_labs, 2):
+            de = _delta_e(lab_a, lab_b)
+            if de < threshold:
+                report.warnings.append(
+                    AccessibilityWarning(
+                        category="colorblind",
+                        severity="warning",
+                        message=(
+                            f"Colors {col_a} and {col_b} may be "
+                            f"indistinguishable under {cvd_name} "
+                            f"(deltaE={de:.1f})"
+                        ),
+                        suggestion=(
+                            "Use a colorblind-safe palette like viridis, "
+                            "cividis, or ColorBrewer qualitative palettes."
+                        ),
                     )
+                )
 
 
 def _check_contrast(plot: Any, report: AccessibilityReport) -> None:

@@ -47,7 +47,11 @@ class StatEllipse:
         eigenvalues, eigenvectors = np.linalg.eigh(cov)
 
         # Chi-squared critical value for 2 degrees of freedom
-        from scipy.stats import chi2
+        try:
+            from scipy.stats import chi2
+        except ImportError:
+            msg = "geom_ellipse() requires scipy. Install it with: uv add scipy"
+            raise ImportError(msg) from None
 
         chi2_val = chi2.ppf(self.level, 2)
 

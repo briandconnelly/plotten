@@ -234,6 +234,59 @@ def _apply_coord_limits(ax: Any, coord: Any, is_flipped: bool) -> None:
         coord.transform(None, ax)
 
 
+def save_figure(
+    fig: Figure,
+    path: str,
+    *,
+    dpi: int = 300,
+    width: float | None = None,
+    height: float | None = None,
+    units: str | Any = None,
+    transparent: bool = False,
+) -> None:
+    """Apply size, transparency, save, and close a figure.
+
+    Shared implementation for :meth:`Plot.save` and :meth:`PlotGrid.save`.
+    """
+    import matplotlib.pyplot as plt
+
+    from plotten._enums import SizeUnit
+
+    if units is None:
+        units = SizeUnit.INCHES
+
+    if width is not None or height is not None:
+        match units:
+            case SizeUnit.INCHES:
+                factor = 1.0
+            case SizeUnit.CM:
+                factor = 1 / 2.54
+            case SizeUnit.MM:
+                factor = 1 / 25.4
+            case SizeUnit.PX:
+                factor = 1 / dpi
+            case _:
+                factor = 1.0
+        cur_w, cur_h = fig.get_size_inches()
+        aspect = cur_w / cur_h
+        if width is not None and height is not None:
+            new_w = width * factor
+            new_h = height * factor
+        elif width is not None:
+            new_w = width * factor
+            new_h = new_w / aspect
+        else:
+            new_h = height * factor  # type: ignore[operator]
+            new_w = new_h * aspect
+        fig.set_size_inches(new_w, new_h)
+    if transparent:
+        fig.patch.set_alpha(0.0)
+        for ax in fig.get_axes():
+            ax.patch.set_alpha(0.0)
+    fig.savefig(path, dpi=dpi, transparent=transparent)
+    plt.close(fig)
+
+
 def _apply_watermark(fig: Figure, plot: Any) -> None:
     """Draw a watermark overlay if the plot has one."""
     wm = plot._watermark

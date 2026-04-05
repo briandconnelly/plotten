@@ -96,7 +96,44 @@ class Guides(dict):
 
     A dict subclass mapping aesthetic names (``"color"``, ``"fill"``, etc.)
     to :class:`GuideLegend` or :class:`GuideColorbar` objects.
+
+    Mutation methods are disabled — use ``Guides({**existing, **new})`` to
+    create an updated copy.
     """
+
+    _frozen = False
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        super().__init__(*args, **kwargs)
+        self._frozen = True
+
+    def _raise_immutable(self) -> None:
+        if self._frozen:
+            raise TypeError("Guides is immutable; create a new Guides instead")
+
+    def __setitem__(self, key: Any, value: Any) -> None:
+        self._raise_immutable()
+        super().__setitem__(key, value)
+
+    def __delitem__(self, key: Any) -> None:
+        self._raise_immutable()
+        super().__delitem__(key)
+
+    def pop(self, *args: Any) -> Any:
+        self._raise_immutable()
+        return super().pop(*args)
+
+    def update(self, *args: Any, **kwargs: Any) -> None:
+        self._raise_immutable()
+        super().update(*args, **kwargs)
+
+    def clear(self) -> None:
+        self._raise_immutable()
+        super().clear()
+
+    def setdefault(self, key: Any, default: Any = None) -> Any:
+        self._raise_immutable()
+        return super().setdefault(key, default)
 
     def __repr__(self) -> str:
         items = ", ".join(f"{k}={v!r}" for k, v in self.items())

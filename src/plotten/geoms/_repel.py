@@ -244,7 +244,10 @@ class _RepelArtist(Artist):
         from matplotlib.text import Text as MplText
 
         fig = self.ax.get_figure()
-        assert fig is not None
+        if fig is None:
+            from plotten._validation import RenderError
+
+            raise RenderError("Cannot render repel labels: axes is not attached to a figure.")
         transform = self.ax.transData
 
         # Draw connector segments — create Line2D directly, no add to ax

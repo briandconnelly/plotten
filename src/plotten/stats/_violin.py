@@ -16,7 +16,11 @@ class StatViolin:
         self._n_points = n_points
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
-        from scipy.stats import gaussian_kde
+        try:
+            from scipy.stats import gaussian_kde
+        except ImportError:
+            msg = "geom_violin() requires scipy. Install it with: uv add scipy"
+            raise ImportError(msg) from None
 
         frame = cast("nw.DataFrame", nw.from_native(df))
 

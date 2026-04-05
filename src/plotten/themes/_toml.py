@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import functools
 import tomllib
 from dataclasses import fields as dc_fields
 from enum import StrEnum
@@ -37,16 +38,10 @@ _BUILTIN_THEMES = {
     "test": "theme_test",
 }
 
-# Resolved once at import time — maps field name to element class
-_THEME_HINTS: dict[str, Any] = {}
-_ELEMENT_FIELDS: dict[str, type] = {}
-_MARGIN_FIELDS: set[str] = set()
 
-
-def _ensure_hints() -> None:
+@functools.cache
+def _build_hints() -> tuple[dict[str, Any], dict[str, type], frozenset[str]]:
     """Lazily resolve Theme type hints and classify fields."""
-    if _THEME_HINTS:
-        return
     # Theme uses `from __future__ import annotations`, so we must supply the
     # element types in the namespace for get_type_hints to resolve them.
     import plotten._enums as _enums
@@ -54,15 +49,17 @@ def _ensure_hints() -> None:
 
     ns = {**vars(_elems), **vars(_enums)}
     hints = get_type_hints(Theme, globalns=ns)
-    _THEME_HINTS.update(hints)
+    element_fields: dict[str, type] = {}
+    margin_fields: set[str] = set()
     for name, hint in hints.items():
         args = getattr(hint, "__args__", (hint,))
         for cls in (ElementText, ElementLine, ElementRect):
             if cls in args:
-                _ELEMENT_FIELDS[name] = cls
+                element_fields[name] = cls
                 break
         if Margin in args:
-            _MARGIN_FIELDS.add(name)
+            margin_fields.add(name)
+    return hints, element_fields, frozenset(margin_fields)
 
 
 # ---------------------------------------------------------------------------
@@ -158,7 +155,7 @@ def theme_from_toml(path: str | Path) -> Theme:
         [plot_caption]
         size = { rel = 0.8 }
     """
-    _ensure_hints()
+    _THEME_HINTS, _ELEMENT_FIELDS, _MARGIN_FIELDS = _build_hints()
     path = Path(path)
 
     with path.open("rb") as f:
@@ -238,8 +235,10 @@ def _format_value(value: Any) -> str:
         return f"[{items}]"
     if isinstance(value, Rel):
         return f"{{ rel = {_format_value(value.factor)} }}"
+    from plotten._validation import ExportError
+
     msg = f"Cannot serialize to TOML: {type(value).__name__}: {value!r}"
-    raise TypeError(msg)
+    raise ExportError(msg)
 
 
 def _serialize_element(element: ElementText | ElementLine | ElementRect) -> dict[str, Any]:
@@ -309,8 +308,13 @@ def theme_to_toml(
     Export a complete template for theme development:
 
     >>> theme_to_toml(t, "full_theme.toml", complete=True)
+
+    Raises
+    ------
+    ExportError
+        If a theme field value cannot be serialized to TOML.
     """
-    _ensure_hints()
+    _THEME_HINTS, _ELEMENT_FIELDS, _MARGIN_FIELDS = _build_hints()
     path = Path(path)
     default = Theme()
 

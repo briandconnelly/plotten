@@ -405,9 +405,8 @@ class TestMarimoMime:
         df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point()
         result = p._display_()
-        # marimo not installed in test env → returns None or a figure
-        # Either way, it should not raise
-        assert result is None or result is not None
+        # marimo is not installed in the test environment
+        assert result is None
 
     def test_grid_display_without_marimo(self):
         """_display_ returns None when marimo is not installed."""
@@ -415,7 +414,7 @@ class TestMarimoMime:
         p = ggplot(df, aes(x="x", y="y")) + geom_point()
         grid = p | p
         result = grid._display_()
-        assert result is None or result is not None
+        assert result is None
 
 
 # --- from test_v05_coverage.py ---

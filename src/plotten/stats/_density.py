@@ -29,7 +29,11 @@ class StatDensity:
         self._bw_adjust = bw_adjust
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
-        from scipy.stats import gaussian_kde
+        try:
+            from scipy.stats import gaussian_kde
+        except ImportError:
+            msg = "geom_density() requires scipy. Install it with: uv add scipy"
+            raise ImportError(msg) from None
 
         frame = cast("nw.DataFrame", nw.from_native(df))
         x_arr = frame.get_column("x").cast(nw.Float64).to_numpy()

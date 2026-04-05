@@ -10,6 +10,8 @@ if TYPE_CHECKING:
 
     from plotten.themes._theme import Theme
 
+_UNSET = object()
+
 
 @contextmanager
 def options(
@@ -54,9 +56,9 @@ def options(
     )
     from plotten.themes._theme import theme_set
 
-    old_theme = None
-    old_strict = None
-    old_lazy_select = None
+    old_theme: object = _UNSET
+    old_strict: object = _UNSET
+    old_lazy_select: object = _UNSET
     try:
         if theme is not None:
             old_theme = theme_set(theme)
@@ -68,9 +70,9 @@ def options(
             set_lazy_select(lazy_select)
         yield
     finally:
-        if old_theme is not None:
-            theme_set(old_theme)
-        if old_strict is not None:
-            set_strict(old_strict)
-        if old_lazy_select is not None:
-            set_lazy_select(old_lazy_select)
+        if old_theme is not _UNSET:
+            theme_set(old_theme)  # type: ignore[arg-type]
+        if old_strict is not _UNSET:
+            set_strict(old_strict)  # type: ignore[arg-type]
+        if old_lazy_select is not _UNSET:
+            set_lazy_select(old_lazy_select)  # type: ignore[arg-type]

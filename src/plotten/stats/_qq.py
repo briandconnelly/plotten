@@ -13,7 +13,11 @@ class StatQQ:
     required_aes: frozenset[str] = frozenset({"x"})
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
-        from scipy.stats import norm
+        try:
+            from scipy.stats import norm
+        except ImportError:
+            msg = "geom_qq() requires scipy. Install it with: uv add scipy"
+            raise ImportError(msg) from None
 
         frame = cast("nw.DataFrame", nw.from_native(df))
         sample = np.sort(frame.get_column("x").cast(nw.Float64).to_numpy())
@@ -37,7 +41,11 @@ class StatQQLine:
     required_aes: frozenset[str] = frozenset({"x"})
 
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
-        from scipy.stats import norm
+        try:
+            from scipy.stats import norm
+        except ImportError:
+            msg = "geom_qq_line() requires scipy. Install it with: uv add scipy"
+            raise ImportError(msg) from None
 
         frame = cast("nw.DataFrame", nw.from_native(df))
         sample = frame.get_column("x").cast(nw.Float64).to_numpy()

@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import io
 from dataclasses import dataclass, field
-from typing import Any, Self
+from typing import TYPE_CHECKING, Any, Self
+
+if TYPE_CHECKING:
+    from plotten._composition import InsetElement
+    from plotten._expand_limits import ExpandLimits
 
 from plotten._aes import Aes
 from plotten._enums import SizeUnit
@@ -33,8 +37,8 @@ class Plot:
     labs: Labs = field(default_factory=Labs)
     facet: Any = None
     guides: Guides | None = None
-    _expand_limits: tuple = ()
-    _insets: tuple = ()
+    _expand_limits: tuple[ExpandLimits, ...] = ()
+    _insets: tuple[InsetElement, ...] = ()
     _watermark: Watermark | None = None
 
     def __repr__(self) -> str:
@@ -158,43 +162,18 @@ class Plot:
         >>> p = ggplot(df, aes(x="x", y="y")) + geom_point()
         >>> p.save("scatter.png", dpi=300, width=6, height=4)  # doctest: +SKIP
         """
-        from plotten._render._mpl import render
+        from plotten._render._mpl import render, save_figure
 
         fig = render(self)
-        if width is not None or height is not None:
-            match units:
-                case SizeUnit.INCHES:
-                    factor = 1.0
-                case SizeUnit.CM:
-                    factor = 1 / 2.54
-                case SizeUnit.MM:
-                    factor = 1 / 25.4
-                case SizeUnit.PX:
-                    factor = 1 / dpi
-                case _:
-                    factor = 1.0
-            cur_w, cur_h = fig.get_size_inches()
-            aspect = cur_w / cur_h
-            if width is not None and height is not None:
-                new_w = width * factor
-                new_h = height * factor
-            elif width is not None:
-                new_w = width * factor
-                new_h = new_w / aspect
-            else:
-                # width is None, height must be not None (guarded by outer if)
-                new_h = height * factor  # type: ignore[operator]
-                new_w = new_h * aspect
-            fig.set_size_inches(new_w, new_h)
-        if transparent:
-            fig.patch.set_alpha(0.0)
-            for ax in fig.get_axes():
-                ax.patch.set_alpha(0.0)
-
-        fig.savefig(path, dpi=dpi, transparent=transparent)
-        import matplotlib.pyplot as plt
-
-        plt.close(fig)
+        save_figure(
+            fig,
+            path,
+            dpi=dpi,
+            width=width,
+            height=height,
+            units=units,
+            transparent=transparent,
+        )
 
     def _repr_png_(self) -> bytes:
         """Jupyter integration — display as PNG."""

@@ -4,7 +4,12 @@ import io
 from dataclasses import dataclass
 from typing import Any, Self
 
-from plotten._defaults import MAPPED_AESTHETICS
+from plotten._defaults import (
+    LAYOUT_CAPTION_H,
+    LAYOUT_HEADER_H_TITLE_ONLY,
+    LAYOUT_HEADER_H_TITLE_SUBTITLE,
+    MAPPED_AESTHETICS,
+)
 from plotten._enums import Direction, SizeUnit, TagLevel
 
 
@@ -54,7 +59,7 @@ class PlotAnnotation:
 class PlotGrid:
     """A composition of plots arranged horizontally or vertically."""
 
-    plots: tuple = ()
+    plots: tuple[Any, ...] = ()
     direction: str | Direction = Direction.HORIZONTAL
     widths: tuple[float, ...] | None = None
     annotation: PlotAnnotation | None = None
@@ -117,40 +122,18 @@ class PlotGrid:
         transparent : bool, optional
             If True, the figure and axes backgrounds are transparent.
         """
-        import matplotlib.pyplot as plt
+        from plotten._render._mpl import save_figure
 
         fig = render_grid(self)
-        if width is not None or height is not None:
-            match units:
-                case SizeUnit.INCHES:
-                    factor = 1.0
-                case SizeUnit.CM:
-                    factor = 1 / 2.54
-                case SizeUnit.MM:
-                    factor = 1 / 25.4
-                case SizeUnit.PX:
-                    factor = 1 / dpi
-                case _:
-                    factor = 1.0
-            cur_w, cur_h = fig.get_size_inches()
-            aspect = cur_w / cur_h
-            if width is not None and height is not None:
-                new_w = width * factor
-                new_h = height * factor
-            elif width is not None:
-                new_w = width * factor
-                new_h = new_w / aspect
-            else:
-                # width is None, height must be not None (guarded by outer if)
-                new_h = height * factor  # type: ignore[operator]
-                new_w = new_h * aspect
-            fig.set_size_inches(new_w, new_h)
-        if transparent:
-            fig.patch.set_alpha(0.0)
-            for ax in fig.get_axes():
-                ax.patch.set_alpha(0.0)
-        fig.savefig(path, dpi=dpi, transparent=transparent)
-        plt.close(fig)
+        save_figure(
+            fig,
+            path,
+            dpi=dpi,
+            width=width,
+            height=height,
+            units=units,
+            transparent=transparent,
+        )
 
     def _repr_png_(self) -> bytes:
         """Jupyter integration — display as PNG."""
@@ -357,7 +340,11 @@ def render_grid(grid: PlotGrid) -> Any:
     ratios: list[float] = []
 
     if has_title or has_subtitle:
-        header_h = 0.09 if (has_title and has_subtitle) else 0.06
+        header_h = (
+            LAYOUT_HEADER_H_TITLE_SUBTITLE
+            if (has_title and has_subtitle)
+            else LAYOUT_HEADER_H_TITLE_ONLY
+        )
         regions.append("header")
         ratios.append(header_h)
 
@@ -366,7 +353,7 @@ def render_grid(grid: PlotGrid) -> Any:
 
     if has_caption:
         regions.append("caption")
-        ratios.append(0.04)
+        ratios.append(LAYOUT_CAPTION_H)
 
     # Create figure with constrained_layout
     fig = plt.figure(

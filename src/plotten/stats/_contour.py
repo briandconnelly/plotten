@@ -18,7 +18,12 @@ class StatContour:
     def compute(self, df: nw.typing.IntoFrame) -> nw.typing.Frame:
         import narwhals as nw
         import numpy as np
-        from scipy.interpolate import griddata
+
+        try:
+            from scipy.interpolate import griddata
+        except ImportError:
+            msg = "geom_contour() requires scipy. Install it with: uv add scipy"
+            raise ImportError(msg) from None
 
         frame = cast("nw.DataFrame", nw.from_native(df))
         x = frame.get_column("x").to_numpy().astype(float)

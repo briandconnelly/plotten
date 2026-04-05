@@ -300,14 +300,9 @@ def _apply_axis_title_theme(ax: Axes, theme: Theme) -> None:
 # ---------------------------------------------------------------------------
 
 
-def render_panel(
-    panel: ResolvedPanel,
-    ax: Axes,
-    resolved: ResolvedPlot,
-    theme: Theme,
-) -> None:
-    """Draw layers and apply theme to a single axes."""
-    from plotten.themes._elements import ElementBlank, ElementLine, ElementRect, resolve_background
+def _apply_panel_background(ax: Axes, theme: Theme) -> None:
+    """Apply panel fill and edge styling."""
+    from plotten.themes._elements import resolve_background
 
     panel_fill, panel_edge, panel_edge_w = resolve_background(theme.panel_background)
     if panel_fill and panel_fill != "none":
@@ -318,81 +313,66 @@ def render_panel(
         ax.patch.set_edgecolor(panel_edge)
         ax.patch.set_linewidth(panel_edge_w or 1.0)
 
-    # Grid
-    grid_minor_x, grid_minor_y = _apply_grid(ax, theme)
 
-    # Spine styling (polar axes have different spine names)
-    is_polar_ax = ax.name == "polar"
-    base_line = theme.line
-
-    # Resolve axis line element properties — inherit from theme.line
-    from plotten.themes._elements import merge_line
-
-    resolved_axis_line = merge_line(
-        theme.axis_line_element if isinstance(theme.axis_line_element, ElementLine) else None,
-        base_line,
-    )
-    line_width = theme.axis_line_width
-    line_color = None
-    if isinstance(resolved_axis_line, ElementLine):
-        if resolved_axis_line.size is not None:
-            line_width = resolved_axis_line.size
-        line_color = resolved_axis_line.color
+def _apply_spines(ax: Axes, theme: Theme, line_width: float, line_color: str | None) -> None:
+    """Apply spine visibility and per-position overrides."""
+    from plotten.themes._elements import ElementBlank
+    from plotten.themes._elements import ElementLine as _EL
 
     for spine in ax.spines.values():
         spine.set_linewidth(line_width)
         if line_color is not None:
             spine.set_edgecolor(line_color)
 
-    # Axis line visibility
-    if not is_polar_ax:
-        axis_line_x = theme.axis_line_x
-        axis_line_y = theme.axis_line_y
-        # ElementBlank on axis_line_element disables all
-        if isinstance(theme.axis_line_element, ElementBlank):
-            axis_line_x = False
-            axis_line_y = False
-        ax.spines["bottom"].set_visible(axis_line_x)
-        ax.spines["top"].set_visible(axis_line_x)
-        ax.spines["left"].set_visible(axis_line_y)
-        ax.spines["right"].set_visible(axis_line_y)
+    if ax.name == "polar":
+        return
 
-        from plotten.themes._elements import ElementLine as _EL
+    axis_line_x = theme.axis_line_x
+    axis_line_y = theme.axis_line_y
+    if isinstance(theme.axis_line_element, ElementBlank):
+        axis_line_x = False
+        axis_line_y = False
+    ax.spines["bottom"].set_visible(axis_line_x)
+    ax.spines["top"].set_visible(axis_line_x)
+    ax.spines["left"].set_visible(axis_line_y)
+    ax.spines["right"].set_visible(axis_line_y)
 
-        # Per-axis element overrides (axis_line_x_element, axis_line_y_element)
-        for spines, el in [
-            (("bottom", "top"), theme.axis_line_x_element),
-            (("left", "right"), theme.axis_line_y_element),
-        ]:
-            if isinstance(el, ElementBlank):
-                for s in spines:
-                    ax.spines[s].set_visible(False)
-            elif isinstance(el, _EL):
-                for s in spines:
-                    ax.spines[s].set_visible(True)
-                    if el.color is not None:
-                        ax.spines[s].set_edgecolor(el.color)
-                    if el.size is not None:
-                        ax.spines[s].set_linewidth(el.size)
-
-        # Per-position spine overrides (axis_line_x_bottom, axis_line_y_left, etc.)
-        for spine_name, el in [
-            ("bottom", theme.axis_line_x_bottom),
-            ("top", theme.axis_line_x_top),
-            ("left", theme.axis_line_y_left),
-            ("right", theme.axis_line_y_right),
-        ]:
-            if isinstance(el, ElementBlank):
-                ax.spines[spine_name].set_visible(False)
-            elif isinstance(el, _EL):
-                ax.spines[spine_name].set_visible(True)
+    # Per-axis element overrides (axis_line_x_element, axis_line_y_element)
+    for spines, el in [
+        (("bottom", "top"), theme.axis_line_x_element),
+        (("left", "right"), theme.axis_line_y_element),
+    ]:
+        if isinstance(el, ElementBlank):
+            for s in spines:
+                ax.spines[s].set_visible(False)
+        elif isinstance(el, _EL):
+            for s in spines:
+                ax.spines[s].set_visible(True)
                 if el.color is not None:
-                    ax.spines[spine_name].set_edgecolor(el.color)
+                    ax.spines[s].set_edgecolor(el.color)
                 if el.size is not None:
-                    ax.spines[spine_name].set_linewidth(el.size)
+                    ax.spines[s].set_linewidth(el.size)
 
-    # Panel border — inherit from theme.rect
-    from plotten.themes._elements import merge_rect
+    # Per-position spine overrides (axis_line_x_bottom, axis_line_y_left, etc.)
+    for spine_name, el in [
+        ("bottom", theme.axis_line_x_bottom),
+        ("top", theme.axis_line_x_top),
+        ("left", theme.axis_line_y_left),
+        ("right", theme.axis_line_y_right),
+    ]:
+        if isinstance(el, ElementBlank):
+            ax.spines[spine_name].set_visible(False)
+        elif isinstance(el, _EL):
+            ax.spines[spine_name].set_visible(True)
+            if el.color is not None:
+                ax.spines[spine_name].set_edgecolor(el.color)
+            if el.size is not None:
+                ax.spines[spine_name].set_linewidth(el.size)
+
+
+def _apply_panel_border(ax: Axes, theme: Theme) -> None:
+    """Apply panel border styling, inheriting from theme.rect."""
+    from plotten.themes._elements import ElementBlank, ElementRect, merge_rect
 
     base_rect = theme.rect if isinstance(theme.rect, ElementRect) else None
     panel_border_color = theme.panel_border_color
@@ -421,7 +401,16 @@ def render_panel(
             spine.set_edgecolor(panel_border_color)
             spine.set_linewidth(panel_border_width)
 
-    # Tick styling — resolve per-axis element overrides
+
+def _apply_tick_params(
+    ax: Axes,
+    theme: Theme,
+    base_line: Any,
+    line_width: float,
+    grid_minor_x: bool,
+    grid_minor_y: bool,
+) -> None:
+    """Apply tick styling, lengths, and minor ticks."""
     axis_text_kw = text_props(
         theme.axis_text,
         theme,
@@ -599,18 +588,20 @@ def render_panel(
         if "fontstyle" in axis_text_y_kw:
             label.set_fontstyle(axis_text_y_kw["fontstyle"])
 
-    # Polar axis theme overrides
-    if is_polar_ax:
-        _apply_polar_theme(ax, theme)
 
-    # Draw layers — assign incrementing zorder so layer order is respected
+def _draw_layers(
+    ax: Axes,
+    panel: ResolvedPanel,
+    resolved: ResolvedPlot,
+    theme: Theme,
+) -> None:
+    """Draw data layers with incrementing zorder."""
     coord = resolved.coord
     for layer_idx, layer in enumerate(panel.layers):
         draw_data = cast("GeomDrawData", layer.data)
         if hasattr(coord, "transform_data"):
             draw_data = coord.transform_data(draw_data, resolved.scales)  # type: ignore[union-attr]
         draw_params = cast("GeomParams", layer.params)
-        # Inject theme defaults for text geoms
         draw_params = _inject_theme_text_defaults(layer.geom, draw_params, theme)
         artists_before = set(ax.get_children())
         try:
@@ -626,13 +617,46 @@ def render_panel(
                 f"  Data keys: {data_keys}\n"
                 f"  Params: {dict(draw_params)}"
             ) from exc
-        # Bump zorder of newly added artists so later layers draw on top
         base_zorder = 2 + layer_idx
         for artist in ax.get_children():
             if artist not in artists_before:
                 artist.set_zorder(base_zorder)
 
-    # Axis titles
+
+def render_panel(
+    panel: ResolvedPanel,
+    ax: Axes,
+    resolved: ResolvedPlot,
+    theme: Theme,
+) -> None:
+    """Draw layers and apply theme to a single axes."""
+    from plotten.themes._elements import ElementLine, merge_line
+
+    _apply_panel_background(ax, theme)
+    grid_minor_x, grid_minor_y = _apply_grid(ax, theme)
+
+    base_line = theme.line
+
+    # Resolve axis line element properties — inherit from theme.line
+    resolved_axis_line = merge_line(
+        theme.axis_line_element if isinstance(theme.axis_line_element, ElementLine) else None,
+        base_line,
+    )
+    line_width = theme.axis_line_width
+    line_color = None
+    if isinstance(resolved_axis_line, ElementLine):
+        if resolved_axis_line.size is not None:
+            line_width = resolved_axis_line.size
+        line_color = resolved_axis_line.color
+
+    _apply_spines(ax, theme, line_width, line_color)
+    _apply_panel_border(ax, theme)
+    _apply_tick_params(ax, theme, base_line, line_width, grid_minor_x, grid_minor_y)
+
+    if ax.name == "polar":
+        _apply_polar_theme(ax, theme)
+
+    _draw_layers(ax, panel, resolved, theme)
     _apply_axis_title_theme(ax, theme)
 
 
