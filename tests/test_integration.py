@@ -377,7 +377,7 @@ class TestMarimoMime:
     def test_plot_mime(self):
         df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point()
-        content, mimetype = p._mime_()
+        mimetype, content = p._mime_()
         assert mimetype == "text/html"
         assert isinstance(content, str)
         # Should be Vega-Lite HTML
@@ -386,7 +386,7 @@ class TestMarimoMime:
     def test_plot_mime_fallback(self):
         """Marimo _mime_ returns PNG data-URI when VL fails."""
         p = ggplot()  # no data
-        content, mimetype = p._mime_()
+        mimetype, content = p._mime_()
         assert mimetype == "text/html"
         assert isinstance(content, str)
         # Either VL HTML or PNG data-URI fallback
@@ -396,7 +396,7 @@ class TestMarimoMime:
         df = pd.DataFrame({"x": [1, 2, 3], "y": [3, 1, 2]})
         p = ggplot(df, aes(x="x", y="y")) + geom_point()
         grid = p | p
-        content, mimetype = grid._mime_()
+        mimetype, content = grid._mime_()
         assert mimetype == "text/html"
         assert "data:image/png;base64," in content
 

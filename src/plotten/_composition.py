@@ -183,7 +183,7 @@ class PlotGrid:
 
         png_bytes = self._repr_png_()
         data_uri = base64.b64encode(png_bytes).decode("ascii")
-        return (f'<img src="data:image/png;base64,{data_uri}" />', "text/html")
+        return ("text/html", f'<img src="data:image/png;base64,{data_uri}" />')
 
 
 def plot_annotation(**kwargs: Any) -> PlotAnnotation:

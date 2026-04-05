@@ -254,7 +254,7 @@ class Plot:
     def _mime_(self) -> tuple[str, str]:
         """Marimo reactive notebook display protocol.
 
-        Returns ``(html_string, "text/html")`` for interactive Vega-Lite
+        Returns ``("text/html", html_string)`` for interactive Vega-Lite
         rendering, or a PNG data-URI fallback.
         """
         import base64
@@ -262,7 +262,7 @@ class Plot:
         try:
             from plotten._vegalite import to_html
 
-            return (to_html(self), "text/html")
+            return ("text/html", to_html(self))
         except ImportError:
             png_bytes = self._repr_png_()
         except Exception:
@@ -274,7 +274,7 @@ class Plot:
             png_bytes = self._repr_png_()
 
         data_uri = base64.b64encode(png_bytes).decode("ascii")
-        return (f'<img src="data:image/png;base64,{data_uri}" />', "text/html")
+        return ("text/html", f'<img src="data:image/png;base64,{data_uri}" />')
 
 
 def ggplot(data: Any = None, mapping: Aes | None = None) -> Plot:
