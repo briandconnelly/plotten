@@ -540,6 +540,53 @@ class TestThemeUpdate:
         assert current.label_size == 16
 
 
+class TestThemeUse:
+    @pytest.fixture(autouse=True)
+    def _reset_global_theme(self):
+        theme_set(Theme())
+        yield
+        theme_set(Theme())
+
+    def test_sets_theme_inside_block(self):
+        from plotten import theme_use
+
+        with theme_use(theme_dark()):
+            assert theme_get().background == "#2d2d2d"
+
+    def test_restores_theme_after_block(self):
+        from plotten import theme_use
+
+        original = theme_get()
+        with theme_use(theme_dark()):
+            pass
+        assert theme_get() == original
+
+    def test_restores_on_exception(self):
+        from plotten import theme_use
+
+        original = theme_get()
+        with pytest.raises(RuntimeError), theme_use(theme_dark()):
+            raise RuntimeError("boom")
+        assert theme_get() == original
+
+    def test_yields_the_theme(self):
+        from plotten import theme_use
+
+        dark = theme_dark()
+        with theme_use(dark) as t:
+            assert t is dark
+
+    def test_nesting(self):
+        from plotten import theme_use
+
+        original = theme_get()
+        with theme_use(theme_dark()):
+            with theme_use(theme_minimal()):
+                assert theme_get().panel_background == "none"
+            assert theme_get().background == "#2d2d2d"
+        assert theme_get() == original
+
+
 class TestThemeGrey:
     def test_theme_grey_exists(self):
         t = theme_grey()
@@ -2970,3 +3017,91 @@ class TestStripMiscFields:
         # spacing is a multiplier applied at render time, not stored as derived
         assert t.spacing == 0.5
         assert t.panel_spacing == 0.1
+
+
+class TestThemeDiff:
+    def test_identical_themes_empty(self):
+        from plotten.themes import theme_diff
+
+        assert theme_diff(Theme(), Theme()) == []
+
+    def test_detects_scalar_difference(self):
+        from plotten.themes import theme_diff
+
+        a = Theme(base_size=12)
+        b = Theme(base_size=16)
+        diffs = theme_diff(a, b)
+        field_names = [d.field for d in diffs]
+        assert "base_size" in field_names
+        entry = next(d for d in diffs if d.field == "base_size")
+        assert entry.a == 12
+        assert entry.b == 16
+
+    def test_detects_element_difference(self):
+        from plotten.themes import theme_diff
+
+        a = Theme(axis_title=ElementText(size=14))
+        b = Theme(axis_title=ElementText(size=18))
+        diffs = theme_diff(a, b)
+        assert any(d.field == "axis_title" for d in diffs)
+
+    def test_builtin_themes_differ(self):
+        from plotten.themes import theme_diff
+
+        diffs = theme_diff(theme_minimal(), theme_dark())
+        assert len(diffs) > 0
+        field_names = [d.field for d in diffs]
+        assert "background" in field_names
+
+    def test_entry_repr(self):
+        from plotten.themes import ThemeDiffEntry
+
+        e = ThemeDiffEntry(field="background", a="#fff", b="#000")
+        r = repr(e)
+        assert "background" in r
+        assert "#fff" in r
+        assert "#000" in r
+
+    def test_declaration_order(self):
+        from plotten.themes import theme_diff
+
+        a = Theme(background="#fff", font_family="serif")
+        b = Theme(background="#000", font_family="monospace")
+        diffs = theme_diff(a, b)
+        field_names = [d.field for d in diffs]
+        # font_family is declared before background in Theme? No — let's just
+        # verify order matches dataclass field order
+        from dataclasses import fields as dc_fields
+
+        all_fields = [f.name for f in dc_fields(Theme)]
+        indices = [all_fields.index(n) for n in field_names]
+        assert indices == sorted(indices)
+
+
+class TestThemePreview:
+    def test_returns_plot(self):
+        from plotten import Plot
+        from plotten.themes import theme_preview
+
+        p = theme_preview(Theme())
+        assert isinstance(p, Plot)
+
+    def test_renders_default(self):
+        from plotten.themes import theme_preview
+
+        fig = render(theme_preview(Theme()))
+        assert fig is not None
+
+    def test_renders_builtin_themes(self):
+        from plotten.themes import theme_preview
+
+        for factory in [theme_dark, theme_minimal, theme_classic, theme_bw]:
+            fig = render(theme_preview(factory()))
+            assert fig is not None
+
+    def test_has_facets(self):
+        from plotten.themes import theme_preview
+
+        fig = render(theme_preview(Theme()))
+        # 2 facet panels + 1 for the legend
+        assert len(fig.axes) >= 2

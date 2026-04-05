@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import contextlib
 import difflib
 from dataclasses import MISSING, dataclass, field, fields
 from typing import TYPE_CHECKING, Any, Self
+
+if TYPE_CHECKING:
+    from collections.abc import Generator
 
 from plotten._enums import LegendPosition
 
@@ -463,3 +467,86 @@ def theme_update(**kwargs: Any) -> Theme:
     global _global_theme
     _global_theme = _global_theme + theme(**kwargs)
     return _global_theme
+
+
+@contextlib.contextmanager
+def theme_use(temporary_theme: Theme) -> Generator[Theme]:
+    """Temporarily set the global theme, restoring it on exit.
+
+    Parameters
+    ----------
+    temporary_theme : Theme
+        The theme to use inside the ``with`` block.
+
+    Yields
+    ------
+    Theme
+        The *temporary_theme* that was set.
+
+    Examples
+    --------
+    >>> from plotten import Theme, theme_use, theme_get, theme_minimal
+    >>> with theme_use(theme_minimal()):
+    ...     print(theme_get().panel_background)
+    none
+    """
+    old = theme_set(temporary_theme)
+    try:
+        yield temporary_theme
+    finally:
+        theme_set(old)
+
+
+@dataclass(frozen=True, slots=True)
+class ThemeDiffEntry:
+    """A single field that differs between two themes.
+
+    Attributes
+    ----------
+    field : str
+        The theme field name.
+    a : Any
+        Value in the first theme.
+    b : Any
+        Value in the second theme.
+    """
+
+    field: str
+    a: Any
+    b: Any
+
+    def __repr__(self) -> str:
+        return f"ThemeDiffEntry({self.field!r}, a={self.a!r}, b={self.b!r})"
+
+
+def theme_diff(a: Theme, b: Theme) -> list[ThemeDiffEntry]:
+    """Compare two themes and return a list of differing fields.
+
+    Parameters
+    ----------
+    a : Theme
+        The first theme.
+    b : Theme
+        The second theme.
+
+    Returns
+    -------
+    list of ThemeDiffEntry
+        One entry per field that differs, in declaration order.
+
+    Examples
+    --------
+    >>> from plotten import Theme, theme_minimal, theme_dark
+    >>> diffs = theme_diff(theme_minimal(), theme_dark())
+    >>> for d in diffs[:3]:
+    ...     print(d.field, d.a, d.b)  # doctest: +SKIP
+    background #ffffff #2d2d2d
+    ...
+    """
+    result: list[ThemeDiffEntry] = []
+    for f in fields(Theme):
+        val_a = getattr(a, f.name)
+        val_b = getattr(b, f.name)
+        if val_a != val_b:
+            result.append(ThemeDiffEntry(field=f.name, a=val_a, b=val_b))
+    return result

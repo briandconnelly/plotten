@@ -29,7 +29,18 @@ from plotten.themes._elements import (
     margin,
     rel,
 )
-from plotten.themes._theme import Theme, theme, theme_get, theme_set, theme_update
+from plotten.themes._preview import theme_preview
+from plotten.themes._theme import (
+    Theme,
+    ThemeDiffEntry,
+    theme,
+    theme_diff,
+    theme_get,
+    theme_set,
+    theme_update,
+    theme_use,
+)
+from plotten.themes._toml import theme_from_toml, theme_to_toml
 
 __all__ = [
     "ElementBlank",
@@ -39,6 +50,7 @@ __all__ = [
     "Margin",
     "Rel",
     "Theme",
+    "ThemeDiffEntry",
     "element_blank",
     "element_line",
     "element_rect",
@@ -51,17 +63,22 @@ __all__ = [
     "theme_classic",
     "theme_dark",
     "theme_default",
+    "theme_diff",
     "theme_economist",
+    "theme_from_toml",
     "theme_get",
     "theme_gray",
     "theme_grey",
     "theme_light",
     "theme_linedraw",
     "theme_minimal",
+    "theme_preview",
     "theme_seaborn",
     "theme_set",
     "theme_test",
+    "theme_to_toml",
     "theme_tufte",
     "theme_update",
+    "theme_use",
     "theme_void",
 ]
