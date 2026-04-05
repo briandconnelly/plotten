@@ -185,6 +185,23 @@ class PlotGrid:
         data_uri = base64.b64encode(png_bytes).decode("ascii")
         return ("text/html", f'<img src="data:image/png;base64,{data_uri}" />')
 
+    def _display_(self) -> Any:
+        """Marimo display hook (highest precedence).
+
+        Returns a ``marimo.Html`` wrapping a PNG data-URI, or falls back
+        to the matplotlib figure which marimo can display natively.
+        """
+        try:
+            import marimo as mo  # type: ignore[unresolved-import]
+        except ImportError:
+            return None
+
+        import base64
+
+        png_bytes = self._repr_png_()
+        data_uri = base64.b64encode(png_bytes).decode("ascii")
+        return mo.Html(f'<img src="data:image/png;base64,{data_uri}" />')
+
 
 def plot_annotation(**kwargs: Any) -> PlotAnnotation:
     """Create a PlotAnnotation."""

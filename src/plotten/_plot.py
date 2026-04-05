@@ -276,6 +276,26 @@ class Plot:
         data_uri = base64.b64encode(png_bytes).decode("ascii")
         return ("text/html", f'<img src="data:image/png;base64,{data_uri}" />')
 
+    def _display_(self) -> Any:
+        """Marimo display hook (highest precedence).
+
+        Returns a ``marimo.Html`` object for rich rendering, or falls back
+        to the matplotlib figure which marimo can display natively.
+        """
+        try:
+            import marimo as mo  # type: ignore[unresolved-import]
+        except ImportError:
+            return None
+
+        html = self._repr_html_()
+        if html is not None:
+            return mo.Html(html)
+
+        # Fall back to matplotlib figure (marimo renders these natively)
+        from plotten._render._mpl import render
+
+        return render(self)
+
 
 def ggplot(data: Any = None, mapping: Aes | None = None) -> Plot:
     """Create a new plot.
